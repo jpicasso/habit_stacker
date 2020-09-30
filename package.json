@@ -1,0 +1,17 @@
+{
+  "name": "penn_state",
+  "version": "1.0.0",
+  "description": "Static templates for West Arete / Penn State app",
+  "main": "./js/index.js",
+  "dependencies": {
+    "browser-sync": "^2.26.7",
+    "gulp": "^4.0.2",
+    "gulp-sass": "^4.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bryce Kirk",
+  "license": "ISC"
+}
