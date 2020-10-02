@@ -1,5 +1,5 @@
 // Import Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Roboto+Slab&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;700&display=swap');
 
 // Import Bootstrap variable overrides
 @import 'variables-override';
@@ -26,15 +26,148 @@
 /**
 ** Navigation
 **/
+.sidebar {
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  padding: 1rem 0;
+  
+  @include media-breakpoint-up(md) {
+    padding: 4rem 0 0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+  }
 
+  ul {
+    li {
+      a {
+        cursor: pointer;
+        position: relative;
+        font-size: $font-size-sm;
 
+        &.active {
+          color: $primary;
+
+          &.has-children::after {
+            border-color: $primary transparent transparent;
+          }
+        }
+
+        &.has-children { // Accordion triangle
+          padding-right: 2rem;
+
+          &::after {
+            transition: 0.15s ease-in-out all;
+            display: block;
+            width: 0;
+            height: 0;
+            border: inset 6px;
+            content: '';
+            border-bottom-width: 0;
+            border-top-style: solid;
+            border-color: $gray-800 transparent transparent;
+            position: absolute;
+            top: 50%;
+            margin-top: -3px;
+            right: 1rem;
+          }
+          &:not(.collapsed)::after {
+            transform: rotate(180deg);
+            transform-origin: 50% 50%;
+          }
+        }
+      }
+
+      ul { // Expanded lists
+        padding-left: 0;
+        margin-left: 1.5rem;
+        list-style-type: none;
+
+        li {
+          width: 100%;
+
+          a {
+            color: $gray-800;
+            text-decoration: none;
+            display: inline-block;
+            padding: 0.5rem 0;
+          }
+        }
+      }
+    }
+  }
+}
+.sidebar-sticky {
+  @include media-breakpoint-up(md) {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto; 
+  }
+}
+
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
 
 /**
 ** Custom Components
 **/
+.main {
+  padding: 63px 0 0;
+}
 
+.q-and-a {
+  &__wrapper {
+    padding: 1.5rem;
+    background: $gray-100;
+    
+    &:not(:last-of-type) {
+      margin-bottom: 1rem;
+    }
+  }
+}
 
 
 /**
 ** Extended Bootstrap Components
 **/
+.navbar {
+  z-index: 101;
+  &-brand {
+    font-weight: $font-weight-bold;
+    font-family: $headings-font-family;
+  }
+}
+
+.navbar-brand {
+  h1 {
+    margin: 0 !important;
+    font-size: $navbar-brand-font-size;
+  }
+}
+
+.nav-tabs {
+  justify-content: space-between;
+
+  @include media-breakpoint-down(sm) {
+    li {
+      width: 100%;
+    }
+  }
+}
+
+.embed-responsive {
+  max-width: 800px;
+  margin: 1.5rem 0;
+
+  @include media-breakpoint-up(md) {
+    margin: 3rem 0;
+  }
+}
