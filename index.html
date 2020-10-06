@@ -24,20 +24,64 @@
             <a class="nav-link" href="#">Courses <span class="sr-only">(current)</span></a>
           </li>
         </ul>
-        <form class="form-inline">
-          <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <form class="form-inline search">
+          <input class="form-control mr-sm-2 input input--narrow" type="search" placeholder="Search" aria-label="Search">
           <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Search</button>
         </form>
       </div>
     </nav>
     <!-- /.navbar -->
-    <main>
+
+    <main id="main">
       <div class="container-fluid">
         <div class="row">
 
           <!-- .sidebar -->
           <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
+
+              <div class="megamenu">
+                <ul class="megamenu__list">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link megamenu__toggle">Coding 101</a>
+                  </li>
+                </ul>
+
+                <div class="megamenu__menu">
+                  <div class="container-fluid">
+                    <div class="row">
+                      <div class="col-md-6 col-lg-4 megamenu__menu-col">
+                        <h4>Coding</h4>
+                        <ul class="nav flex-column ">
+                          <li class="nav-item active"><a href="#" class="nav-link">Coding 101</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Coding 102</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Coding 103</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Coding 104</a></li>
+                        </ul>
+                      </div>
+                      <div class="col-md-6 col-lg-4 megamenu__menu-col">
+                        <h4>Finance</h4>
+                        <ul class="nav flex-column">
+                          <li class="nav-item"><a href="#" class="nav-link">Finance 101</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Finance 102</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Finance 103</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Finance 104</a></li>
+                        </ul>
+                      </div>
+                      <div class="col-md-6 col-lg-4 megamenu__menu-col">
+                        <h4>Personal Investing</h4>
+                        <ul class="nav flex-column">
+                          <li class="nav-item"><a href="#" class="nav-link">Personal Investing 101</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Personal Investing 102</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Personal Investing 103</a></li>
+                          <li class="nav-item"><a href="#" class="nav-link">Personal Investing 104</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <ul class="accordion nav flex-column" id="sidebarAccordion">
                 <li class="nav-item" id="intro">
                   <a class="nav-link has-children active collapsed" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
@@ -117,6 +161,7 @@
                 </nav>
                 <h2>Welcome to the basics</h2>
                 <h3>To start us off</h3>
+                <h4>Three levels of headers</h4>
                 <p>
                   Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
                 </p>
@@ -186,9 +231,11 @@
       
         </div>
       </div>
+      
     </main>
 
     <script src="js/jquery-3.5.1.slim.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/scripts.js"></script>
   </body>
 </html>
