@@ -134,13 +134,13 @@
             <!-- .nav-tabs -->
             <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
               <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes" aria-selected="true">Classes</a>
+                <a class="nav-link" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes">Classes</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link" id="slides-tab" data-toggle="tab" href="#slides" role="tab" aria-controls="slides">Slides</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link" id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects">Projects</a>
+                <a class="nav-link active" id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" aria-selected="true">Projects</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link" id="cheat-sheets-tab" data-toggle="tab" href="#cheat-sheets" role="tab" aria-controls="cheat-sheets">Cheat Sheets</a>
@@ -151,7 +151,7 @@
             <!-- .tab-content -->
             <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
               <!-- #classes -->
-              <div class="tab-pane fade show active" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+              <div class="tab-pane fade" id="classes" role="tabpanel" aria-labelledby="classes-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
@@ -159,8 +159,8 @@
                     <li class="breadcrumb-item active" aria-current="page">Classes</li>
                   </ol>
                 </nav>
-                <h2>Welcome to the basics</h2>
-                <h3>To start us off</h3>
+                <h2>0.2 The Basics</h2>
+                <h3>Welcome to the basics</h3>
                 <h4>Three levels of headers</h4>
                 <p>
                   Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
@@ -216,9 +216,45 @@
               <!-- /#slides -->
 
 
-              <div class="tab-pane fade" id="projects" role="tabpanel" aria-labelledby="projects-tab">
-                <h2>Projects</h2>
-              </div>
+              <div class="tab-pane fade show active" id="projects" role="tabpanel" aria-labelledby="projects-tab">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                    <li class="breadcrumb-item"><a href="#">0.2 Intro: The Basics</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Projects</li>
+                  </ol>
+                </nav>
+                <h2>0.2 The Basics</h2>
+                <h3>This lesson's project</h3>
+                <h4>Build an HTML page with your name</h4>
+                <p>
+                  Cras mattis consectetur purus sit amet fermentum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam id dolor id nibh ultricies vehicula ut id elit. Vestibulum id ligula porta felis euismod semper. Donec sed odio dui. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nulla vitae elit libero, a pharetra augue.
+                </p>
+                <p>
+                  Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur.
+                </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>My First Website</title>
+  </head>
+  <body>
+
+  <header>
+    <h1>Hello, my name is John</h1>
+  </header>
+
+  <section>
+    <p>This is my first website!</p>
+  </section>
+
+  </body>
+</html></script>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Vestibulum id ligula porta felis euismod semper.
+                </p>
+                </div>
               <div class="tab-pane fade" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
                 <h2>Cheat Sheets</h2>
               </div>
@@ -234,6 +270,7 @@
       
     </main>
 
+    <script src="js/prism.min.js"></script>
     <script src="js/jquery-3.5.1.slim.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/scripts.js"></script>

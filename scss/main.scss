@@ -7,6 +7,9 @@
 // Import Bootstrap components
 @import 'bootstrap-loader';
 
+// Import Prism CSS (for code highlighting)
+@import 'vendor/prism';
+
 /**
 ** Common
 **/
@@ -172,11 +175,12 @@
         
         &.show {
           background: $gray-900;
+
+          &::after {
+            transform: rotate(180deg);
+            transform-origin: 50% 50%;
+          }
         }
-        // &:not(.collapsed)::after {
-        //   transform: rotate(180deg);
-        //   transform-origin: 50% 50%;
-        // }
       }
     }
   }
@@ -220,6 +224,15 @@
   &__menu-col {
     margin-top: 2rem;
   }
+}
+
+.code {
+  background: $gray-900; 
+  color: $white;
+  border: none; 
+  resize: none; 
+  outline: none; 
+  width: 100%;
 }
 
 /**
@@ -266,4 +279,35 @@
     font-size: $font-size-sm;
     height: 37px;
   }
+}
+pre {
+  background: $gray-900; 
+}
+
+
+/**
+** Prism JS overrides
+**/
+
+.code-toolbar {
+  margin-bottom: 1rem;
+}
+
+div.code-toolbar>.toolbar {
+  top: 0.75rem;
+  right: 1rem;
+}
+div.code-toolbar>.toolbar a, div.code-toolbar>.toolbar button, div.code-toolbar>.toolbar span {
+  color: white;
+  padding: 0.15rem 0.5rem 0.25rem;
+  transition: 0.1s ease-in-out all;
+}
+
+div.code-toolbar>.toolbar a:hover, div.code-toolbar>.toolbar a:focus, div.code-toolbar>.toolbar button:hover, div.code-toolbar>.toolbar button:focus, div.code-toolbar>.toolbar span:hover, div.code-toolbar>.toolbar span:focus {
+  color: white;
+  background: $gray-900;
+}
+
+div.code-toolbar>.toolbar a:hover, div.code-toolbar>.toolbar a:focus, div.code-toolbar>.toolbar button:hover, div.code-toolbar>.toolbar button:focus, div.code-toolbar>.toolbar span:hover, div.code-toolbar>.toolbar span:focus {
+  outline: 0;
 }
