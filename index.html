@@ -140,10 +140,10 @@
                 <a class="nav-link" id="slides-tab" data-toggle="tab" href="#slides" role="tab" aria-controls="slides">Slides</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" aria-selected="true">Projects</a>
+                <a class="nav-link " id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" >Projects</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link" id="cheat-sheets-tab" data-toggle="tab" href="#cheat-sheets" role="tab" aria-controls="cheat-sheets">Cheat Sheets</a>
+                <a class="nav-link active" id="cheat-sheets-tab" data-toggle="tab" href="#cheat-sheets" role="tab" aria-controls="cheat-sheets" aria-selected="true">Cheat Sheets</a>
               </li>
             </ul>
             <!-- /.nav-tabs -->
@@ -154,8 +154,8 @@
               <div class="tab-pane fade" id="classes" role="tabpanel" aria-labelledby="classes-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Courses</a></li>
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item"><a href="#">0.2 Intro: The Basics</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Classes</li>
                   </ol>
                 </nav>
@@ -202,8 +202,8 @@
               <div class="tab-pane fade" id="slides" role="tabpanel" aria-labelledby="slides-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Courses</a></li>
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item"><a href="#">0.2 Intro: The Basics</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Slides</li>
                   </ol>
                 </nav>
@@ -216,11 +216,11 @@
               <!-- /#slides -->
 
 
-              <div class="tab-pane fade show active" id="projects" role="tabpanel" aria-labelledby="projects-tab">
+              <div class="tab-pane fade" id="projects" role="tabpanel" aria-labelledby="projects-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Courses</a></li>
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item"><a href="#">0.2 Intro: The Basics</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Projects</li>
                   </ol>
                 </nav>
@@ -255,10 +255,46 @@
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Vestibulum id ligula porta felis euismod semper.
                 </p>
                 </div>
-              <div class="tab-pane fade" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+              <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
                 <h2>Cheat Sheets</h2>
+                <h3>Basic HTML page template</h3>
+                <p>
+                  Maecenas sed diam eget risus varius blandit sit amet non magna. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Sed posuere consectetur est at lobortis. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
+                </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>My First Website</title>
+  </head>
+  <body>
+
+  <header>
+    <h1>Hello, my name is John</h1>
+  </header>
+
+  <section class="section">
+    <p>This is my first website!</p>
+  </section>
+
+  </body>
+</html></script>
+                <h3 class="mt-3">CSS structure</h3>
+                <p>
+                  Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Curabitur blandit tempus porttitor. Nullam id dolor id nibh ultricies vehicula ut id elit. Etiam porta sem malesuada magna mollis euismod.
+                </p>
+<script type="text/plain" class="language-css">body {
+  padding: 20px; /* adds space around the page */
+  background: red; /* changes the background to red */
+  color: white; /* changes text color to white */
+}</script>
+                <h3 class="mt-3">Javascript basics</h3>
+                <p>
+                  Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Aenean lacinia bibendum nulla sed consectetur. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Aenean lacinia bibendum nulla sed consectetur.
+                </p>
+<script type="text/plain" class="language-javascript">let section = document.querySelector('.section')[0]; // Create a variable from the HTML element with the class "section"
+section.style.backgroundColor = green; // Change the background of section to green;</script>
               </div>
-              <!-- <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div> -->
             </div>
             <!-- /.tab-content -->
 
