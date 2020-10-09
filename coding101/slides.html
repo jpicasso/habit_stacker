@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="/css/main.css">
     <title>UpriseU</title>
   </head>
 
@@ -84,12 +84,12 @@
 
               <ul class="accordion nav flex-column" id="sidebarAccordion">
                 <li class="nav-item" id="intro">
-                  <a class="nav-link has-children" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="true" aria-controls="collapseIntro">
+                  <a class="nav-link has-children active collapsed" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
                     0. Intro <span class="sr-only">(current)</span>
                   </a>
-                  <ul id="collapseIntro" class="collapse show" aria-labelledby="intro" data-parent="#sidebarAccordion">
+                  <ul id="collapseIntro" class="collapse" aria-labelledby="intro" data-parent="#sidebarAccordion">
                     <li><a href="#">0.1 Introduction</a></li>
-                    <li><a href="#" class="">0.2 The Basics</a></li>
+                    <li><a href="#" class="active">0.2 The Basics</a></li>
                     <li><a href="#">0.3 Setting Up Your IDE</a></li>
                   </ul>
                 </li>
@@ -134,10 +134,10 @@
             <!-- .nav-tabs -->
             <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
               <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes"  aria-selected="true">Classes</a>
+                <a class="nav-link" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes" >Classes</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link" id="slides-tab" data-toggle="tab" href="#slides" role="tab" aria-controls="slides">Slides</a>
+                <a class="nav-link active" id="slides-tab" data-toggle="tab" href="#slides" role="tab" aria-controls="slides" aria-selected="true">Slides</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link " id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" >Projects</a>
@@ -150,58 +150,24 @@
 
             <!-- .tab-content -->
             <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
-              <!-- #classes -->
-              <div class="tab-pane fade active show" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+
+              <!-- #slides -->
+              <div class="tab-pane fade active show" id="slides" role="tabpanel" aria-labelledby="slides-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#">Courses</a></li>
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Classes</li>
+                    <li class="breadcrumb-item active" aria-current="page">Slides</li>
                   </ol>
                 </nav>
-                <header class="subsection">
-                  <h2>Coding 101: Intro</h2>
-                  <h3>0.1 Introduction</h3>
-                </header>
-                <h4>Welcome to the course!</h4>
-                <p>
-                  Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
-                </p>
+                <h2>0.2 The Basics</h2>
+                <h3>What is HTML and CSS?</h3>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe class="embed-responsive-item" width="560" height="315" src="https://www.youtube.com/embed/wrdR5Su_Stg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                  <iframe src="//www.slideshare.net/slideshow/embed_code/key/FCV1DdnctV9ndN" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/distro/html-css-masterclass" title="HTML &amp; CSS Masterclass" target="_blank">HTML &amp; CSS Masterclass</a> </strong> from <strong><a href="https://www.slideshare.net/distro" target="_blank">Bernardo Raposo</a></strong> </div>
                 </div>
-                <p>
-                  Nullam quis risus eget urna mollis ornare vel eu leo. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Donec ullamcorper nulla non metus auctor fringilla.
-                </p>
-
-                <h4 class="mt-3">Q&amp;A</h3>
-                
-                <!-- .q-and-a -->
-                <dl class="q-and-a">
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                </dl>
-                <!-- /.q-and-a -->
-
               </div>
-              <!-- /#classes -->
-
+              <!-- /#slides -->
+              
             </div>
             <!-- /.tab-content -->
 
@@ -213,9 +179,9 @@
       
     </main>
 
-    <script src="js/prism.min.js"></script>
-    <script src="js/jquery-3.5.1.slim.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/scripts.js"></script>
+    <script src="/js/prism.min.js"></script>
+    <script src="/js/jquery-3.5.1.slim.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="/css/main.css">
     <title>UpriseU</title>
   </head>
 
@@ -84,12 +84,12 @@
 
               <ul class="accordion nav flex-column" id="sidebarAccordion">
                 <li class="nav-item" id="intro">
-                  <a class="nav-link has-children" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="true" aria-controls="collapseIntro">
+                  <a class="nav-link has-children active collapsed" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
                     0. Intro <span class="sr-only">(current)</span>
                   </a>
-                  <ul id="collapseIntro" class="collapse show" aria-labelledby="intro" data-parent="#sidebarAccordion">
+                  <ul id="collapseIntro" class="collapse" aria-labelledby="intro" data-parent="#sidebarAccordion">
                     <li><a href="#">0.1 Introduction</a></li>
-                    <li><a href="#" class="">0.2 The Basics</a></li>
+                    <li><a href="#" class="active">0.2 The Basics</a></li>
                     <li><a href="#">0.3 Setting Up Your IDE</a></li>
                   </ul>
                 </li>
@@ -134,13 +134,13 @@
             <!-- .nav-tabs -->
             <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
               <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes"  aria-selected="true">Classes</a>
+                <a class="nav-link" id="classes-tab" data-toggle="tab" href="#classes" role="tab" aria-controls="classes" >Classes</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link" id="slides-tab" data-toggle="tab" href="#slides" role="tab" aria-controls="slides">Slides</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link " id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" >Projects</a>
+                <a class="nav-link active" id="projects-tab" data-toggle="tab" href="#projects" role="tab" aria-controls="projects" aria-selected="true">Projects</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link" id="cheat-sheets-tab" data-toggle="tab" href="#cheat-sheets" role="tab" aria-controls="cheat-sheets">Cheat Sheets</a>
@@ -150,58 +150,45 @@
 
             <!-- .tab-content -->
             <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
-              <!-- #classes -->
-              <div class="tab-pane fade active show" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+              <div class="tab-pane fade active show" id="projects" role="tabpanel" aria-labelledby="projects-tab">
                 <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#">Courses</a></li>
                     <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Classes</li>
+                    <li class="breadcrumb-item active" aria-current="page">Projects</li>
                   </ol>
                 </nav>
-                <header class="subsection">
-                  <h2>Coding 101: Intro</h2>
-                  <h3>0.1 Introduction</h3>
-                </header>
-                <h4>Welcome to the course!</h4>
+                <h2>0.2 The Basics</h2>
+                <h3>This lesson's project</h3>
+                <h4>Build an HTML page with your name</h4>
                 <p>
-                  Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
+                  Cras mattis consectetur purus sit amet fermentum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam id dolor id nibh ultricies vehicula ut id elit. Vestibulum id ligula porta felis euismod semper. Donec sed odio dui. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nulla vitae elit libero, a pharetra augue.
                 </p>
-                <div class="embed-responsive embed-responsive-16by9">
-                  <iframe class="embed-responsive-item" width="560" height="315" src="https://www.youtube.com/embed/wrdR5Su_Stg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
                 <p>
-                  Nullam quis risus eget urna mollis ornare vel eu leo. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Donec ullamcorper nulla non metus auctor fringilla.
+                  Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur.
                 </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>My First Website</title>
+  </head>
+  <body>
 
-                <h4 class="mt-3">Q&amp;A</h3>
-                
-                <!-- .q-and-a -->
-                <dl class="q-and-a">
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                  <div class="q-and-a__wrapper">
-                    <dt><h5>Q: Curabitur blandit tempus porttitor?</h5></dt>
-                    <dd>
-                      A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-                    </dd>
-                  </div>
-                </dl>
-                <!-- /.q-and-a -->
+  <header>
+    <h1>Hello, my name is John</h1>
+  </header>
 
+  <section>
+    <p>This is my first website!</p>
+  </section>
+
+  </body>
+</html></script>  
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Vestibulum id ligula porta felis euismod semper.
+                </p>
               </div>
-              <!-- /#classes -->
-
             </div>
             <!-- /.tab-content -->
 
@@ -213,9 +200,9 @@
       
     </main>
 
-    <script src="js/prism.min.js"></script>
-    <script src="js/jquery-3.5.1.slim.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/scripts.js"></script>
+    <script src="/js/prism.min.js"></script>
+    <script src="/js/jquery-3.5.1.slim.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
   </body>
 </html>

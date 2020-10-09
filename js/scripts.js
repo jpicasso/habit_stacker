@@ -20,6 +20,7 @@ window.addEventListener('scroll', () => {
   document.documentElement.style.setProperty('--scroll-y', window.scrollY);
 });
 
+// Save scroll when mega menu opens
 const saveScroll = () => {
   const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
   const body = document.body;
@@ -27,6 +28,7 @@ const saveScroll = () => {
   body.style.top = `-${scrollY}px`;
 }
 
+// Return scroll when mega menu closes
 const returnScroll = () => {
   const body = document.body;
   const scrollY = body.style.top.split('px')[0];
@@ -37,3 +39,9 @@ const returnScroll = () => {
     window.scrollTo(0, (scrollY * -1))
   }, 0.1)
 }
+
+// Tab links
+$('#classes-tab').click(() => {window.location.href = '/index.html'})
+$('#slides-tab').click(() => {window.location.href = '/coding101/slides.html'})
+$('#projects-tab').click(() => {window.location.href = '/coding101/projects.html'})
+$('#cheat-sheets-tab').click(() => {window.location.href = '/coding101/cheat-sheets.html'})

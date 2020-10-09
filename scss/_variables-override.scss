@@ -6,11 +6,8 @@ $black: #444;
 $blue: #136bfb;
 $mid-blue: #095498;
 $dark-blue: #1E407C;
-$light-green: #DDFFDD;
 $red: #DE5D51;
-$light_red: #FFEEEE;
 $orange: #F88223;
-$secondary: $orange;
 
 // Fonts
 $font-family-sans-serif: "Open Sans", "Helvetica Neue", Arial, sans-serif;
@@ -21,13 +18,12 @@ $font-size-sm: 13px;
 $link-color: $mid-blue;
 $body-color: $gray-800;
 $pre-color: $gray-100;
+$headings-font-weight: 700;
+$h3-font-size: 1.75rem;
+$h4-font-size: 1.35rem;
+$h5-font-size: 1.1rem;
 
 
-// $font-weight-bolder: 700;
-$headings-font-weight: 600;
-$h3-font-size: 1.5rem;
-$h4-font-size: 1rem;
-$h5-font-size: 0.7rem;
 $spacer: 1rem !default;
 $spacers: () !default;
 $spacers: map-merge(
