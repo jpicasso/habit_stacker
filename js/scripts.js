@@ -2,7 +2,7 @@
 $('.search button').click((e) => alert(`User typed ${$(e.target).prev().val()}`))
 
 // Mega menu
-$(document).on('click', '.megamenu__toggle', (e) => {
+$(document).on('click', '.megamenu__toggle', e => {
   let menu = $('.megamenu__menu'),
       body = $('body');
 
@@ -40,8 +40,40 @@ const returnScroll = () => {
   }, 0.1)
 }
 
-// Tab links
-$('#classes-tab').click(() => {window.location.href = '/index.html'})
-$('#slides-tab').click(() => {window.location.href = '/coding101/slides.html'})
-$('#projects-tab').click(() => {window.location.href = '/coding101/projects.html'})
-$('#cheat-sheets-tab').click(() => {window.location.href = '/coding101/cheat-sheets.html'})
+// Active sidebar nav (https://css-tricks.com/sticky-smooth-active-nav/)
+let mainNavLinks = document.querySelectorAll('.accordion ul li a');
+let mainSections = document.querySelectorAll('.subsection');
+let accTitles = $('.accordion .nav-link');
+let lastId;
+let cur = [];
+
+window.addEventListener('scroll', event => {
+  let fromTop = window.scrollY;
+  accTitles.removeClass('active');
+
+  mainNavLinks.forEach(link => {
+    let section = document.querySelector(link.hash);
+
+    if (section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
+      link.classList.add('active');
+
+      // Add and open parent accordion
+      let accParent = $(link).parents('.collapse')
+      accParent.prev().addClass('active');
+      accParent.collapse('show');
+
+    } else {
+      link.classList.remove('active');
+    }
+  });
+});
+
+// Smooth scroll
+$('.accordion ul li a').on('click', e => { 
+  e.preventDefault();
+  let sub = $(e.target).attr('href');
+
+  $('html, body').animate({
+    scrollTop: $(sub).offset().top - 75
+  }, 500);
+});
