@@ -35,6 +35,7 @@ const returnScroll = () => {
   body.style.position = '';
   body.style.top = '';
 
+  // Need a timer here or else it doesn't work ¯\_(ツ)_/¯
   window.setTimeout(() => {
     window.scrollTo(0, (scrollY * -1))
   }, 0.1)
@@ -72,8 +73,13 @@ window.addEventListener('scroll', event => {
 $('.accordion ul li a').on('click', e => { 
   e.preventDefault();
   let sub = $(e.target).attr('href');
-
+  
   $('html, body').animate({
-    scrollTop: $(sub).offset().top - 75
+    scrollTop: $(sub).offset().top
   }, 500);
+
+  let parentAcc = $(e.target).parents('.collapse');
+  parentAcc.on('shown.bs.collapse', () => {
+    parentAcc.prev().addClass('active')
+  })
 });

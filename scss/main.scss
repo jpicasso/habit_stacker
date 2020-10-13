@@ -70,6 +70,7 @@
         cursor: pointer;
         position: relative;
         font-size: $font-size-sm;
+        transition: 0.1s ease-in-out color;
 
         &.active {
           color: $primary;
@@ -255,6 +256,7 @@
 
 .subsection {
   padding-bottom: 4rem;
+
   &__header {
     padding: 1rem;
     background-color: $gray-600;
