@@ -78,6 +78,7 @@ $('.accordion ul li a').on('click', e => {
     scrollTop: $(sub).offset().top
   }, 500);
 
+  // Active class on accordion parent after opening event finishes (shown.bs.collapse)
   let parentAcc = $(e.target).parents('.collapse');
   parentAcc.on('shown.bs.collapse', () => {
     parentAcc.prev().addClass('active')
