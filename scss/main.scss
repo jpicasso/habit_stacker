@@ -232,10 +232,8 @@
 }
 
 .section {
-  &:not(:first-of-type) {
-    margin-top: 4rem;
-  }
-
+  max-width: 800px;
+  
   &__header {
     padding: 1rem;
     background-color: $blue;
