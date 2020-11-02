@@ -87,39 +87,46 @@
                   <a class="nav-link has-children active collapsed" data-toggle="collapse" data-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
                     0. Intro <span class="sr-only">(current)</span>
                   </a>
-                  <ul id="collapseIntro" class="collapse" aria-labelledby="intro" data-parent="#sidebarAccordion">
-                    <li><a href="#">0.1 Introduction</a></li>
-                    <li><a href="#" class="active">0.2 The Basics</a></li>
-                    <li><a href="#">0.3 Setting Up Your IDE</a></li>
-                  </ul>
                 </li>
                 <li class="nav-item" id="quickStart">
-                  <a class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseQuickStart" aria-expanded="false" aria-controls="collapseQuickStart">
+                  <a href="#code101.L1-projects" class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseQuickStart" aria-expanded="false" aria-controls="collapseQuickStart">
                     1. Coding Quick Start
                   </a>
                   <ul id="collapseQuickStart" class="collapse" aria-labelledby="quickStart" data-parent="#sidebarAccordion">
-                    <li><a href="#">1.1 HTML</a></li>
-                    <li><a href="#">1.2 CSS</a></li>
-                    <li><a href="#">1.3 Javascript</a></li>
+                    <li><a href="#code101-L1-1-projects">1.1 Hello World</a></li>
+                    <li><a href="#code101-L1-2-projects">1.2 Greet User</a></li>
+                    <li><a href="#code101-L1-3-projects">1.3 Tip Calculator</a></li>
+                    <li><a href="#code101-L1-4-projects">1.4 ID Checker</a></li>
+                    <li><a href="#code101-L1-5-projects">1.5 Multiplication Quiz</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item" id="programingOverview">
+                  <a href="code101.L2-projects" class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseProgramingOverview" aria-expanded="false" aria-controls="collapseProgramingOverview">
+                    2. Programming Overview with Javascript
+                  </a>
+                  <ul id="collapseProgramingOverview" class="collapse" aria-labelledby="programingOverview" data-parent="#sidebarAccordion">
+                    <li><a href="#code101-L2-1-projects">2.1 Lottery App</a></li>
+                    <li><a href="#code101-L2-2-projects">2.2 Multiplication Quiz</a></li>
+                    <li><a href="#code101-L2-3-projects">2.3 Number Memorizer</a></li>
+                    <li><a href="#code101-L2-4-projects">2.4 Grocery List</a></li>
+                    <li><a href="#code101-L2-5-projects">2.5 Friend Facts</a></li>
+                    <li><a href="#code101-L2-6-projects">2.6 Dice Game </a></li>
+                    <li><a href="#code101-L2-7-projects">2.7 Celebrity Greeting </a></li>
+                    <li><a href="#code101-L2-8-projects">2.8 Celebrity Trivia </a></li>
                   </ul>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">
-                    2. Programming with Javascript
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link">
+                  <a href="#code101.L3-projects" class="nav-link">
                     3. Your First Website (HTML/CSS)
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">
+                  <a href="#code101.L4-projects" class="nav-link">
                     4. JQuery
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link">
+                  <a href="#code101.L5-projects" class="nav-link">
                     5. Capstone
                   </a>
                 </li>
@@ -158,36 +165,482 @@
                     <li class="breadcrumb-item active" aria-current="page">Projects</li>
                   </ol>
                 </nav>
-                <h2>0.2 The Basics</h2>
-                <h3>This lesson's project</h3>
-                <h4>Build an HTML page with your name</h4>
-                <p>
-                  Cras mattis consectetur purus sit amet fermentum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam id dolor id nibh ultricies vehicula ut id elit. Vestibulum id ligula porta felis euismod semper. Donec sed odio dui. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nulla vitae elit libero, a pharetra augue.
-                </p>
-                <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur.
-                </p>
-<script type="text/plain" class="language-markup"><!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>My First Website</title>
-  </head>
-  <body>
 
-  <header>
-    <h1>Hello, my name is John</h1>
-  </header>
+                <p id="coding101-projects-1"></p>
+                <!------------------------------------------------------------------------------------- -->
+                <!-----------------------------------------------  Coding 101.1 - Coding Quickstart     -->
+                <!------------------------------------------------------------------------------------- -->
+                <article class="section">
+                  <header class="section__header">
+                    <h2> 1. Coding Quick Start</h2>
+                  </header>
 
-  <section>
-    <p>This is my first website!</p>
-  </section>
+                  <section class="section__subsection subsection" id="introduction-01">
+                    <header class="subsection__header">
+                      <h3>Project Answers</h3>
+                    </header>
+<p id="code101-L1-1-projects"></p><br><br><br> 
+<h2>1.1 Hello World</h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><script src=index.js> <'/'script>
+</script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">alert('Hello World');
+</script>
 
-  </body>
-</html></script>  
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Vestibulum id ligula porta felis euismod semper.
-                </p>
+<p id="code101-L1-2-projects"></p><br><br><br> 
+<h2>1.2 Greet User</h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">var name = prompt('What is your name?');
+alert('It is great to meet you ' + name);
+</script>
+
+<p id="code101-L1-3-projects"></p><br><br><br> 
+<h2>1.3 Tip Calculator </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">var check_amount = parseInt(prompt('How much is your bill?'));
+var tip_percent = parseInt(prompt('What percent tip would you like to add?', 'just enter the number; no % symbol needed'));
+var tip = check_amount * tip_percent / 100;
+alert('your tip is ' + tip);
+var total = tip + check_amount;
+alert('your total bill is ' +  total);
+</script>
+
+<p id="code101-L1-3-projects"></p><br><br><br> 
+<h2>1.4 ID Checker </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">var year = parseInt(prompt('what year were you born?'));
+var age = 2020 - year;
+if (age >= 21) {
+    alert('you can drink!');
+} else {
+    alert('you can not drink :(' );
+}
+</script>
+
+<p id="code101-L1-5-projects"></p><br><br><br> 
+<h2>1.5 Multiplication Quiz </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// returns a random number between 1 and 100
+var x = Math.floor(Math.random() * 100) + 1;
+// returns a random number between 10 and 100 that is a multiple of 10
+var y = 10 * (Math.floor(Math.random() * 10) + 1);
+
+// run game
+var response = parseInt(prompt('What is ' + x + ' multiplied by ' + y + '?'));
+if (response == x * y) {
+    alert('you got it right');
+} else {
+    alert('you got it wrong');
+}  
+</script>
+</section>
+</article>
+
+
+                <!-----------------------------------------------  /Coding 101.1 - Coding Quickstart   -->
+
+                <p id="code101.L2-projects"></p><br><br>
+                <!------------------------------------------------------------------------------------- -->
+                <!-----------------------------------------------  Coding 101.2 - Programming Overview  -->
+                <!------------------------------------------------------------------------------------- -->
+                <article class="section">
+                  <header class="section__header">
+                    <h2> 2. Programming Overview </h2>
+                  </header>
+
+                  <section class="section__subsection subsection" id="introduction-01">
+                    <header class="subsection__header">
+                      <h2>Project Answers</h2>
+                    </header>
+
+<p id="code101-L2-1-projects"></p><br><br><br> 
+<h2>2.1 Lottery App</h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// 2.1. Lottery App (for loop)
+// User picks 4 numbers, 7 numbers are all called ranging from 1-100; Numbers can be used multiple times
+//  if user gets 1 number right they win $5, 2 gets $25, 3 gets $525, and 4 gets $275,625
+
+
+// ***************************************************************************************************************************************************************************
+
+// get the 7 winning lottery numbers
+var lottery_nums =[];
+for (x = 1; x <= 7; x++) {
+    lottery_nums.push(Math.floor(Math.random() * 100) + 1);
+}
+
+// use a counter variable to keep track of number of correct picks
+var num_correct = 0;
+
+// get user picks one at a time 
+for (x = 1; x <= 4; x++) {
+    var pick = prompt('pick lottery number ' + x + ' out of 4 picks; number should be between 1 and 100');
+    // for each pick, check to see if the lottery pick was right; if it was right, increase score counter
+    for (y = 0; y <= 6; y++) {
+        if (lottery_nums[y] == pick) {
+            num_correct ++;
+        } 
+    }
+}
+
+// print the winnings and correct numbers
+alert('you got ' + num_correct + ' winning numbers; you win $' + 5**(2**(num_correct-1)) + '!!');
+alert('the correct numbers were:' + lottery_nums);
+  
+</script>
+
+<p id="code101-L2-2-projects"></p><br><br><br> 
+<h2>2.2 Multiplication Quiz </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">//  Multiplication Quiz 3.0 
+
+// Create a math quiz that asks the user to multiply two random numbers together
+// If the user gets the right answer, then alert the user that they got it right, otherwise alert them that they got it wrong
+// Make the first random number an integer between 1 and 100 and the second random number an integer between 10 and 100 that is a multiple of 10!
+// User continues to play game until they get one wrong
+// Program then tells user number that they got correct
+
+// ***************************************************************************************************************************************************************************
+
+// global variables
+var still_playing = true;
+var score = 0;
+
+// while loop runs game until user gets one wrong
+while (still_playing == true) {
+    // returns a random number between 1 and 100
+    x = Math.floor(Math.random() * 100) + 1
+    // returns a random number between 10 and 100 that is a multiple of 10
+    y = 10 * (Math.floor(Math.random() * 10) + 1)
+      
+    // give user two numbers and get their response
+    var response = parseInt(prompt('What is ' + x + ' multiplied by ' + y + '?'));
+
+    // if response is correct, increase their score; otherwise end game
+    if (response == x * y) {
+        score += 1;
+    } else {
+        still_playing = false;
+    }
+}
+
+// once game is over, tell user how many they got correct
+alert('you got ' + score + ' correct');
+
+
+</script>
+
+<p id="code101-L2-3-projects"></p><br><br><br> 
+<h2>2.3 Number Memorizer </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// 2.3. # Memorizer 
+
+// User is given a random 4 digit number
+// they must memorize it, press ok, and then re-enter it
+// if user gets it right, user plays again with 5 digits, then 6, then 7...
+// ...until user gets one wrong 
+
+// ***************************************************************************************************************************************************************************
+
+
+// set up global variables
+var still_playing = true;
+var x = 4;
+
+// have user continue to play until game ends
+while (still_playing == true) {  
+    // when x is 4, want to get a random number between 1000 and 9999; this is complicated
+    var new_num = Math.floor((Math.random() * (10**x-10**(x-1)) + 10**(x-1)));
+    
+    // tell user number and then get their response
+    alert('memorize this number: ' + new_num);
+    var answer = prompt('type in the number');
+    // check if answer is correct; if right, increasee # of digits, if wrong end game
+    if (new_num == answer) {
+        alert('that was correct! Good job! That was ' + x + ' digits!!');
+    } else {
+        alert('that was wrong; the number was ' + new_num);
+        still_playing = false;
+    }
+    x++;
+}
+</script>
+
+<p id="code101-L2-4-projects"></p><br><br><br> 
+<h2>2.4 Grocery List </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript"><!DOCTYPE html></script>
+
+<p id="code101-L2-5-projects"></p><br><br><br> 
+<h2>2.5 Friend Facts </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// 2.5. Friend Facts (dictionary)
+// User is asked what is their friends name, favorite cake type, and birthday, hometown. 
+// Then user can type in what they want to know about their friend or enter finish.
+
+// ***************************************************************************************************************************************************************************
+
+var still_playing = true;
+var friend = {'name':'', 'cake':'','birthday':'', 'hometown':''};
+friend['name'] = prompt('what is your friends name: ');
+friend['cake'] = prompt('what is your friends favorite cake: ');
+friend['birthday'] = prompt('what is your friends birthday: ');
+friend['hometown'] = prompt('what is your friends hometown: ');
+
+while (still_playing == true) {
+    var choice = prompt("would you like to know " + friend['name'] + "'s favorite cake, birthday, or hometown?" + 
+    "Type cake, birthday or hometown. Type 'done' if you are finished.");
+    if (choice == 'done'){
+        still_playing = false;
+    } else {
+        alert(friend[choice]);
+    }
+    
+}
+</script>
+
+<p id="code101-L2-6-projects"></p><br><br><br> 
+<h2>2.6 Dice Game </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// global variables
+var still_playing = true;
+var dice1 = 1;
+var dice2 = 1;
+var chips = 100;
+var bet = 0;
+var total = 0;
+
+// roll dice
+function roll_dice(){
+    dice1 = Math.floor(Math.random()*6 + 1);
+    dice2 = Math.floor(Math.random()*6 + 1);
+    total = dice1 + dice2;
+    alert('dice 1 was ' + dice1 + '; dice 2 was ' + dice2 + ' total was '+total);
+}
+
+// take user bet
+function take_bet(){
+    bet = parseInt(prompt('How much would you like to bet? You have $'+chips));
+    if (bet> chips){
+        alert("you dont have that much money");
+        take_bet();
+    }
+}
+
+// run game
+while (still_playing){
+    take_bet();
+    roll_dice();
+    if (total == 7){
+        chips = chips + bet;
+        alert('you won! you now have $' +chips);
+    } else {
+        chips = chips - bet;
+        alert('you lost! you now have $' +chips);
+    }
+    if (chips <=0) {
+        alert('you are out of money. We will give you one more chance because we like you. If you roll a 12 we will give you $10');
+        roll_dice();
+        if (total == 12) {
+            alert('you won $10');
+            chips = chips + 10;
+        } else {
+            alert('you lost!');
+            still_playing = false;
+        }
+    } else {
+        var response = prompt("type 'y' if you want to play again. otherwise type 'n'");
+        if (response == 'n') {
+            still_playing = false;
+        }
+    }
+}
+</script>
+
+<p id="code101-L2-7-projects"></p><br><br><br> 
+<h2>2.7 Celebrity Game </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// Project 2.6 - Celebrity Greeting
+
+// Create a object constructor called MovieStar 
+// MovieStars should take name, birthday, top grossing movie, and spouse
+// The object should have a greeting, that greets the user
+// Greeting should tell user what celebrity's name is and highest grossing moving
+// ***************************************************************************************************************************************************************************
+
+
+// this creates a new Object Constructor called MovieStar
+function MovieStar(name, birthday, top_movie, spouse){
+    this.name = name;
+    this.birthday = birthday;
+    this.top_movie = top_movie;
+    this.spouse = spouse;
+    this.greeting = function(){
+        alert('hi, my name is ' + this.name + '. I am a big star. Have you seen ' + this.top_movie + '? it was great!')
+    }
+}
+
+// create a new object called tom_cruise using the MovieStar Constructor
+var tom_cruise = new MovieStar('Tom Cruise', 'July 3, 1962', 'Mission Impossible: Ghost Protocol', 'single');
+
+// have tom cruise greet the user
+tom_cruise.greeting();
+</script>
+
+<p id="code101-L2-8-projects"></p><br><br><br> 
+<h2>2.8 Celebrity Trivia </h2>
+<p> HTML file: </p>
+<script type="text/plain" class="language-markup"><!DOCTYPE html></script>
+<p> JS file: </p>
+<script type="text/plain" class="language-javascript">// 2.8. Celebrity trivia
+
+// This is similar to the Friends Fact project except you will have 3 celebrities that are already populated with information 
+// Create a “MovieStar” object to store each celebrities data 
+// Put each stars into a single list
+// User is asked 3 random questions  about the celebrity
+// ***************************************************************************************************************************************************************************
+
+
+// this creates a new class called MovieStar
+function MovieStar(name, birthday, top_movie, spouse){
+    this.name = name;
+    this.birthday = birthday;
+    this.top_movie = top_movie;
+    this.spouse = spouse;
+}
+
+// create movie star data
+var star_list = [];
+var tom_cruise = new MovieStar('Tom Cruise', 'July 3, 1962', 'Mission Impossible: Ghost Protocol ($695M)', 'single');
+star_list.push(tom_cruise);
+
+var dwayne_johnson = new MovieStar('Dwayne Johnson', 'May 2, 1972', 'Furious 7 ($1,500M)', 'Lauren Hashian');
+star_list.push(dwayne_johnson);
+
+var scarlett_johansson = new MovieStar('Scarlett Johansson', 'November 22, 1984', 'Avengers: End Game ($858M)', 'single');
+star_list.push(scarlett_johansson);
+
+
+// set up game play
+var round_num = 1;
+var score = 0;
+
+while (round_num <= 3 ) {
+    // random numbers between 0 and 2; x will be used for the celebrity; y will be used for the question asked
+    x = Math.floor(Math.random() * 3);
+    y = Math.floor(Math.random() * 3);
+
+    if (y == 0){
+        var response = prompt("What is " + star_list[x].name + "'s birthday? Enter month then the day followed by a comma and the year");
+        if (response == star_list[x].birthday){
+            score ++;
+            alert('that was correct!');
+        } else {
+            alert('that was incorrect! The correct answer was ' + star_list[x].birthday);
+        }
+    } else if (y == 1) {
+        var response = prompt("What is " + star_list[x].name + "'s top grossing movie? Enter movie name and dollar in following format "+
+        "'Gone with the Wind ($1,810M)'");
+        if (response == star_list[x].top_movie){
+            score ++;
+            alert('that was correct!');
+        } else {
+            alert('that was incorrect! The correct answer was ' + star_list[x].top_movie);
+        }
+    } else {
+        var response = prompt("What is " + star_list[x].name + "'s current spouse? Enter 'single' if they don't have one");
+        if (response == star_list[x].spouse){
+            score ++;
+            alert('that was correct!');
+        } else {
+            alert('that was incorrect! The correct answer was ' + star_list[x].spouse);
+        }
+    }
+    round_num ++;
+}
+
+alert('you got ' +score + ' out of 3 correct');
+
+</script>
+                  </section>
+                </article>
+                <!-----------------------------------------------  /Coding 101.2 - Programming Overview  -->
+                
+                <p id="code101-L1-3-projects"></p><br><br><br> 
+                <!------------------------------------------------------------------------------------- -->
+                <!-----------------------------------------------  Coding 101.3 - Your First Website    -->
+                <!------------------------------------------------------------------------------------- -->
+                <article class="section">
+                  <header class="section__header">
+                    <h2> 3. Your First Website (HTML/CSS) </h2>
+                  </header>
+
+                  <section class="section__subsection subsection" id="introduction-03">
+                    <header class="subsection__header">
+                      <h2>Project Answers</h2>
+                    </header>
+                  </section>
+                </article>
+                <!-----------------------------------------------  /Coding 101.3 - Your First Website  -->
+
+                <p id="code101-L1-4-projects"></p><br><br><br> 
+                <!------------------------------------------------------------------------------------- -->
+                <!-----------------------------------------------  Coding 101.4 - JQuery    -->
+                <!------------------------------------------------------------------------------------- -->
+                <article class="section">
+                  <header class="section__header">
+                    <h2> 4. JQuery </h2>
+                  </header>
+
+                  <section class="section__subsection subsection" id="introduction-04">
+                    <header class="subsection__header">
+                      <h2>Project Answers</h2>
+                    </header>
+                  </section>
+                </article>
+                <!-----------------------------------------------  /Coding 101.4 - JQuery  -->
+                
+                <p id="code101-L1-5-projects"></p><br><br><br> 
+                <!------------------------------------------------------------------------------------- -->
+                <!-----------------------------------------------  Coding 101.5 - JQuery    -->
+                <!------------------------------------------------------------------------------------- -->
+                <article class="section">
+                  <header class="section__header">
+                    <h2> 5. Capstone </h2>
+                  </header>
+
+                  <section class="section__subsection subsection" id="introduction-05">
+                    <header class="subsection__header">
+                      <h2>Project Answers</h2>
+                    </header>
+                  </section>
+                </article>
+                <!-----------------------------------------------  /Coding 101.5 - JQuery  -->
+                
+                
               </div>
             </div>
             <!-- /.tab-content -->
