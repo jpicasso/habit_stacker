@@ -255,6 +255,28 @@
 .subsection {
   padding-bottom: 4rem;
 
+  &--cheat-sheets {
+    pre {
+      padding: 0.25em 0.75em;
+    }
+
+    p, code {
+      font-size: $font-size-sm;
+    }
+
+    p {
+      margin-bottom: 0.15rem;
+    }
+
+    h5 {
+      margin-top: 1.5rem;
+    }
+
+    .code-toolbar {
+      margin-bottom: 0.15rem;
+    }
+  }
+
   &__header {
     padding: 1rem;
     background-color: $gray-600;

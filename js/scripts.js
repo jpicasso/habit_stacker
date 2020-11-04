@@ -55,16 +55,18 @@ window.addEventListener('scroll', event => {
   mainNavLinks.forEach(link => {
     let section = document.querySelector(link.hash);
 
-    if (section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
-      link.classList.add('active');
-
-      // Add and open parent accordion
-      let accParent = $(link).parents('.collapse')
-      accParent.prev().addClass('active');
-      accParent.collapse('show');
-
-    } else {
-      link.classList.remove('active');
+    if (section !== null) {
+      if (section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
+        link.classList.add('active');
+  
+        // Add and open parent accordion
+        let accParent = $(link).parents('.collapse')
+        accParent.prev().addClass('active');
+        accParent.collapse('show');
+  
+      } else {
+        link.classList.remove('active');
+      }
     }
   });
 });
