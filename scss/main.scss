@@ -19,10 +19,73 @@
 ** Typography
 **/
 
+/**
+** Cheat Sheet Format
+**/
+
+
+.cheat-sheet h2,.cheat-sheet h3,.cheat-sheet h4, .cheat-sheet h5, .cheat-sheet h6 { 
+  font-size: 1rem; 
+  font-family: Arial, Helvetica, sans-serif;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin:0;
+
+}
+
+.cheat-sheet p, .cheat-sheet table{
+  display: inline;
+}
+
+.cheat-sheet td {
+  width: 400px;
+}
+
+.cheat-sheet .g{
+  color: green;
+}
+.cheat-sheet .p{
+  color: purple;
+}
+.cheat-sheet h2 {
+  background-color: #136bfb;
+  color: white;
+  padding: 2px 4px;
+}
+.cheat-sheet h3 {
+  padding-left: 1%;
+  background-color: #979ea5;
+  color: white;
+}
+.cheat-sheet h4 {
+  padding-left: 2%;
+  font-weight: 400;
+}
+.cheat-sheet h5 {
+  padding-left:5%;
+  font-weight: 400;
+}
+.cheat-sheet h6 {
+  padding-left: 8%;
+  font-weight: 400;
+}
+
+.cheat-sheet h4:before {content:"- ";}
+  
+.cheat-sheet h5:before {content:"○ ";}
+
+.cheat-sheet h6:before {content:"• ";}
+
+.cheat-sheet h4:first-line {text-indent: -1%;}
+.cheat-sheet h5:first-line {text-indent: -1%;}
+.cheat-sheet h6:first-line {text-indent: -1%;}
+
+
 
 /**
 ** Utility Classes
 **/
+
 
 .triangle {
   transition: 0.15s ease-in-out all;
@@ -253,11 +316,11 @@
 }
 
 .subsection {
-  padding-bottom: 4rem;
+  padding-bottom: 0.2rem;
 
   &--cheat-sheets {
     pre {
-      padding: 0.25em 0.75em;
+      padding: 0.01em 0.75em;
     }
 
     p, code {
@@ -265,15 +328,15 @@
     }
 
     p {
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.01rem;
     }
 
     h5 {
-      margin-top: 1.5rem;
+      margin-top: 0.01rem;
     }
 
     .code-toolbar {
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.01rem;
     }
   }
 

@@ -178,358 +178,241 @@
                 </ol>
               </nav>
               <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
-                
-                <!------------------------------------------------------------------------------------- -->
-                <!-------------------------------------------------  Coding 101.1 - Coding Quick Start  -->
-                <!------------------------------------------------------------------------------------- -->
-                <p id="code101-L1-1-cheat"></p><br><br><br> 
-                <article class="section">
-                  <header class="section__header mb-3">
-                    <h2>Coding 101: Lesson 1 - Coding Quickstart</h2>
-                  </header>
-                
-                  <section class="section__subsection subsection subsection--cheat-sheets">
-                    <h5> See appendix for installing and running MS Visual Studio Code, Google Chrome</h5>
-                    <h5> JavaScript and Chrome Inspector Tool </h5>
-                    <p>Open inspector tool </p>
-                    <ol> 
-                      <li> Open up Google Chrome</li>
-                      <li> Right click on page, then click on inspector</li>
-                      <li> Click on console button</li>
-                    </ol>
-                    <p>Run JavaScript in the inspector tool --> Press return </p>		
-                    <p>	Go to next line of code without running script --> Shift + return </p> 
-
-                    <h5> User input / output </h5>  
-                    <p> Message user with an alert </p>
-                    <script type="text/plain" class="language-javascript">alert(‘Hello World!’);	</script>
-                    <p> Get user input and store it in a variable called “name” </p>
-                    <script type="text/plain" class="language-javascript">var name = prompt(‘what is your name’); </script>
-                    <p> User variable in user message </p>
-                    <script type="text/plain" class="language-javascript">alert(‘Hello’ + name + ‘, it is great to meet you!’);</script>
-
-                    <h5> Calculator and variables </h5>
-                    <p> Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line! </p>
-                    <script type="text/plain" class="language-javascript">2*3; </script>
-                    <p> Use variables to store data; You must “var” before the variable the first time you declare but not afterwards; This returns 8 </p>
-                    <script type="text/plain" class="language-javascript">var x = 3; </script>
-                    <script type="text/plain" class="language-javascript">x = 4; </script>
-                    <script type="text/plain" class="language-javascript">var y = 2; </script>
-                    <script type="text/plain" class="language-javascript">x * y; 	// this will result in 8 </script>
-
-                    <h5> Parsing user data </h5>
-                    <p> If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it with “Parsing” </p> 
-                    <script type="text/plain" class="language-javascript">parseInt(prompt(‘what year were you born?’)); </script>
-
-                    <h5> If then else statements </h5>
-                    <p> These creates basic logic in your program </p>
-                    <p> Your program reads if something is true then do some tasks, else, if it is not true, do some other tasks </p>
-                    <p> Note that each line that is doing something has a semicolon after but not the lines with the if or else </p>
-                    <p> Also note that you don’t actually have to write out “then”, you simply use the curly brackets before and after the block of code that you want to run when the statement is true </p>
-<script type="text/plain" class="language-javascript"> var age = prompt(‘how old are you?’); 
-if (age >= 21) {
-  alert(‘you can drink!’);
-} else {
-  alert(‘you can not drink’);
-}
-</script>
-
-                    <h5> Comments: </h5>
-                    <p> you can write comments in your code that are ignored by the computer; Typically you write pseudo code as comments; You can also comment out lines of code to help debug it </p>
-                    <script type="text/plain" class="language-javascript">// this is a JavaScript comment </script>
-
-                    <h5> Random number generator </h5>
-                    <p> Math.random() returns a random number between 0 and 1</p>
-                    <p> Math.floor() returns the largest integer less than or equal to a given number </p>
-                    <p> Combining them, then multiplying the random number by 10, and then adding 1 will get you a random between 1 and 10 </p>
-                    <script type="text/plain" class="language-javascript">Math.floor(Math.random()* 10) + 1 </script>
-
-                    <h5> Running JavaScript Programs locally </h5> 
-                    <p> 1) Create a HTML file and a JavaScript file</p>
-                    <ul>
-                      <li>index.js</li>
-                      <li> playground.html </li>
-                    </ul>
-                    <p> 2) Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your HTML code</p>
-                    <script type="text/plain" class="language-javascript"><script src=index.js> </script>
-                    <p> 3) Write you code in JavaScript file </p>
-                    <script type="text/plain" class="language-javascript">alert(‘Hello World’); </script>
-                    <p> 4) Go to the html file and open it with Google chrome </p>
-                    <p> Always make sure to save all files before running program </p>
-                    <p> Note, to open file in Chrome, you should be able to just double click the file or right click the file and then click “open with” and then google chrome </p>
-                  </section>
-                </article>
-                <!--------------------------------------------------------------------- /Coding 101.1   -->
-                
-                <!------------------------------------------------------------------------------------- -->
-                <!-------------------------------  Coding 101.2 - Programming Overview with JavaScript  -->
-                <!------------------------------------------------------------------------------------- -->
-                <p id="code101-L2-1-cheat"></p><br><br><br> 
-                <article class="section">
-                  <header class="section__header">
-                    <h2>Lesson 2 - Programming Overview with JS</h2>
-                  </header>
-                  <section class="section__subsection subsection subsection--cheat-sheets">
-                    <header class="subsection__header">
-                      <h3> 2.1.	Basics <h3>
-                    </header>
-                    <h4>	Scripts:  </h4>
-                    <h5> series of instructions computer can follow one-by-one </h5>
-                    <p>	Languages include JavaScript and Python and others</p>
-                    <p>	A very simple script could asks a user for their birthday and check if they are old enough to drink </p>
-                    <h4>	Pseudo code: </h4>
-                    </p> this is just plain English describing what your code will do. This is very helpful to outline a new coding project. Example: </p>
-<script type="text/plain" class="language-javascript"> // Function – Check customers IDs
-    // Count number of customers in line
-    // Until you have checked all customers, check each id
-// Function – Check ID
-    // If user is under 21, they can’t drink, otherwise they can
-</script>
-<h5>	Communication: </h5>
-<script type="text/plain" class="language-javascript">alert(‘hello’)				 // send user message </script>
-<script type="text/plain" class="language-javascript">prompt(‘enter info’)		// get input from user </script>
-<script type="text/plain" class="language-javascript">console.log(‘test’)			// good for debugging; sends message to console </script>
-</h5>	Other </h5>
-<script type="text/plain" class="language-javascript">parseInt()				// turn string into number </script>
-<script type="text/plain" class="language-javascript">.Math.floor(Math.random()* 10) + 1	// random # between 1 and 10 </script>
-</section>
-
-<p id="code101-L2-2-cheat"></p><br><br><br> 
-<section class="section__subsection subsection subsection--cheat-sheets">
-<header class="subsection__header">
-  <h2>Coding 101.2: Programming Overview</h2>
-  <h3> 2.2.	Expressions and operators: </h3>
-</header>
-</h5> these are built in functions of most programming languages that act like calculators of the program </h5>
-<script type="text/plain" class="language-javascript">var color = ‘white’;		// assignment operator </script>
-<script type="text/plain" class="language-javascript">var weight = 30*15;		// arithmetic operators; declares and sets weight to 450 </script>
-<script type="text/plain" class="language-javascript">greeting = ‘Hi’ + ‘John’;	// string operator; sets greeting equal to ‘Hi John’ </script>
-<script type="text/plain" class="language-javascript">buy = 3 > 5		// comparison operator…buy=false </script>
-<script type="text/plain" class="language-javascript">buy = (5>3) && (2>4);	// logical operators; and statement; buy = false </script>
-<script type="text/plain" class="language-javascript">buy = (5>3) || (2>4);		// logical operators; or statement; buy = true </script>
-<script type="text/plain" class="language-javascript">i++;			// adds one to current number </script>
-<script type="text/plain" class="language-javascript">x = x +5;			// adds 5 to the value of x; if x was 12, then this would set x to 17 </script>
-<script type="text/plain" class="language-javascript">i--;			// subtracts one from current number </script>
-<script type="text/plain" class="language-javascript">8 % 5;			// returns the remainder of 3 </script>
-<script type="text/plain" class="language-javascript">2**4;			// exponent of 2^4, which equals 16 </script>
-</section>
-
-<p id="code101-L2-3-cheat"></p><br><br><br>
-<section class="section__subsection subsection subsection--cheat-sheets">
-<header class="subsection__header">
-  <h2>Coding 101.2: Programming Overview</h2>
-  <h3> 2.3.	If then for loops </h3>
-</header> 
-<p>	Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be smarter than a simple calculator or database. </p>
-</p>	If (true) then…else if (true)…else…: If then functions allow computers to make decisions (sort of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript: </p>
-<script type="text/plain" class="language-javascript">if (today - user_birthday > 21 ) {
-    print(‘you can drink’); 
-} else if (user_birthday <=0) {
-    print(‘not a valid ID’);
-} else {
-    print(‘you can’t drink);
-} </script>
-<h5> For (true) loops: </h5>
-<p> allow you to repeat certain functions while something is true. For example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus signs (ugh), you could use write belowJS function </p>
-<script type="text/plain" class="language-javascript">var sum = 0; 
-for (x=1 x <= 100; x++) {
-  sum = sum + x;
-}	
-alert(sum);			// this will show the number 5050</script>
-
-<h5>	While (true) do… </h5>
-<p> this function will continue to run until the statement is false. Enclosed in the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run infinitiy times if the statement is always true so be careful not to accidentially create an “infinite loop”! </p>
-<script type="text/plain" class="language-javascript">while (still_playing == true) {
-   play_game();
-} </script>
-<h5>	Switch case…</h5>
-<p> this is a short hand way of writing out multiple if then statements; example syntax </p>
-<script type="text/plain" class="language-javascript">switch (response) {
-    case: blue return ‘b’;
-    case: red return ‘r’;
-    case: yellow return ‘y’; } </script>
-</section>
-
-<p id="code101-L2-4-cheat"></p><br><br><br> 
-<section class="section__subsection subsection subsection--cheat-sheets">
-  <header class="subsection__header">
-    <h2>Coding 101.2: Programming Overview</h2>
-    <h3> 2.4.	Data types: </h3>
-</header>
-<h5> Strings: </h5>
-<p>letters, words, sentences…Note: To make quotes within quotes use either double quotes on the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes within single quotes. </p>
-<script type="text/plain" class="language-javascript">‘I am a string’ </script>
-<script type="text/plain" class="language-javascript">“I’m a string too” </script>
-<script type="text/plain" class="language-javascript">‘I’m a syntax error!!’ </script>
-<script type="text/plain" class="language-javascript">str.length;				// returns the number of characters in a string </script>
-<h5>	Floats: </h5> 
-  numbers (integers are used for whole numbers) </p>
-	3.13
-<h5> Boolean: </h5>
-<p> only has two values, true or false. Note that these are special words within JavaScript. <p>
-<h5>	Lists: </h5>
-<p>Simple lists of strings, or floats, or variables, etc. Lists items are ordered starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd at 2. Commonly used list methods include: push(), pop(), splice(), length, and indexOf(). </p>
-<script type="text/plain" class="language-javascript">var new_list = []; 			// declares a new list </script>
-<script type="text/plain" class="language-javascript">new_list = [2, 81, 52];			// sets new_list equal to a list containing three numbers: 2, 81, and 52 </script>
-<script type="text/plain" class="language-javascript">new_list[1];				// returns the number 81 </script>
-<script type="text/plain" class="language-javascript">new_list[1] = 82;			// changes the element in position 1 (i.e. 81) to the number 82 </script>
-<script type="text/plain" class="language-javascript">new_list.push(3);			// adds the number 3 to that list </script>
-<script type="text/plain" class="language-javascript">new_list.pop();			// removes and returns the last item from that list </script>
-<script type="text/plain" class="language-javascript">new_list.splice(1,2);			// starting at index position 1, removes two elements from list </script>
-<script type="text/plain" class="language-javascript">new_list = [‘apple’, ‘banana’, ‘orange’]	// creates a new list called groceries </script>
-<script type="text/plain" class="language-javascript">new_list.splice(1,0,’grapes’);		// adds grapes to left of index 1; i.e. [‘apple’, ‘grapes’, ‘banana’, ‘orange’] </script>
-<script type="text/plain" class="language-javascript">new_list.length;			// returns the number of elements in an array </script>
-<script type="text/plain" class="language-javascript">new_list.indexOf(‘banana’)		// searches array for apple </script>
-</h5>	Dictionary: </h5>
-<p> Includes a series of unordered key: value pairs. The key is used to describe an item and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute. Example: </p>
-<script type="text/plain" class="language-javascript">var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};
-  <script type="text/plain" class="language-javascript">var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13}; </script>
-    <script type="text/plain" class="language-javascript">my_hotel[‘address’]			// looks up the key ‘address’ and returns the value for that key, ‘111 main street’ </script>
-</section>
-
-<p id="code101-L2-5-cheat"></p><br><br><br>
-<section class="section__subsection subsection subsection--cheat-sheets">
-<header class="subsection__header">
-  <h2>Coding 101.2: Programming Overview</h2>
-  <h3> 2.5.	Functions </h3>
-</header> 
-<p> Functions are series of statements that have been grouped together and can be run whenever function is called </p>
-<p> Parameters are variables that you can pass to functions that they can perform actions on; Arguments are values of paramters </p>
-<p>	Declaring function is creating the function. Below is JS </p>
-<script type="text/plain" class="language-javascript">.function add_numbers(x,y) {
-	print(x+y);
-} </script>
-<p> Calling function will run code in function </p>
-<script type="text/plain" class="language-javascript">add_numbers(1,2);		// outputs 3 </script>
-<h5> Global variables vs local variables: </h5> 
-<p> If a variable is declared within a function, then it is a local variable that can only be used or accessed within that function. If a variable is declared outside a function, then it is a global variable and can be used or accessed anywhere. </p>
-</section>
-
-<p id="code101-L2-6-cheat"></p><br><br><br>
-<section class="section__subsection subsection subsection--cheat-sheets">
-<header class="subsection__header">
-<h2>Coding 101.2: Programming Overview</h2>
-<h3> 2.6.	Object oriented programming </h3>
-</header>
-<p> Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are built. </p>
-<h5>	Properties: </h5>
-<p> characteristics about object; have both “key” that describes property (e.g., address) and “value” (e.g., 111 main st) </p>
-<h5>	Events: </h5> 
-<p> These run programs when different events occur (e.g., hotel room booked, car breaks, button clicked) </p>
-<h5>	Methods: </h5>
-<p> Functions that are specifically built for each object (e.g., book_hotel_room(), find_room_price(), …) </p>
-<h5> Built-in Objects: </h5>
-<p> web browsers and application interfaces typically come with built in objects and methods that make it easier to create webpages or applications. </p>
-<h5>	Object / Class Constructor: </h5>
-</p> Declare a new class that you can use to construct objects </p>
-<script type="text/plain" class="language-javascript">function MovieStar(name, birthday) { 
-  this.name = name; 
-  this.birthday = birthday
-  this.greeting = function(){
-    alert(‘hi, my name is ‘ + this.name);
-  }
-} </script>
-<p>Create a new object using the class you created </p>
-<script type="text/plain" class="language-javascript">var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);
-<script type="text/plain" class="language-javascript">var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’) </script>
-<p> Recall or change values from the object </p>
-<script type="text/plain" class="language-javascript">tom_cruise.birthday;				// returns July 3, 1962 </script>
-<script type="text/plain" class="language-javascript">tom_cruise[“birthday”];				// returns July 3, 1962 </script>
-<script type="text/plain" class="language-javascript">tom_cruise.birthday  = ‘July 4, 1962’;		// changes value of birthday to July 4th </script>
-<script type="text/plain" class="language-javascript">tom_cruise.greeting();				// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’ </script>
-<h5> Create a list of objects </h5>
-<script type="text/plain" class="language-javascript">var star_list = [tom_cruise];		// adds tom_cruise object to star_list </script>
-<script type="text/plain" class="language-javascript">star_list.push(dwayne_johnson);		// adds dwayne_johnson object to star_list </script>
-<p> for… in loop can be used to loop through all of the key / value pairs in an object </p>
-<script type="text/plain" class="language-javascript">for (p in person) {
-  alert(p);
-} </script>
-</section>
-</article>
-
-                <!--------------------------------------------------------------------- /Coding 101.2   -->
               
-
-                <p id="coding101-3"></p><br><br><br>
                 <!------------------------------------------------------------------------------------- -->
-                <!--------------------------------------  Coding 101.3 - Your First Website (HTML/CSS)  -->
-                <!------------------------------------------------------------------------------------- -->
-                <h2> 3. Your First Website (HTML/CSS) </h2>
-                <h4>Fill in</h4>
-                <h5>Fill in</h5>
-                <p>Fill in</p>
-                <!--------------------------------------------------------------------- /Coding 101.3   -->
+                <!-------------------------------------------------  Cheat Sheet                        -->
+                <!------------------------------------------------------------------------------------- -->              
+                <div class="cheat-sheet">
 
-                <p id="coding101-4"></p><br><br><br>
-                <!------------------------------------------------------------------------------------- -->
-                <!-------------------------------------------------------------  Coding 101.4 - JQuery  -->
-                <!------------------------------------------------------------------------------------- -->
-                <h2> 4. JQuery </h2>
-                <h4>Fill in</h4>
-                <h5>Fill in</h5>
-                <p>Fill in</p>
-                <!--------------------------------------------------------------------- /Coding 101.4   -->
+                  <!-----------------------------------------------  Coding 101.1 - Coding Quick Start  -->
+                  <h2> 1.	Coding Quickstart! </h2> 
+                  <h4><strong>See appendix for installing and running MS Visual Studio Code, Google Chrome</strong></h4>
+                  <br>
+                  <h4><strong>JavaScript and Chrome Inspector Tool</strong></h4>
+                  <h5>Open inspector tool</h5>
+                  <h6>1) Open up Google Chrome</h6>
+                  <h6>2) Right click on page, then click on inspector</h6>
+                  <h6>3) Click on console button</h6>
+                  <h5>Run JavaScript in the inspector tool</h5>
+                  <h6>Press return</h6>
+                  <h5>Go to next line of code without running script </h5>
+                  <h6>Shift + Return</h6>
+                  <br>
+                  <h4><strong> User input / output </strong></h4>
+                  <h5>	Message user with an alert</h5>
+                  <h6 class="p">	alert(‘Hello World!’);</h6>
+                  <h5>	Get user input and store it in a variable called “name”</h5>
+                  <h6 class="p">	var name = prompt(‘what is your name’);</h6>
+                  <h5>	User variable in user message</h5>
+                  <h6 class="p">	alert(‘Hello’ + name + ‘, it is great to meet you!’);</h6>
+                  <br>
+                  <h4><strong>	Calculator and variables</strong></h4>
+                  <h5>	Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line!</h5>
+                  <h6 class="p">	2*3;</h6>
+                  <h5>	Use variables to store data; You must “var” before the variable the first time you declare but not afterwards; This returns 8</h5>
+                  <h6 class="p">	var x = 3;</h6>
+                  <h6 class="p">	x = 4; </h6>
+                  <h6 class="p">	var y = 2; </h6>
+                  <h6>	<p class="p"> x * y; </p>	<p class="g"> // this will result in 8 </p></h6>
+                  <br>
+                  <h4><strong>	Parsing user data</strong> </h4>
+                  <h5>	If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it with “Parsing” </h5>
+                  <h6 class="p">	parseInt(prompt(‘what year were you born?’));</h6>
+                  <br>
+                  <h4><strong>	If then else statements </strong></h4>
+                  <h5>	These creates basic logic in your program</h5>
+                  <h5>	Your program reads if something is true then do some tasks, else, if it is not true, do some other tasks</h5>
+                  <h5>Note that each line that is doing something has a semicolon after but not the lines with the if or else</h5>
+                  <h5>Also note that you don’t actually have to write out “then”, you simply use the curly brackets before and after the block of code that you want to run when the statement is true</h5>  
+                  <div class="p">
+                    <h6>var age = prompt(‘how old are you?’);</h6>  
+                    <h6>if (age >= 21) {</h6>
+                    <h6> &emsp; alert(‘you can drink!’);</h6>
+                    <h6>} else {</h6>
+                    <h6>&emsp; alert(‘you can not drink’);}</h6>
+                    <br>
+                  </div>
+                  <h4> <strong>Comments: </strong> you can write comments in your code that are ignored by the computer; Typically you write pseudo code as comments; You can also comment out lines of code to help debug it</h4>
+                  <h6>// this is a JavaScript comment</h6>
+                  <br>
+                  <h4>	<strong>Random number generator</strong></h4>  
+                  <h5>  <table><td class="p">Math.random() </td> <td class="g"> // returns a random number between 0 and 1</td></table></h5>
+                  <h5>	<table><td class="p"> Math.floor() </td> <td class="g">// returns largest integer less than or equal to given #</td></table></h5>
+                  <h5>	Combining them, then multiplying the random number by 10, and then adding 1 will get you a random between 1 and 10</h5>
+                  <h6 class="p">	Math.floor(Math.random()* 10) + 1</h6>
+                  <br>
+                  <h4>	<strong> Running JavaScript Programs locally </strong></h4>
+                  <h5>	1) Create a HTML file and a JavaScript file</h5>
+                  <h6>	index.js</h6>
+                  <h6>	playground.html</h6>
+                  <h5>  2) Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your HTML code</h5>
+                  <h6 class="p">	&lt;script src=index.js> &lt;/script></h6>
+                  <h5>	3) Write you code in JavaScript file</h5>
+                  <h6 class="p">	alert(‘Hello World’);</h6>
+                  <h5>	4) Go to the html file and open it with Google chrome</h5>
+                  <h6>  Always make sure to save all files before running program</h6>
+                  <h6>  Note, to open file in Chrome, you should be able to just double click the file or right click the file and then click “open with” and then google chrome</h6>
+                  <br>
+                  <!-----------------------------------------------  /Coding 101.1 - Coding Quick Start  -->
 
-                <p id="coding101-5"></p><br><br><br>
-                <!------------------------------------------------------------------------------------- -->
-                <!----------------------------------------------------------- Coding 101.5 - Capstone  -->
-                <!------------------------------------------------------------------------------------- -->
-                <h2> 5. Capstone </h2>
-                <h4>Fill in</h4>
-                <h5>Fill in</h5>
-                <p>Fill in</p>
-                <!--------------------------------------------------------------------- /Coding 101.5   -->
 
 
-                <p id="coding101-6"></p>
-                <!------------------------------------------------------------------------------------- -->
-                <!-----------------------------------------------------------  Coding 101.6 - Appendix  -->
-                <!------------------------------------------------------------------------------------- -->
-                <h2> 6. Appendix </h2>
-                <h3>Basic HTML page template</h3>
-                <h4>Fill in</h4>
-                <h5>Fill in</h5>
-                <p>Fillin</p>
-                <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Sed posuere consectetur est at lobortis. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
-                </p>
-<script type="text/plain" class="language-markup"><!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="utf-8" />
-      <title>My First Website</title>
-    </head>
-    <body>
+                  <!-----------------------------------------------  Coding 101.2 - Programming Overview  -->
+                  <h2>  2.	Programming Overview</h2>
+                  <br>
+                  <h3>  2.1.	Basics</h3>
+                  <h4>  <strong>Scripts: </strong> series of instructions computer can follow one-by-one</h4>
+                  <h6>  Languages include JavaScript and Python and others</h6>
+                  <h6>	A very simple script could asks a user for their birthday and check if they are old enough to drink</h6>
+                  <h4><strong>	Pseudo code: </strong></h4>
+                  <div class="p">
+                    <h6>	Function – Check customers IDs</h6>
+                    <h6>&emsp;	    Count number of customers in line</h6>
+                    <h6>&emsp;      Until you have checked all customers, check each id</h6>
+                    <h6>	Function – Check ID</h6>
+                    <h6>&emsp;      If user is under 21, they can’t drink, otherwise they can</h6>
+                  </div>
+                  <h4><strong>	Communication:</strong></h4>
+                  <h6>	<table><td class="p">alert(‘hello’)</td><td class="g">// send user message</td> </table></h6>
+                  <h6>	<table><td>prompt(‘enter info’)</td><td>// get input from user</td></table></h6>
+                  <h6>	<table><td class="p">console.log(‘test’)</td><td class="g">// good for debugging; sends message to console</td></table> </h6>
+                  <h4>	<strong>Other</strong></h5>
+                  <h6>	<table><td class='p'>parseInt()</td><td class="g">// turn string into number</td></table></h6>
+                  <h6>	<table><td class="p">Math.floor(Math.random()* 10) + 1</td><td class="g">// random # between 1 and 10</td></table></h6>
+                  <br>
+                  <h3>2.2.	Expressions and operators:</h3>
+                  <h4>	These are built in functions of most programming languages that act like calculators of the program</h4>
+                  <h6>	<table> <td class="p"> var color = ‘white’;</td>		<td class="g">// assignment operator</td></table></h6>
+                  <h6>	<table> <td class="p"> var weight = 30*15;</td>		<td class="g">// arithmetic operators; declares and sets weight to 450</td></table></h6>
+                  <h6>	<table> <td class="p"> greeting = ‘Hi’ + ‘John’;</td>	<td class="g">// string operator; sets greeting equal to ‘Hi John’ </td></table></h6>
+                  <h6>	<table> <td class="p"> buy = 3 > 5;</td>		<td class="g">// comparison operator…buy=false</td></table></h6>
+                  <h6>	<table> <td class="p"> buy = (5>3) && (2>4);</td>	<td class="g">// logical operators; and statement; buy = false</td></table></h6>
+                  <h6>	<table> <td class="p"> buy = (5>3) || (2>4);</td>		<td class="g">// logical operators; or statement; buy = true</td></table></h6>
+                  <h6>	<table> <td class="p"> i++;</td>			<td class="g">// adds one to current number</td></table></h6>
+                  <h6>	<table> <td class="p"> x = x +5;</td>			<td class="g">// adds 5 to x; if x was 12, then x would be set to 17 </td></table></h6>
+                  <h6>	<table> <td class="p"> i--;</td>			<td class="g">// subtracts one from current number</td></table></h6>
+                  <h6>	<table> <td class="p"> 8 % 5;</td>			<td class="g">// returns the remainder of 3</td></table></h6>
+                  <h6>	<table> <td class="p"> 2**4;</td>			<td class="g">// exponent of 2^4, which equals 16</td></table></h6>
+                  <br>
+                  <h3>2.3.	If then for loops</h3>
+                  <h4>	Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be smarter than a simple calculator or database. </h4>
+                  <h4><strong>	If (true) then…else if (true)…else…:</strong>If then functions allow computers to make decisions (sort of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript:</h4>
+                  <div class="p">
+                    <h6>	if (today - user_birthday > 21 ) {</h6>
+                    <h6>&emsp;	    print(‘you can drink’); </h6>
+                    <h6>	} else if (user_birthday &lt =0) {</h6>
+                    <h6>&emsp;	    print(‘not a valid ID’);</h6>
+                    <h6>	} else {</h6>
+                    <h6>&emsp;	    print(‘you can’t drink);</h6>
+                    <h6>	}</h6>
+                  </div>
+                  <h4> <strong>	For (true) loops: </strong>allow you to repeat certain functions while something is true. For example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus signs (ugh), you could use write belowJS function</h4>
+                  <div class="p">
+                    <h6>	var sum = 0;</h6>
+                    <h6>	for (x=1 x &lt= 100; x++) {</h6>
+                    <h6>&emsp;sum = sum + x;</h6>
+                    <h6>}</h6>
+                    <h6> <table><td class="p"> alert(sum);</td>	<td class="g">// this will show the number 5050 </td></table> </h6>
+                  </div>
+                  <h4><strong>	While (true) do… </strong> this function will continue to run until the statement is false. Enclosed in the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run infinitiy times if the statement is always true so be careful not to accidentially create an <strong>“infinite loop”!</strong></h4>
+                  <div class="p">
+                    <h6>	while (still_playing == true) {</h6>
+                    <h6>&emsp;	    play_game();</h6>
+                    <h6>}</h6>
+                  </div>
+                  <h4> <strong> Switch case…</strong> this is a short hand way of writing out multiple if then statements; example syntax</h4>
+                  <div class="p">
+                    <h6>switch (response) {</h6>
+                    <h6>&emsp;	    case: blue return ‘b’;</h6>
+                    <h6>&emsp;	    case: red return ‘r’;</h6>
+                    <h6>&emsp;	    case: yellow return ‘y’;</h6>
+                  </div>
+                  <br>
+                  <h3>2.4.	Data types:</h3>
+                  <h4><strong>	Strings: </strong>letters, words, sentences…Note: To make quotes within quotes use either double quotes on the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes within single quotes.</h4>
+                  <h6 class="p">	‘I am a string’</h6>
+                  <h6 class="p">	“I’m a string too”</h6>
+                  <h6 class="p">	 ‘I’m a syntax error!!’</h6>
+                  <h6> <table><td class="p">	str.length;</td><td class="g">			// returns the number of characters in a string</td></table></h6>
+                  <h4><strong>Floats: </strong> numbers (<strong> integers </strong>are used for whole numbers) </h4>
+                  <h6 class="p">	3.13</h6>
+                  <h4> <strong>	Boolean: </strong>only has two values, true or false. Note that these are special words within JavaScript.</h4>
+                  <h4> <strong>	Lists: </strong>Simple lists of strings, or floats, or variables, etc. Lists items are ordered starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd at 2. Commonly used list methods include: <p class="p">push(), pop(), splice(), length, and indexOf(). </p></h4>
+                  <h6><table><td class="p">	var new_list = []; </td><td class="g">// declares a new list</td></table></h6>
+                  <h6><table><td class="p">	new_list = [2, 81, 52];</td><td class="g">// sets new_list equal to a list containing three numbers: 2, 81, and 52</td></table></h6>
+                  <h6><table><td class="p">	new_list[1];</td><td>// returns the number 81</td></table></h6>
+                  <h6><table><td class="p">	new_list[1] = 82;</td> <td class="g">// changes the element in position 1 (i.e. 81) to the number 82</td></table></h6>
+                  <h6><table><td class="p">	new_list.push(3);</td><td class="g">// adds the number 3 to that list</td></table></h6>
+                  <h6><table><td class="p">	new_list.pop();</td> <td class="g">// removes and returns the last item from that list</td></table></h6>
+                  <h6><table><td class="p">	new_list.splice(1,2);</td> <td class="g">// starting at index position 1, removes two elements from list</td></table></h6>
+                  <h6><table><td class="p">	new_list = [‘apple’, ‘banana’, ‘orange’]</td><td class="g">// creates a new list called groceries</td></table></h6>
+                  <h6><table><td class="p">	new_list.splice(1,0,’grapes’);</td><td class="g">// adds grapes to left of index 1; i.e. [‘apple’, ‘grapes’, ‘banana’, ‘orange’]</td></table></h6>
+                  <h6><table><td class="p">	new_list.length;</td><td class="g">// returns the number of elements in an array</td></table></h6>
+                  <h6><table><td class="p">	new_list.indexOf(‘banana’)</td><td class="g">// searches array for apple</td></table></h6>
+                  <h4><strong>	Dictionary: </strong>Includes a series of unordered key: value pairs. The key is used to describe an item and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute. Example:</h4>
+                  <h6 class="p">	var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</h6>
+                  <h6 class="p">var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</h6>
+                  <h6><table><td class="p">	my_hotel[‘address’];</td><td class="g">// looks up the key ‘address’ and returns the value for that key, ‘111 main street’</td></table></h6>
+                  <br>
+                  <h3>2.5.	Functions </h3>
+                  <h4>Functions are a series of statements that have been grouped together and can be run whenever function is called</h4>
+                  <h4><strong>Parameters </strong>are variables that you can pass to functions that they can perform actions on; </h4>
+                  <h4><strong>	Arguments </strong>are values of paramters</h4>
+                  <h4><strong>	Declaring</strong>function is creating the function. Below is JS:</h4>
+                  <div class="p">
+                    <h6>	function add_numbers(x,y) {</h6>
+                    <h6>&emsp;	    print(x+y);</h6>
+                    <h6>	}</h6>
+                  </div>
+                  <h4><strong>	Calling</strong>a function will run code in function</h4>
+                  <h6><table><td class="p">	add_numbers(1,2);</td><td class="g">// outputs 3</td></table></h6>
+                  <h4><strong>	Global variables vs local variables: </strong>If a variable is declared within a function, then it is a local variable that can only be used or accessed within that function. If a variable is declared outside a function, then it is a global variable and can be used or accessed anywhere.</h4>
+                  <br>
+                  <h3>2.6.	Object oriented programming</h3>
+                  <h4>	Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are built. </h4>
+                  <h4> <strong> 	Properties: </strong>characteristics about object; have both <strong> “key” </strong>that describes property (e.g., address) and <strong> “value”</strong> (e.g., 111 main st)</h4>
+                  <h4><strong>	Events: </strong>These run programs when different events occur (e.g., hotel room booked, car breaks, button clicked)</h4>
+                  <h4><strong>	Methods: </strong>Functions that are specifically built for each object (e.g., book_hotel_room(), find_room_price(), …)</h4>
+                  <h4><strong>	Built-in Objects: </strong>web browsers and application interfaces typically come with built in objects and methods that make it easier to create webpages or applications.</h4>
+                  <h4><strong>	Object / Class Constructor: </strong>Declare a new class that you can use to construct objects</h4> 
+                  <div class="p">
+                    <h6>	function MovieStar(name, birthday) {</h6>
+                    <h6>&emsp;	    this.name = name; </h6>
+                    <h6>&emsp;	    this.birthday = birthday </h6>
+                    <h6>&emsp;	    this.greeting = function(){ </h6>
+                    <h6>&emsp;&emsp;	        alert(‘hi, my name is ‘ + this.name); </h6>
+                    <h6>&emsp;	    } </h6>
+                    <h6>	} </h6>
+                  </div>
+                  <h5>	Create a new object using the class you created</h5>
+                  <h6 class="p">	var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</h6>
+                  <h6 class="p">	var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</h6>
+                  <h5> 	Recall or change values from the object </h5>
+                  <h6><table><td class="p">	tom_cruise.birthday;</td><td class="g">// returns July 3, 1962</td></table></h6>
+                  <h6><table><td class="p">	tom_cruise[“birthday”];</td><td class="g">// returns July 3, 1962</td></table></h6>
+                  <h6><table><td class="p">	tom_cruise.birthday  = ‘July 4, 1962’; </td> <td class="g"></td>// changes value of birthday to July 4th</table></h6>
+                  <h6><table><td class="p">	tom_cruise.greeting();</td><td class="g">// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</td></table></h6>
+                  <h5>	Create a list of objects</h5>
+                  <h6><table><td class="p">	var star_list = [tom_cruise];</td><td class="g">// adds tom_cruise object to star_list</td></table></h6>
+                  <h6><table><td class="p">	star_list.push(dwayne_johnson);</td><td class="g">// adds dwayne_johnson object to star_list</td></table></h6>
+                  <h5><strong>for… in loop </strong>can be used to loop through all of the key / value pairs in an object</h5>
+                  <div class="p">
+                    <h6>	for (p in person) {</h6>
+                    <h6>&emsp;	   alert(p);</h6>
+                    <h6>	} </h6>
+                  <div>
+                  <br>
+                  <!-----------------------------------------------  /Coding 101.2 - Programming Overview  -->
+                  
 
-    <header>
-      <h1>Hello, my name is John</h1>
-    </header>
 
-    <section class="section">
-      <p>This is my first website!</p>
-    </section>
+                  
 
-    </body>
-  </html>
-</script>
-                <h3 class="mt-3">CSS structure</h3>
-                <p>
-                  Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Curabitur blandit tempus porttitor. Nullam id dolor id nibh ultricies vehicula ut id elit. Etiam porta sem malesuada magna mollis euismod.
-                </p>
-<script type="text/plain" class="language-css">
-body {
-  padding: 20px; /* adds space around the page */
-  background: red; /* changes the background to red */
-  color: white; /* changes text color to white */
-}
-</script>
-                <h3 class="mt-3">Javascript basics</h3>
-                <p>
-                  Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Aenean lacinia bibendum nulla sed consectetur. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Aenean lacinia bibendum nulla sed consectetur.
-                </p>
-<script type="text/plain" class="language-javascript">let section = document.querySelector('.section')[0]; // Create a variable referencing the HTML element with the class "section"
-section.style.backgroundColor = green; // Change the background of section to green;</script>
-                <!--------------------------------------------------------------------- /Coding 101.6   -->
+                </div>
+                <!-------------------------------------------------  /Cheat Sheet                         -->
+
+                
+                
 
 
               </div>
