@@ -24,6 +24,97 @@
 ** Cheat Sheet Format
 **/
 
+.cheat-sheet .bryce-example {
+  margin-bottom: 6rem;
+
+  h2, h3, h4, h5 {
+    font-family: $headings-font-family;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    padding: 5px;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+    padding: 5px 5px 5px 15px;
+  }
+
+  h4 {
+    font-size: 1rem;
+    padding-left: 0;
+    margin-left: 2rem;
+    margin-top: 1rem;
+
+    &.inline {
+      display: inline-block;
+    }
+
+    &:before {
+      display: none;
+    }
+
+    + .desc {
+      display: inline-block;
+    }
+  }
+
+  .desc, ol, li {
+    font-size: 0.9rem;
+  }
+
+  .desc {
+    font-style: italic;
+    margin-bottom: 0;
+  }
+
+  ol, ul {
+    padding-left: 3.5rem;
+    
+    ol, ul {
+      padding-left: 2rem;
+    }
+
+    .code-toolbar {
+      margin-left: 1rem;
+    }
+  }
+
+  .code-toolbar {
+    margin-bottom: 10px;
+
+    pre {
+      padding: 5px;
+      font-size: 0.8rem;
+
+    }
+  }
+  
+  .code-comment-list {
+    list-style: disc;
+    padding-left: 1rem;
+    
+    li {
+      display: flex;
+      flex-wrap: nowrap;
+
+      &:before {
+        content: '•';
+        padding-right: 0.25rem;
+      }
+
+      code {
+        width: 50%;
+
+        &:last-of-type {
+          color: green;
+        }
+      }
+    }
+  }
+}
+
 
 .cheat-sheet h2,.cheat-sheet h3,.cheat-sheet h4, .cheat-sheet h5, .cheat-sheet h6 { 
   font-size: 1rem; 

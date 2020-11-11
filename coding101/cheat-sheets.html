@@ -185,6 +185,81 @@
                 <div class="cheat-sheet">
 
                   <!-----------------------------------------------  Coding 101.1 - Coding Quick Start  -->
+                  
+                  
+                  <!-- Bryce Example -->
+                  <div class="bryce-example">
+                    <h2>1. Coding Quickstart!</h2>
+                    <h3>1.0 through 1.9 The Basics</h3>
+
+                    <h4>JavaScript and Chrome Inspector Tool</h4>
+                    <ol>
+                      <li>Open inspector tool</li>
+                      <ol type="a">
+                        <li>Open up Google Chrome</li>
+                        <li>Right click on page, then click on inspector</li>
+                        <li>Click on console button</li>
+                      </ol>
+                      <li>Run JavaScript in the inspector tool</li>
+                      <ol type="a">
+                        <li>Press return</li>
+                      </ol>
+                      <li>Go to next line of code without running script</li>
+                      <ol type="a">
+                        <li>Shift + Return</li>
+                      </ol>
+                    </ol>
+
+                    <h4>Running JavaScript Programs locally</h4>
+                    <ol>
+                      <li>Create a HTML file and a JavaScript file
+                        <ul>
+                          <li><code>index.js</code></li>
+                          <li><code>playground.html</code></li>
+                        </ul>
+                      </li>
+                      <li>
+                        Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your HTML code
+                        <ul><li><code>&lt;script src=index.js> &lt;/script></code></li></ul>
+                      </li>
+                    </ol>
+
+                    <h3>2.1 A new subsection</h3>
+                    <h4 class="inline">Object / Class Constructor</h4>
+                    <ol>
+                      <li>Declare a new class that you can use to construct objects
+<script type="text/plain" class="language-javascript">function MovieStar(name, birthday) {
+  this.name = name;                           // A comment
+  this.birthday = birthday                    // Another comment
+  this.greeting = function() {
+    alert(‘hi, my name is ‘ + this.name);
+  }
+}
+</script>
+                      </li>
+                      <li>Create a new object using the class you created
+<script type="text/plain" class="language-javascript">function MovieStar(name, birthday) {
+  var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);
+  var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’);
+}
+</script>
+
+                      </li>
+                    </ol>
+  
+                    <h3>2.2 Expressions and operators</h3>
+                    <p class="desc">These are built in functions of most programming languages that act like calculators of the program</p>
+                    <ul class="code-comment-list">
+                      <li><code>var color = ‘white’;</code><code>// assignment operator</code></li>
+                      <li><code>var weight = 30*15;</code><code>// arithmetic operators; declares and sets weight to 450</code></li>
+                    </ul>
+                  </div>
+
+
+
+                  <!--/Bryce Example-->
+
+
                   <h2> 1.	Coding Quickstart! </h2> 
                   <h4><strong>See appendix for installing and running MS Visual Studio Code, Google Chrome</strong></h4>
                   <br>
@@ -282,7 +357,7 @@
                   <br>
                   <h3>2.2.	Expressions and operators:</h3>
                   <h4>	These are built in functions of most programming languages that act like calculators of the program</h4>
-                  <h6>	<table> <td class="p"> var color = ‘white’;</td>		<td class="g">// assignment operator</td></table></h6>
+                  <h6>	<table> <td class="p"> var color = ‘white’;		<td class="g">// assignment operator</td></table></h6>
                   <h6>	<table> <td class="p"> var weight = 30*15;</td>		<td class="g">// arithmetic operators; declares and sets weight to 450</td></table></h6>
                   <h6>	<table> <td class="p"> greeting = ‘Hi’ + ‘John’;</td>	<td class="g">// string operator; sets greeting equal to ‘Hi John’ </td></table></h6>
                   <h6>	<table> <td class="p"> buy = 3 > 5;</td>		<td class="g">// comparison operator…buy=false</td></table></h6>
