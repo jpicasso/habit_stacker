@@ -9,3 +9,7 @@ Install `gulp-cli` globally, `npm install` from the document root, then run `gul
 - Main scss file in `scss/main.scss`
 - View Bootstrap's editable variables in `scss/bootstrap/_variables.scss`
 - Override variables in `scss/_variables-override.scss`
+
+
+### Notes
+- Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character

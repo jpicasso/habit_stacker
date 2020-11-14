@@ -25,49 +25,55 @@
 **/
 
 .cheat-sheet .bryce-example {
-  margin-bottom: 6rem;
+  // margin-bottom: 6rem;
 
-  h2, h3, h4, h5 {
-    font-family: $headings-font-family;
-  }
-
-  h2 {
-    font-size: 1.2rem;
-    padding: 5px;
-  }
-  
-  h3 {
-    font-size: 1.1rem;
-    padding: 5px 5px 5px 15px;
-  }
-
-  h4 {
-    font-size: 1rem;
-    padding-left: 0;
-    margin-left: 2rem;
-    margin-top: 1rem;
-
-    &.inline {
-      display: inline-block;
-    }
-
-    &:before {
-      display: none;
-    }
-
-    + .desc {
-      display: inline-block;
-    }
-  }
-
-  .desc, ol, li {
-    font-size: 0.9rem;
-  }
-
-  .desc {
-    font-style: italic;
+  ul, ol {
     margin-bottom: 0;
   }
+  code {
+    color: purple;
+  }
+  // h2, h3, h4, h5 {
+  //   font-family: $headings-font-family;
+  // }
+
+  // h2 {
+  //   font-size: 1.2rem;
+  //   padding: 5px;
+  // }
+  
+  // h3 {
+  //   font-size: 1.1rem;
+  //   padding: 5px 5px 5px 15px;
+  // }
+
+  // h4 {
+  //   font-size: 1rem;
+  //   padding-left: 0;
+  //   margin-left: 2rem;
+  //   margin-top: 1rem;
+
+  //   &.inline {
+  //     display: inline-block;
+  //   }
+
+  //   &:before {
+  //     display: none;
+  //   }
+
+  //   + .desc {
+  //     display: inline-block;
+  //   }
+  // }
+
+  // .desc, ol, li {
+  //   font-size: 0.9rem;
+  // }
+
+  // .desc {
+  //   font-style: italic;
+  //   margin-bottom: 0;
+  // }
 
   ol, ul {
     padding-left: 3.5rem;
@@ -75,20 +81,20 @@
     ol, ul {
       padding-left: 2rem;
     }
-
-    .code-toolbar {
-      margin-left: 1rem;
-    }
+    
+    // .code-toolbar {
+    //   margin-left: 1rem;
+    // }
   }
 
-  .code-toolbar {
-    margin-bottom: 10px;
+  // .code-toolbar {
+  //   margin-bottom: 10px;
 
-    pre {
-      padding: 5px;
-      font-size: 0.8rem;
+  //   pre {
+  //     padding: 5px;
+  //     font-size: 0.8rem;
 
-    }
+  //   }
   }
   
   .code-comment-list {
@@ -97,10 +103,9 @@
     
     li {
       display: flex;
-      flex-wrap: nowrap;
-
+      flex-wrap: nowrap;      
       &:before {
-        content: '•';
+        // content: '•';
         padding-right: 0.25rem;
       }
 
@@ -165,9 +170,9 @@
 
 .cheat-sheet h4:before {content:"- ";}
   
-.cheat-sheet h5:before {content:"○ ";}
+// .cheat-sheet h5:before {content:"○ ";}
 
-.cheat-sheet h6:before {content:"• ";}
+// .cheat-sheet h6:before {content:"• ";}
 
 .cheat-sheet h4:first-line {text-indent: -1%;}
 .cheat-sheet h5:first-line {text-indent: -1%;}

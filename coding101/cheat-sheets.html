@@ -177,19 +177,17 @@
                   <li class="breadcrumb-item active" aria-current="page">Cheat Sheets</li>
                 </ol>
               </nav>
+              <!---------------------------------------------------  Cheat Sheet                        -->
               <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
               
-                <!------------------------------------------------------------------------------------- -->
-                <!-------------------------------------------------  Cheat Sheet                        -->
-                <!------------------------------------------------------------------------------------- -->              
                 <div class="cheat-sheet">
-
-                  <!-----------------------------------------------  Coding 101.1 - Coding Quick Start  -->
+                  <!-----------------------------------------------  Coding 101.1 -Bryce Example  -->
+                  <!-- #region -->
                   
                   
                   <!-- Bryce Example -->
                   <div class="bryce-example">
-                    <h2>1. Coding Quickstart!</h2>
+                  <!--   <h2>1. Coding Quickstart!</h2>
                     <h3>1.0 through 1.9 The Basics</h3>
 
                     <h4>JavaScript and Chrome Inspector Tool</h4>
@@ -228,22 +226,8 @@
                     <h4 class="inline">Object / Class Constructor</h4>
                     <ol>
                       <li>Declare a new class that you can use to construct objects
-<script type="text/plain" class="language-javascript">function MovieStar(name, birthday) {
-  this.name = name;                           // A comment
-  this.birthday = birthday                    // Another comment
-  this.greeting = function() {
-    alert(‘hi, my name is ‘ + this.name);
-  }
-}
-</script>
                       </li>
                       <li>Create a new object using the class you created
-<script type="text/plain" class="language-javascript">function MovieStar(name, birthday) {
-  var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);
-  var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’);
-}
-</script>
-
                       </li>
                     </ol>
   
@@ -252,244 +236,510 @@
                     <ul class="code-comment-list">
                       <li><code>var color = ‘white’;</code><code>// assignment operator</code></li>
                       <li><code>var weight = 30*15;</code><code>// arithmetic operators; declares and sets weight to 450</code></li>
+                    </ul> -->
+                  <!-- endregion -->
+
+                  <!-----------------------------------------------  Coding 101.3 - Your First Website     -->
+                  <!-- #region -->
+                    <br>
+                    <h2>3.	Your First Website</h2>
+                    <br>
+                    <h3>3.1.	Hello World and Intro</h3>
+                    <h4><strong> HTML </strong> is used to create the structure of your webpage (e.g., like the bones in your body) </h4>
+                    <h4> <strong> CSS </strong>is used to create the formatting and style of your webpage (e.g., like the skin of your body)</h4>
+                    <h4> <strong> Tags: </strong> HTML documents use <code> &lt;tags> </code> to tell the browser how to format content. Pictures need tags, texts need tags, the entire website is made up of tags. Everything must be sandwiched within the tags. In the below code, <code> &lt;p></code> is the opening tag and <code> &lt;/p> </code> is the closing tag  and this is used for a paragraph. You can write the content of your paragraph in between the tags. </h4> 
+                    <ul>
+                      <ul>
+                        <li> <code> &lt;p> Hello World &lt;/p> </li> </code>
+                      </ul>
                     </ul>
+                    <h4> We can add an <strong>attribute name</strong> (class) and <strong>attribute value</strong> (”greeting”), to select specific paragraphs to format differently with CSS</h4>
+                    <ul>
+                      <ul>
+                        <li> <code> &lt;p class=”greeting”> Hello World &lt;/p></code></li>
+                      </ul>
+                    </ul>
+                    <ul>
+                      <ul>
+                        <li><code> p {font-size: 24px;}</code></li>
+                      </ul>
+                    </ul>
+                    <h4>…Or you can change all elements with a class equal to “greeting”. The below code includes a <strong>Selector</strong> (<code>.greeting</code> ), <strong>Declaration Block</strong> (<code>{color:pink;}</code> ), <strong>Property Name</strong>(<code>color</code> ) and <strong>Property Value</strong> (<code>pink</code> )</h4>
+                    <ul>
+                      <ul>
+                        <li> <code>.greeting {color:pink;} </code> </li>
+                      </ul>
+                    </ul>
+                    <br>
+                    <h3>3.2.	HTML tags and structure</h3>
+                    <ul class="code-comment-list">
+                      <li><code></code> <code> &lt;!-- Comments are placed in between the following --> </code></li>
+                      <li><code>&lt;!doctype html></code><code>&lt;!-- needed once for all websites; tells browser to expect html code --></code></li>
+                      <li><code>&lt;html>...&lt;/html></code><code>&lt;!-- surrounds all the code for your website’s html file --></code></li>
+                      <li><code>&lt;head>...&lt;/head> </code><code>&lt;!-- includes all the browser information (e.g., doc title, technical information) --></code></li>
+                      <li><code>&lt;meta charset=”UTF-8”> </code><code>&lt;!-- Goes inside head tag for U.S. websites --></code></li>
+                      <li><code>&lt;title> …&lt;/title></code> <code>&lt;!-- Shows up in the web browser title; Goes inside the &lt;head> tag --></code></li>
+                      <li><code>&lt;link href="main.css" rel="stylesheet">	</code><code>&lt;!-- Link to external style sheet; put this in head section --></code></li>
+                      <li><code>&lt;body> …&lt;/body></code><code>&lt;!-- Includes all the content of the website --></code></li>
+                      <li><code>&lt;header> … &lt;/header> </code><code>&lt;!-- Often has navigation bar & site logo; this is different from &lt;head> --></code></li>
+                      <li><code>&lt;nav> …&lt;/nav></code><code>&lt;!-- Used to group together major navigational blocks on a page; Often put inside the header --></code></li>
+                      <li><code>&lt;a href=’www.fb.com’> fb&lt;/a></code><code>&lt;!-- links to other sites or internal sites --></code></li>
+                      <li><code>&lt;h1> … &lt;/h1></code><code>&lt;!-- Header 1 used typically in &lt;header> tags --></code></li>
+                      <li><code>&lt;main>… &lt;/main></code><code>&lt;!-- General for main part of the website --></code></li>
+                      <li><code>&lt;h2> …&lt;/h2></code><code>&lt;!-- Header 2 used typically in &lt;main> tags for sub-headers, can also use &lt;h3>, &lt;h4>, &lt;h5> --></code></li>
+                      <li><code>&lt;p> …&lt;/p></code><code>&lt;!-- chunks of texts on site; html is whitespace insensitive --></code></li>
+                      <li><code>&lt;article> …&lt;/article></code><code>&lt;!-- Used for unique part of site (e.g., used for individual blog post) --></code></li>
+                      <li><code>&lt;aside>... &lt;/aside></code><code>&lt;!-- Not required to understand the rest of the page --></code></li>
+                      <li><code>&lt;section> … &lt;/section></code><code>&lt;!-- use for section tag --></code></li>
+                      <li><code>&lt;div> &lt;/div></code><code>&lt;!-- Allows you style a group of elements with the same CSS. It’s also a great multi-purpose tag. It is a non-semantic tag unlike other tags like &lt;ul> or &lt;article>, which are semantic tags that tell you something about the element; It is also a block-line element by default; It is generic and can be used in a wide range of activities. It is used when none of the above apply. --></code></li>
+                      <li><code>&lt;footer> ….&lt;/footer></code><code>&lt;!--  Web page footer --></code></li>
+                      <li><code>&lt;ul> &lt;li> point 1 &lt;/li> &lt;li> point 2 &lt;/li> &lt;/ul>  </code><code>&lt;!--  Unordered lists: bullet points; put each List Item &lt;li> within &lt;ul> --></code></li>
+                      <li><code>&lt;ol> &lt;li> step 1 &lt;/li> &lt;li> step 2 &lt;/li> &lt;/ol> </code><code>&lt;!--  Ordered lists: bullet points with numbers instead of bullets --></code></li>
+                      <li><code>&lt;img src=”images/gummy.jpg”>	</code><code>&lt;!--  image found in image folder; use “../images/crispy.jpg” if your index.html is not in same directory --></code></li>
+                      <br>
+                    </ul>
+
+                    <h3>3.3.	CSS Intro and properties</h3>
+                    <h4> <strong> CSS </strong>= Cascading Style Sheet. It means that styles flow or cascades in order of what came last and what is most specific to that HTML element</h4>
+                    <ul>
+                      <li><strong> Source Order</strong>: whatever came last overrides what came before it</li>
+                      <li><strong> Specificity Order</strong>: whatever is more specific overrides other style commands regardless of the Source Order (external less specific than internal; p span is more specific than span)</li>
+                      <li><strong>	Inheritance</strong>: A child element will inherit any applicable styles from its parent HTML element</li>
+                    </ul>
+                    <h4> <strong> Three ways to add CSS code: </strong></h4>
+                    <ul>
+                      <li><strong>	(Preferred method) Using separate CSS files</strong>External Style Sheets allow you to put all of your CSS code in one place and apply it to all of the pages in your website. Need to add below code between <code> &lt;head> </code> tags of html <code> &lt;link href="normalize.css" rel="stylesheet">&lt; </code> </li>
+                    </ul>
+                    <h4><strong>	Definitions</strong></h4>
+                    <ul>
+                      <li><strong> Selector: </strong>this is the element that you want to change; for example, pargraphs in the following <code> p {color:purple;} </code></li>
+                      <li><strong> Property: </strong>what you want to change about your elements; for example, color in above example</li>
+                      <li> <strong> Value:</strong>what you want to change you element property too; for example, purple</li>
+                    </ul>
+                    <h4 class="g">/* Enter comments between these characters in your CSS code */</h4>
+                    <h4> <strong> Font Properties </strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code>  font-family: “georgia”, “serif”; </code><code>/* If Georgia font does not load on person’s browser, serif is back up font */</code> </li>
+                        <li><code>  color:blue; </code><code></code></li>
+                        <li><code>  color:#630600;</code><code></code></li> 
+                        <li><code>	color: rgba(255,255,255,1); </code> <code>/* Uses color on a 0 to 255 scale for R G B and then 0 to 1 for the last value for transparency */</code></li>
+                        <li><code>  font-weight: bold; </code><code></code></li>
+                        <li><code>	font-weight: 600;</code><code></code></li>
+                        <li><code>	font-style: italic;</code><code></code></li>
+                        <li><code>  font-size:16px;</code><code></code></li>
+                        <li><code>	text-transform: uppercase;</code><code></code></li>
+                        <li><code>	text-decoration: underline;</code><code></code></li>
+                        <li><code>	font:bold 14px Tahoma;</code><code></code></li>
+                        <li><code>	text-indent:25px;</code><code></code></li>
+                        <li><code>	text-align: center; </code><code></code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>	Background properties</strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code>  background-color: rgba(0,0,0,0.5);</code><code></code></li>
+                        <li><code>	background-image: url("http:dash.ga.co/assets/anna-bg.png");</code><code></code></li>
+                        <li><code>  background-image: url(“../images/header_bg.jpg”); 	</code> <code>  /* select an image that is up one folder in structure and in images */</code></li>
+                        <li><code>background-size: cover; </code><code></code></li>
+                        <li><code>background-repeat: no-repeat;</code><code></code></li>
+                        <li><code>background-repeat: repeat-x; </code><code>/* Left Right Tile */</code></li>
+                        <li><code>background-repeat: repeat-y; </code><code>/* UpDown tile */</code></li>
+                        <li><code>background-position: 10px 60px; </code><code>/* Change starting position */</code></li>
+                        <li><code>background-position: 50% 60px; </code><code>/* Change starting position */</code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Floating properties</strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code> img {float:right;}</code><code> /* Element float images to right or left or none */</code></li>
+                        <li><code>p {clear:none;} </code><code>/* Allows floating elements on both sides. This is default. */</code></li>
+                        <li><code>p {clear: left;} </code><code>/* No floating elements allowed on the left  side. Also can use right or both - No floating elements on either side */</code></li>
+                        <li><code>p {clear: inherit;} </code><code>/* Element inherits the clear value of its parent */</code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>HTML element properties</strong></h4>
+                    <ul>
+                      <ul>
+                        <li><code>max-width: 500;</code><code>/* Allows website to be responsive & have 500 max width */</code></li>
+                        <li><code>width:60%;</code></li>
+                        <li><code>height:5%;</code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Other properties</strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code>  ol { list-style-image:url(checkmark.jpg); } </code><code>/* Custom Bullet points */</code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Google Fonts:</strong> Allows you to easily import different types of fonts </h4>
+                    <ol>
+                      <ol>
+                        <li>Go to Google Fonts: <a href="https://fonts.google.com/">https://fonts.google.com/</a></li>
+                        <li>Click the plus sign on the fonts you want to add</li>
+                        <li>Click the minus sign next to the “family selected” tab</li>
+                        <li>There will be instructions on what code to add to the HTML <head> section and the CSS code</li>
+                      </ol>
+                    </ol>
+                    <h4> <strong>CSS Selectors </strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code>p { }</code><code>/* Type - selects all elements of specified type (e.g., &lt;p>)*/</code></li>
+                        <li><code>* { } </code><code>/* Universal - selects all elements in html file not selected by other selectors */</code></li>
+                        <li><code>#myID { }</code><code>/* ID - are supposed to singular and unique to allow you format a specific element */ </code></li>
+                        <li><code>.class { } </code><code>/* Class – similar to ID but for formatting multiple elements at same time Note HTML elements can have multiple classes */</code></li>
+                        <li><code>h1, h2, #myID { } </code> <code>/* Compound - format multiple selectors at same time */ </code></li>
+                        <li><code>body article p { } </code><code>/* Descendent - element that is nested inside of specified parent element */</code></li>
+                        <li><code>a:link </code><code>/* Pseudo class - links in their default state before visitor has interacted with them */</code></li>
+                        <li><code>a:visited </code><code>/* Links after user has already clicked on them and is visiting that page again */</code></li>
+                        <li><code>a:hover </code><code>/* Links when the user is hovering their mouse over the link */</code></li>
+                        <li><code>a:active </code><code>/* Links when the user is hovering their mouse over the link */</code></li>
+                      </ul>
+                    </ul>
+                    <br>
+                    <h3>3.4.	Boxes!</h3>
+                    <h4><strong>CSS Box Model</strong></h4>
+                    <ul>
+                      <li>All HTML elements can be thought of as boxes within a CSS box wrapping around each element. The box has four dimensions: margin, border, padding, and actual content.</li>
+                      <li><strong>Margin: </strong>distance between the element’s box and what is around it </li>
+                      <ul class="code-comment-list">
+                        <li><code>Margin: 40px 0px 0px 0px; </code><code>/* 40px on top, 0 on right, 0 on bottom, 0 on left */</code></li>
+                        <li><code>Margin: 0 auto; </code><code>/* Zero margin on top and bottom; auto margin on left/right */</code></li>
+                        <li><code>Margin-top:40px;</code><code></code></li>
+                      </ul>
+                      <li><strong>Border: </strong>thickness of the border</li>
+                      <ul class="code-comment-list">
+                        <li><code>border-width: 5px; </code><code>/* sets border width to 5px */</code></li>
+                        <li><code>border: solid;  </code><code>/* border style */</code></li>
+                        <li><code>border-color: black;</code><code></code></li>
+                        <li><code>border-top-color: green;</code><code></code></li>   
+                        <li><code>border: 2px dashed; </code><code>/* border width and border style */</code></li>
+                        <li><code>border: 10px ridge rgba(0,0,0,.5); </code><code>/* border width, style and color */</code></li>
+                        <li><code>border-radius:12px; </code><code>/* makes the borders curved rather than square */</code></li>
+                        <li><code>border-radius:20%; </code><code>/* makes the borders curved rather than square */</code></li>
+                      </ul>
+                      <li><strong>Padding = </strong>space between the content and the border</li>
+                      <ul class="code-comment-list">
+                        <li><code>padding:10px; puts 10px </code><code>/* padding on all sides */</code></li>
+                        <li><code>padding:0px 10px 0px 10px; </code><code>/* Padding on top, right, bottom, left (i.e. it goes clockwise) */</code></li>
+                        <li><code>padding-top:20px; </code><code></code></li>
+                        <li><code>padding:0px 10px; </code><code>/* Padding on vertical, horizontal */</code></li>
+                      </ul>
+                      <li> <strong>Content </strong> = size of the content of the element</li>
+                    </ul>
+                    <br>
+                    <h4><strong> Block vs Inline</strong></h4>
+                    <ul>
+                      <li><strong>Block-level elements </strong>begin on new lines, which means that the “boxes” for block-level elements extend the full width of the available space (even if the content doesn’t)</li>
+                      <ul class="code-comment-list">
+                        <li><code>display:block; </code><code>/* Makes an inline element act like an block element */</code></li>
+                        <li><code>display:inline-block; </code><code>/* Flows like inline element but can use properties of block element */</code></li>
+                        <li><code>display:none; </code><code>/* hides the element */</code></li>
+                        <li><code>text-align: center; </code><code>/* only works on block level elements!! Not in-line! */</code></li>
+                      </ul>
+                      <li><strong>In-line elements </strong>do not begin on new lines. Width and height have no impact on in-line elements (must wrap them in a block-level element). Padding, border, and margin don’t vertically push away other elements. Links and images are in line are inline elements.</li>
+                      <ul class="code-comment-list">
+                        <li> <code>display: inline; </code><code>/* Makes a block element act like an inline element */</code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Content box vs. border box sizing </strong></h4>
+                    <ul>
+                      <ul class="code-comment-list">
+                        <li><code>box-sizing: “content-box”; </code><code>/* specifies size of content box (margin, border, padding added on top of content); default setting */</code></li>
+                        <li><code>box-sizing: “Border-box”; </code><code>/* specifies size of entire element (margin + border + padding + content); good to use to avoid mistakes */ </code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Absolute vs Relative vs. Fixed Layout types</strong></h4>
+                    <ul>
+                      <li>Note: You should not chose one of the below layouts for your entire website; you should use a combination of the below layouts</li>
+                      <ul class="code-comment-list">
+                        <li><code># div1 {position:absolute; top:2px; left:2px; }	</code><code>/* Absolute positioning allows you to control exactly where div is based on top left 0 position */</code></li>
+                        <li><code>#div1 {position:fixed; top:2px; left:2px; }</code><code>/* Fixed positioning – similar to absolute positioning but doesn’t move when user scrolls */</code></li>
+                        <li><code># div1 {position:relative; top:2px; left:2px; }</code><code>/* Relative positioning – instead of using the origin and then moving it absolutely, it starts at where top left position of element would be without adjustments; this can be tricky to use */ </code></li>
+                      </ul>
+                    </ul>
+                    <h4><strong>Flex box </strong>layouts allow you to have the size of your boxes dynamically change based on the size of the browser or screen being used to view your site</h4>
+                    <ul>
+                      <li>In HTML, you can set up a main section with two div’s inside</li>
+                      <ul>
+                        <li><code>&lt;main> &lt;div id=”1”> &lt;/div> &lt;div id=”2”> &lt;/div> &lt;/main></code></li>
+                      </ul>
+                      <li>In CSS, <code>main {display:flex;} </code>changes main element to a flex container and all elements underneath it (i.e. div1, div2) to a flex items</li>
+                      <ul class="code-comment-list">
+                        <li><code>main {display:flex;}</code><code></code></li>
+                        <li><code>#div1 {width:60%;}</code><code></code></li>
+                        <li><code>#div2 {width:40%;}</code><code></code></li>
+                        <li><code>main {justify-content:flex-start;} </code><code>/* Items are positioned horizontally at left of container; flex-end, center, space-around, space-between */</code></li>
+                        <li><code>main {align-items:flex-start;} 	</code><code>/* Items are positioned vertically at bottom of container; flex-end, center, stretch, baseline */</code></li>
+                      </ul>
+                    </ul>
+                  <h3>3.5.	Mobile first design and dynamic formatting</h3>
+                  <h4><strong>Responsive web design</strong>is about automatically adjusting the look and feel of a website based on the screen size and the device being used (e.g., mobile vs. desktop) instead of having to create two separate websites (one for mobile and one for desktop). 3 types of layouts:</h4>
+                  <ul>
+                    <li><strong>Fixed: </strong>fixed pixel width container; can create “pixel perfect” design</li>
+                    <li><strong>Flexible: </strong>scales based on size of screen size; not optimized for all screens though</li>
+                    <li><strong>Responsive:</strong>combo of media query and flexible boxes so that you can change the website layout if the screen is smaller; creates breakpoints at different screen sizes</li>
+                  </ul>
+                  <h4><strong> “Mobile-First” Design </strong>is creating your website to look good on mobile first (instead of desktop, which is what developers used to do) and then use media queries to change formatting when screen size is larger</h4>
+                  <ul>
+                    <li>this makes you design for the mobile experience first because it is most important</li>
+                    <li>it allows mobile devices to only load up the necessary code!!! Which matters more for load speeds on mobile than on desktop</li>
+                  </ul>
+                  <h4><strong>Media Query </strong>Allows you to change the format of different items based on the screen size (measured in pixels)</h4>
+                  <ul>
+                    <ul class="code-comment-list">
+                      <li><code>@media screen and (min-width: 480px) {body {background: red;}}</code><code>/* sets background to red when screen size is more than 480px wide */</code></li>
+                    </ul>
+                    <li><strong> NOTE: NEED TO ADD VIEWPORT META TAG TO &lt; HEAD> to make media query work!</strong></li>
+                    <ul>
+                      <li><code>&lt;meta name=”viewport” content=”width=device-width”, initial-scale=1”></code></li>
+                    </ul>
+                    <li><strong>Common Breakpoints (used by Bootstrap)</strong></li>
+                    <ul>
+                      <li>Min 480px, 768px, 992px, 1200px…(Mobile first; do this)</li>
+                      <li>Max 1200px, 992, 768, 480px (Non-mobile first; don’t do this!)</li>
+                    </ul>
+                  </ul>
+                  <h4><strong>Em…</strong>responsive sizing: Em is a CSS relative unit for font-siz; 1em = 100% of the font-size of the parent element (default is 16px if not defined)</h4>
+                  <ul>
+                    <ul class="code-comment-list">
+                      <li><code>letter-spacing:0.09em;</code><code>/* em inherits either default font size or font size of parent; 1em = parent size; 2em = 2x parent’s size */</code></li>
+                      <li><code>margin: 0 0 1.5em 0;</code><code></code></li>
+                      <li><code>font-size: 2em;</code><code></code></li>
+                      <li><code>overflow:hidden;</code><code>/* Hide content that overflows (e.g., nav bar) */</code></li>
+                    </ul>
+                  </ul>
+                  <h4><strong>Bootstrap is an open source webframework and library that allows you to create websites quickly!</strong></h4>
+                  <br>
+                  <!-- endregion -->
                   </div>
-
-
-
+                  <!-----------------------------------------------  /Coding 101.3 - Your First Website    -->
                   <!--/Bryce Example-->
 
-
-                  <h2> 1.	Coding Quickstart! </h2> 
-                  <h4><strong>See appendix for installing and running MS Visual Studio Code, Google Chrome</strong></h4>
-                  <br>
-                  <h4><strong>JavaScript and Chrome Inspector Tool</strong></h4>
-                  <h5>Open inspector tool</h5>
-                  <h6>1) Open up Google Chrome</h6>
-                  <h6>2) Right click on page, then click on inspector</h6>
-                  <h6>3) Click on console button</h6>
-                  <h5>Run JavaScript in the inspector tool</h5>
-                  <h6>Press return</h6>
-                  <h5>Go to next line of code without running script </h5>
-                  <h6>Shift + Return</h6>
-                  <br>
-                  <h4><strong> User input / output </strong></h4>
-                  <h5>	Message user with an alert</h5>
-                  <h6 class="p">	alert(‘Hello World!’);</h6>
-                  <h5>	Get user input and store it in a variable called “name”</h5>
-                  <h6 class="p">	var name = prompt(‘what is your name’);</h6>
-                  <h5>	User variable in user message</h5>
-                  <h6 class="p">	alert(‘Hello’ + name + ‘, it is great to meet you!’);</h6>
-                  <br>
-                  <h4><strong>	Calculator and variables</strong></h4>
-                  <h5>	Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line!</h5>
-                  <h6 class="p">	2*3;</h6>
-                  <h5>	Use variables to store data; You must “var” before the variable the first time you declare but not afterwards; This returns 8</h5>
-                  <h6 class="p">	var x = 3;</h6>
-                  <h6 class="p">	x = 4; </h6>
-                  <h6 class="p">	var y = 2; </h6>
-                  <h6>	<p class="p"> x * y; </p>	<p class="g"> // this will result in 8 </p></h6>
-                  <br>
-                  <h4><strong>	Parsing user data</strong> </h4>
-                  <h5>	If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it with “Parsing” </h5>
-                  <h6 class="p">	parseInt(prompt(‘what year were you born?’));</h6>
-                  <br>
-                  <h4><strong>	If then else statements </strong></h4>
-                  <h5>	These creates basic logic in your program</h5>
-                  <h5>	Your program reads if something is true then do some tasks, else, if it is not true, do some other tasks</h5>
-                  <h5>Note that each line that is doing something has a semicolon after but not the lines with the if or else</h5>
-                  <h5>Also note that you don’t actually have to write out “then”, you simply use the curly brackets before and after the block of code that you want to run when the statement is true</h5>  
-                  <div class="p">
-                    <h6>var age = prompt(‘how old are you?’);</h6>  
-                    <h6>if (age >= 21) {</h6>
-                    <h6> &emsp; alert(‘you can drink!’);</h6>
-                    <h6>} else {</h6>
-                    <h6>&emsp; alert(‘you can not drink’);}</h6>
+                  <!-----------------------------------------------  Coding 101.1 - Coding Quick Start     -->
+                  <!-- #region -->
+                    <h2> 1.	Coding Quickstart! </h2> 
+                    <h4><strong>See appendix for installing and running MS Visual Studio Code, Google Chrome</strong></h4>
                     <br>
-                  </div>
-                  <h4> <strong>Comments: </strong> you can write comments in your code that are ignored by the computer; Typically you write pseudo code as comments; You can also comment out lines of code to help debug it</h4>
-                  <h6>// this is a JavaScript comment</h6>
-                  <br>
-                  <h4>	<strong>Random number generator</strong></h4>  
-                  <h5>  <table><td class="p">Math.random() </td> <td class="g"> // returns a random number between 0 and 1</td></table></h5>
-                  <h5>	<table><td class="p"> Math.floor() </td> <td class="g">// returns largest integer less than or equal to given #</td></table></h5>
-                  <h5>	Combining them, then multiplying the random number by 10, and then adding 1 will get you a random between 1 and 10</h5>
-                  <h6 class="p">	Math.floor(Math.random()* 10) + 1</h6>
-                  <br>
-                  <h4>	<strong> Running JavaScript Programs locally </strong></h4>
-                  <h5>	1) Create a HTML file and a JavaScript file</h5>
-                  <h6>	index.js</h6>
-                  <h6>	playground.html</h6>
-                  <h5>  2) Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your HTML code</h5>
-                  <h6 class="p">	&lt;script src=index.js> &lt;/script></h6>
-                  <h5>	3) Write you code in JavaScript file</h5>
-                  <h6 class="p">	alert(‘Hello World’);</h6>
-                  <h5>	4) Go to the html file and open it with Google chrome</h5>
-                  <h6>  Always make sure to save all files before running program</h6>
-                  <h6>  Note, to open file in Chrome, you should be able to just double click the file or right click the file and then click “open with” and then google chrome</h6>
-                  <br>
+                    <h4><strong>JavaScript and Chrome Inspector Tool</strong></h4>
+                    <h5>Open inspector tool</h5>
+                    <h6>1) Open up Google Chrome</h6>
+                    <h6>2) Right click on page, then click on inspector</h6>
+                    <h6>3) Click on console button</h6>
+                    <h5>Run JavaScript in the inspector tool</h5>
+                    <h6>Press return</h6>
+                    <h5>Go to next line of code without running script </h5>
+                    <h6>Shift + Return</h6>
+                    <br>
+                    <h4><strong> User input / output </strong></h4>
+                    <h5>	Message user with an alert</h5>
+                    <h6 class="p">	alert(‘Hello World!’);</h6>
+                    <h5>	Get user input and store it in a variable called “name”</h5>
+                    <h6 class="p">	var name = prompt(‘what is your name’);</h6>
+                    <h5>	User variable in user message</h5>
+                    <h6 class="p">	alert(‘Hello’ + name + ‘, it is great to meet you!’);</h6>
+                    <br>
+                    <h4><strong>	Calculator and variables</strong></h4>
+                    <h5>	Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line!</h5>
+                    <h6 class="p">	2*3;</h6>
+                    <h5>	Use variables to store data; You must “var” before the variable the first time you declare but not afterwards; This returns 8</h5>
+                    <h6 class="p">	var x = 3;</h6>
+                    <h6 class="p">	x = 4; </h6>
+                    <h6 class="p">	var y = 2; </h6>
+                    <h6>	<p class="p"> x * y; </p>	<p class="g"> // this will result in 8 </p></h6>
+                    <br>
+                    <h4><strong>	Parsing user data</strong> </h4>
+                    <h5>	If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it with “Parsing” </h5>
+                    <h6 class="p">	parseInt(prompt(‘what year were you born?’));</h6>
+                    <br>
+                    <h4><strong>	If then else statements </strong></h4>
+                    <h5>	These creates basic logic in your program</h5>
+                    <h5>	Your program reads if something is true then do some tasks, else, if it is not true, do some other tasks</h5>
+                    <h5>Note that each line that is doing something has a semicolon after but not the lines with the if or else</h5>
+                    <h5>Also note that you don’t actually have to write out “then”, you simply use the curly brackets before and after the block of code that you want to run when the statement is true</h5>  
+                    <div class="p">
+                      <h6>var age = prompt(‘how old are you?’);</h6>  
+                      <h6>if (age >= 21) {</h6>
+                      <h6> &emsp; alert(‘you can drink!’);</h6>
+                      <h6>} else {</h6>
+                      <h6>&emsp; alert(‘you can not drink’);}</h6>
+                      <br>
+                    </div>
+                    <h4> <strong>Comments: </strong> you can write comments in your code that are ignored by the computer; Typically you write pseudo code as comments; You can also comment out lines of code to help debug it</h4>
+                    <h6>// this is a JavaScript comment</h6>
+                    <br>
+                    <h4>	<strong>Random number generator</strong></h4>  
+                    <h5>  <table><td class="p">Math.random() </td> <td class="g"> // returns a random number between 0 and 1</td></table></h5>
+                    <h5>	<table><td class="p"> Math.floor() </td> <td class="g">// returns largest integer less than or equal to given #</td></table></h5>
+                    <h5>	Combining them, then multiplying the random number by 10, and then adding 1 will get you a random between 1 and 10</h5>
+                    <h6 class="p">	Math.floor(Math.random()* 10) + 1</h6>
+                    <br>
+                    <h4>	<strong> Running JavaScript Programs locally </strong></h4>
+                    <h5>	1) Create a HTML file and a JavaScript file</h5>
+                    <h6>	index.js</h6>
+                    <h6>	playground.html</h6>
+                    <h5>  2) Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your HTML code</h5>
+                    <h6 class="p">	&lt;script src=index.js> &lt;/script></h6>
+                    <h5>	3) Write you code in JavaScript file</h5>
+                    <h6 class="p">	alert(‘Hello World’);</h6>
+                    <h5>	4) Go to the html file and open it with Google chrome</h5>
+                    <h6>  Always make sure to save all files before running program</h6>
+                    <h6>  Note, to open file in Chrome, you should be able to just double click the file or right click the file and then click “open with” and then google chrome</h6>
+                    <br>
+                  <!-- endregion -->
                   <!-----------------------------------------------  /Coding 101.1 - Coding Quick Start  -->
 
-
-
                   <!-----------------------------------------------  Coding 101.2 - Programming Overview  -->
-                  <h2>  2.	Programming Overview</h2>
-                  <br>
-                  <h3>  2.1.	Basics</h3>
-                  <h4>  <strong>Scripts: </strong> series of instructions computer can follow one-by-one</h4>
-                  <h6>  Languages include JavaScript and Python and others</h6>
-                  <h6>	A very simple script could asks a user for their birthday and check if they are old enough to drink</h6>
-                  <h4><strong>	Pseudo code: </strong></h4>
-                  <div class="p">
-                    <h6>	Function – Check customers IDs</h6>
-                    <h6>&emsp;	    Count number of customers in line</h6>
-                    <h6>&emsp;      Until you have checked all customers, check each id</h6>
-                    <h6>	Function – Check ID</h6>
-                    <h6>&emsp;      If user is under 21, they can’t drink, otherwise they can</h6>
-                  </div>
-                  <h4><strong>	Communication:</strong></h4>
-                  <h6>	<table><td class="p">alert(‘hello’)</td><td class="g">// send user message</td> </table></h6>
-                  <h6>	<table><td>prompt(‘enter info’)</td><td>// get input from user</td></table></h6>
-                  <h6>	<table><td class="p">console.log(‘test’)</td><td class="g">// good for debugging; sends message to console</td></table> </h6>
-                  <h4>	<strong>Other</strong></h5>
-                  <h6>	<table><td class='p'>parseInt()</td><td class="g">// turn string into number</td></table></h6>
-                  <h6>	<table><td class="p">Math.floor(Math.random()* 10) + 1</td><td class="g">// random # between 1 and 10</td></table></h6>
-                  <br>
-                  <h3>2.2.	Expressions and operators:</h3>
-                  <h4>	These are built in functions of most programming languages that act like calculators of the program</h4>
-                  <h6>	<table> <td class="p"> var color = ‘white’;		<td class="g">// assignment operator</td></table></h6>
-                  <h6>	<table> <td class="p"> var weight = 30*15;</td>		<td class="g">// arithmetic operators; declares and sets weight to 450</td></table></h6>
-                  <h6>	<table> <td class="p"> greeting = ‘Hi’ + ‘John’;</td>	<td class="g">// string operator; sets greeting equal to ‘Hi John’ </td></table></h6>
-                  <h6>	<table> <td class="p"> buy = 3 > 5;</td>		<td class="g">// comparison operator…buy=false</td></table></h6>
-                  <h6>	<table> <td class="p"> buy = (5>3) && (2>4);</td>	<td class="g">// logical operators; and statement; buy = false</td></table></h6>
-                  <h6>	<table> <td class="p"> buy = (5>3) || (2>4);</td>		<td class="g">// logical operators; or statement; buy = true</td></table></h6>
-                  <h6>	<table> <td class="p"> i++;</td>			<td class="g">// adds one to current number</td></table></h6>
-                  <h6>	<table> <td class="p"> x = x +5;</td>			<td class="g">// adds 5 to x; if x was 12, then x would be set to 17 </td></table></h6>
-                  <h6>	<table> <td class="p"> i--;</td>			<td class="g">// subtracts one from current number</td></table></h6>
-                  <h6>	<table> <td class="p"> 8 % 5;</td>			<td class="g">// returns the remainder of 3</td></table></h6>
-                  <h6>	<table> <td class="p"> 2**4;</td>			<td class="g">// exponent of 2^4, which equals 16</td></table></h6>
-                  <br>
-                  <h3>2.3.	If then for loops</h3>
-                  <h4>	Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be smarter than a simple calculator or database. </h4>
-                  <h4><strong>	If (true) then…else if (true)…else…:</strong>If then functions allow computers to make decisions (sort of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript:</h4>
-                  <div class="p">
-                    <h6>	if (today - user_birthday > 21 ) {</h6>
-                    <h6>&emsp;	    print(‘you can drink’); </h6>
-                    <h6>	} else if (user_birthday &lt =0) {</h6>
-                    <h6>&emsp;	    print(‘not a valid ID’);</h6>
-                    <h6>	} else {</h6>
-                    <h6>&emsp;	    print(‘you can’t drink);</h6>
-                    <h6>	}</h6>
-                  </div>
-                  <h4> <strong>	For (true) loops: </strong>allow you to repeat certain functions while something is true. For example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus signs (ugh), you could use write belowJS function</h4>
-                  <div class="p">
-                    <h6>	var sum = 0;</h6>
-                    <h6>	for (x=1 x &lt= 100; x++) {</h6>
-                    <h6>&emsp;sum = sum + x;</h6>
-                    <h6>}</h6>
-                    <h6> <table><td class="p"> alert(sum);</td>	<td class="g">// this will show the number 5050 </td></table> </h6>
-                  </div>
-                  <h4><strong>	While (true) do… </strong> this function will continue to run until the statement is false. Enclosed in the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run infinitiy times if the statement is always true so be careful not to accidentially create an <strong>“infinite loop”!</strong></h4>
-                  <div class="p">
-                    <h6>	while (still_playing == true) {</h6>
-                    <h6>&emsp;	    play_game();</h6>
-                    <h6>}</h6>
-                  </div>
-                  <h4> <strong> Switch case…</strong> this is a short hand way of writing out multiple if then statements; example syntax</h4>
-                  <div class="p">
-                    <h6>switch (response) {</h6>
-                    <h6>&emsp;	    case: blue return ‘b’;</h6>
-                    <h6>&emsp;	    case: red return ‘r’;</h6>
-                    <h6>&emsp;	    case: yellow return ‘y’;</h6>
-                  </div>
-                  <br>
-                  <h3>2.4.	Data types:</h3>
-                  <h4><strong>	Strings: </strong>letters, words, sentences…Note: To make quotes within quotes use either double quotes on the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes within single quotes.</h4>
-                  <h6 class="p">	‘I am a string’</h6>
-                  <h6 class="p">	“I’m a string too”</h6>
-                  <h6 class="p">	 ‘I’m a syntax error!!’</h6>
-                  <h6> <table><td class="p">	str.length;</td><td class="g">			// returns the number of characters in a string</td></table></h6>
-                  <h4><strong>Floats: </strong> numbers (<strong> integers </strong>are used for whole numbers) </h4>
-                  <h6 class="p">	3.13</h6>
-                  <h4> <strong>	Boolean: </strong>only has two values, true or false. Note that these are special words within JavaScript.</h4>
-                  <h4> <strong>	Lists: </strong>Simple lists of strings, or floats, or variables, etc. Lists items are ordered starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd at 2. Commonly used list methods include: <p class="p">push(), pop(), splice(), length, and indexOf(). </p></h4>
-                  <h6><table><td class="p">	var new_list = []; </td><td class="g">// declares a new list</td></table></h6>
-                  <h6><table><td class="p">	new_list = [2, 81, 52];</td><td class="g">// sets new_list equal to a list containing three numbers: 2, 81, and 52</td></table></h6>
-                  <h6><table><td class="p">	new_list[1];</td><td>// returns the number 81</td></table></h6>
-                  <h6><table><td class="p">	new_list[1] = 82;</td> <td class="g">// changes the element in position 1 (i.e. 81) to the number 82</td></table></h6>
-                  <h6><table><td class="p">	new_list.push(3);</td><td class="g">// adds the number 3 to that list</td></table></h6>
-                  <h6><table><td class="p">	new_list.pop();</td> <td class="g">// removes and returns the last item from that list</td></table></h6>
-                  <h6><table><td class="p">	new_list.splice(1,2);</td> <td class="g">// starting at index position 1, removes two elements from list</td></table></h6>
-                  <h6><table><td class="p">	new_list = [‘apple’, ‘banana’, ‘orange’]</td><td class="g">// creates a new list called groceries</td></table></h6>
-                  <h6><table><td class="p">	new_list.splice(1,0,’grapes’);</td><td class="g">// adds grapes to left of index 1; i.e. [‘apple’, ‘grapes’, ‘banana’, ‘orange’]</td></table></h6>
-                  <h6><table><td class="p">	new_list.length;</td><td class="g">// returns the number of elements in an array</td></table></h6>
-                  <h6><table><td class="p">	new_list.indexOf(‘banana’)</td><td class="g">// searches array for apple</td></table></h6>
-                  <h4><strong>	Dictionary: </strong>Includes a series of unordered key: value pairs. The key is used to describe an item and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute. Example:</h4>
-                  <h6 class="p">	var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</h6>
-                  <h6 class="p">var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</h6>
-                  <h6><table><td class="p">	my_hotel[‘address’];</td><td class="g">// looks up the key ‘address’ and returns the value for that key, ‘111 main street’</td></table></h6>
-                  <br>
-                  <h3>2.5.	Functions </h3>
-                  <h4>Functions are a series of statements that have been grouped together and can be run whenever function is called</h4>
-                  <h4><strong>Parameters </strong>are variables that you can pass to functions that they can perform actions on; </h4>
-                  <h4><strong>	Arguments </strong>are values of paramters</h4>
-                  <h4><strong>	Declaring</strong>function is creating the function. Below is JS:</h4>
-                  <div class="p">
-                    <h6>	function add_numbers(x,y) {</h6>
-                    <h6>&emsp;	    print(x+y);</h6>
-                    <h6>	}</h6>
-                  </div>
-                  <h4><strong>	Calling</strong>a function will run code in function</h4>
-                  <h6><table><td class="p">	add_numbers(1,2);</td><td class="g">// outputs 3</td></table></h6>
-                  <h4><strong>	Global variables vs local variables: </strong>If a variable is declared within a function, then it is a local variable that can only be used or accessed within that function. If a variable is declared outside a function, then it is a global variable and can be used or accessed anywhere.</h4>
-                  <br>
-                  <h3>2.6.	Object oriented programming</h3>
-                  <h4>	Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are built. </h4>
-                  <h4> <strong> 	Properties: </strong>characteristics about object; have both <strong> “key” </strong>that describes property (e.g., address) and <strong> “value”</strong> (e.g., 111 main st)</h4>
-                  <h4><strong>	Events: </strong>These run programs when different events occur (e.g., hotel room booked, car breaks, button clicked)</h4>
-                  <h4><strong>	Methods: </strong>Functions that are specifically built for each object (e.g., book_hotel_room(), find_room_price(), …)</h4>
-                  <h4><strong>	Built-in Objects: </strong>web browsers and application interfaces typically come with built in objects and methods that make it easier to create webpages or applications.</h4>
-                  <h4><strong>	Object / Class Constructor: </strong>Declare a new class that you can use to construct objects</h4> 
-                  <div class="p">
-                    <h6>	function MovieStar(name, birthday) {</h6>
-                    <h6>&emsp;	    this.name = name; </h6>
-                    <h6>&emsp;	    this.birthday = birthday </h6>
-                    <h6>&emsp;	    this.greeting = function(){ </h6>
-                    <h6>&emsp;&emsp;	        alert(‘hi, my name is ‘ + this.name); </h6>
-                    <h6>&emsp;	    } </h6>
-                    <h6>	} </h6>
-                  </div>
-                  <h5>	Create a new object using the class you created</h5>
-                  <h6 class="p">	var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</h6>
-                  <h6 class="p">	var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</h6>
-                  <h5> 	Recall or change values from the object </h5>
-                  <h6><table><td class="p">	tom_cruise.birthday;</td><td class="g">// returns July 3, 1962</td></table></h6>
-                  <h6><table><td class="p">	tom_cruise[“birthday”];</td><td class="g">// returns July 3, 1962</td></table></h6>
-                  <h6><table><td class="p">	tom_cruise.birthday  = ‘July 4, 1962’; </td> <td class="g"></td>// changes value of birthday to July 4th</table></h6>
-                  <h6><table><td class="p">	tom_cruise.greeting();</td><td class="g">// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</td></table></h6>
-                  <h5>	Create a list of objects</h5>
-                  <h6><table><td class="p">	var star_list = [tom_cruise];</td><td class="g">// adds tom_cruise object to star_list</td></table></h6>
-                  <h6><table><td class="p">	star_list.push(dwayne_johnson);</td><td class="g">// adds dwayne_johnson object to star_list</td></table></h6>
-                  <h5><strong>for… in loop </strong>can be used to loop through all of the key / value pairs in an object</h5>
-                  <div class="p">
-                    <h6>	for (p in person) {</h6>
-                    <h6>&emsp;	   alert(p);</h6>
-                    <h6>	} </h6>
-                  <div>
-                  <br>
+                  <!-- #region -->
+                    <h2>  2.	Programming Overview</h2>
+                    <br>
+                    <h3>  2.1.	Basics</h3>
+                    <h4>  <strong>Scripts: </strong> series of instructions computer can follow one-by-one</h4>
+                    <h6>  Languages include JavaScript and Python and others</h6>
+                    <h6>	A very simple script could asks a user for their birthday and check if they are old enough to drink</h6>
+                    <h4><strong>	Pseudo code: </strong></h4>
+                    <div class="p">
+                      <h6>	Function – Check customers IDs</h6>
+                      <h6>&emsp;	    Count number of customers in line</h6>
+                      <h6>&emsp;      Until you have checked all customers, check each id</h6>
+                      <h6>	Function – Check ID</h6>
+                      <h6>&emsp;      If user is under 21, they can’t drink, otherwise they can</h6>
+                    </div>
+                    <h4><strong>	Communication:</strong></h4>
+                    <h6>	<table><td class="p">alert(‘hello’)</td><td class="g">// send user message</td> </table></h6>
+                    <h6>	<table><td>prompt(‘enter info’)</td><td>// get input from user</td></table></h6>
+                    <h6>	<table><td class="p">console.log(‘test’)</td><td class="g">// good for debugging; sends message to console</td></table> </h6>
+                    <h4>	<strong>Other</strong></h5>
+                    <h6>	<table><td class='p'>parseInt()</td><td class="g">// turn string into number</td></table></h6>
+                    <h6>	<table><td class="p">Math.floor(Math.random()* 10) + 1</td><td class="g">// random # between 1 and 10</td></table></h6>
+                    <br>
+                    <h3>2.2.	Expressions and operators:</h3>
+                    <h4>	These are built in functions of most programming languages that act like calculators of the program</h4>
+                    <h6>	<table> <td class="p"> var color = ‘white’;		<td class="g">// assignment operator</td></table></h6>
+                    <h6>	<table> <td class="p"> var weight = 30*15;</td>		<td class="g">// arithmetic operators; declares and sets weight to 450</td></table></h6>
+                    <h6>	<table> <td class="p"> greeting = ‘Hi’ + ‘John’;</td>	<td class="g">// string operator; sets greeting equal to ‘Hi John’ </td></table></h6>
+                    <h6>	<table> <td class="p"> buy = 3 > 5;</td>		<td class="g">// comparison operator…buy=false</td></table></h6>
+                    <h6>	<table> <td class="p"> buy = (5>3) && (2>4);</td>	<td class="g">// logical operators; and statement; buy = false</td></table></h6>
+                    <h6>	<table> <td class="p"> buy = (5>3) || (2>4);</td>		<td class="g">// logical operators; or statement; buy = true</td></table></h6>
+                    <h6>	<table> <td class="p"> i++;</td>			<td class="g">// adds one to current number</td></table></h6>
+                    <h6>	<table> <td class="p"> x = x +5;</td>			<td class="g">// adds 5 to x; if x was 12, then x would be set to 17 </td></table></h6>
+                    <h6>	<table> <td class="p"> i--;</td>			<td class="g">// subtracts one from current number</td></table></h6>
+                    <h6>	<table> <td class="p"> 8 % 5;</td>			<td class="g">// returns the remainder of 3</td></table></h6>
+                    <h6>	<table> <td class="p"> 2**4;</td>			<td class="g">// exponent of 2^4, which equals 16</td></table></h6>
+                    <br>
+                    <h3>2.3.	If then for loops</h3>
+                    <h4>	Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be smarter than a simple calculator or database. </h4>
+                    <h4><strong>	If (true) then…else if (true)…else…:</strong>If then functions allow computers to make decisions (sort of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript:</h4>
+                    <div class="p">
+                      <h6>	if (today - user_birthday > 21 ) {</h6>
+                      <h6>&emsp;	    print(‘you can drink’); </h6>
+                      <h6>	} else if (user_birthday &lt =0) {</h6>
+                      <h6>&emsp;	    print(‘not a valid ID’);</h6>
+                      <h6>	} else {</h6>
+                      <h6>&emsp;	    print(‘you can’t drink);</h6>
+                      <h6>	}</h6>
+                    </div>
+                    <h4> <strong>	For (true) loops: </strong>allow you to repeat certain functions while something is true. For example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus signs (ugh), you could use write belowJS function</h4>
+                    <div class="p">
+                      <h6>	var sum = 0;</h6>
+                      <h6>	for (x=1 x &lt= 100; x++) {</h6>
+                      <h6>&emsp;sum = sum + x;</h6>
+                      <h6>}</h6>
+                      <h6> <table><td class="p"> alert(sum);</td>	<td class="g">// this will show the number 5050 </td></table> </h6>
+                    </div>
+                    <h4><strong>	While (true) do… </strong> this function will continue to run until the statement is false. Enclosed in the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run infinitiy times if the statement is always true so be careful not to accidentially create an <strong>“infinite loop”!</strong></h4>
+                    <div class="p">
+                      <h6>	while (still_playing == true) {</h6>
+                      <h6>&emsp;	    play_game();</h6>
+                      <h6>}</h6>
+                    </div>
+                    <h4> <strong> Switch case…</strong> this is a short hand way of writing out multiple if then statements; example syntax</h4>
+                    <div class="p">
+                      <h6>switch (response) {</h6>
+                      <h6>&emsp;	    case: blue return ‘b’;</h6>
+                      <h6>&emsp;	    case: red return ‘r’;</h6>
+                      <h6>&emsp;	    case: yellow return ‘y’;</h6>
+                    </div>
+                    <br>
+                    <h3>2.4.	Data types:</h3>
+                    <h4><strong>	Strings: </strong>letters, words, sentences…Note: To make quotes within quotes use either double quotes on the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes within single quotes.</h4>
+                    <h6 class="p">	‘I am a string’</h6>
+                    <h6 class="p">	“I’m a string too”</h6>
+                    <h6 class="p">	 ‘I’m a syntax error!!’</h6>
+                    <h6> <table><td class="p">	str.length;</td><td class="g">			// returns the number of characters in a string</td></table></h6>
+                    <h4><strong>Floats: </strong> numbers (<strong> integers </strong>are used for whole numbers) </h4>
+                    <h6 class="p">	3.13</h6>
+                    <h4> <strong>	Boolean: </strong>only has two values, true or false. Note that these are special words within JavaScript.</h4>
+                    <h4> <strong>	Lists: </strong>Simple lists of strings, or floats, or variables, etc. Lists items are ordered starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd at 2. Commonly used list methods include: <p class="p">push(), pop(), splice(), length, and indexOf(). </p></h4>
+                    <h6><table><td class="p">	var new_list = []; </td><td class="g">// declares a new list</td></table></h6>
+                    <h6><table><td class="p">	new_list = [2, 81, 52];</td><td class="g">// sets new_list equal to a list containing three numbers: 2, 81, and 52</td></table></h6>
+                    <h6><table><td class="p">	new_list[1];</td><td>// returns the number 81</td></table></h6>
+                    <h6><table><td class="p">	new_list[1] = 82;</td> <td class="g">// changes the element in position 1 (i.e. 81) to the number 82</td></table></h6>
+                    <h6><table><td class="p">	new_list.push(3);</td><td class="g">// adds the number 3 to that list</td></table></h6>
+                    <h6><table><td class="p">	new_list.pop();</td> <td class="g">// removes and returns the last item from that list</td></table></h6>
+                    <h6><table><td class="p">	new_list.splice(1,2);</td> <td class="g">// starting at index position 1, removes two elements from list</td></table></h6>
+                    <h6><table><td class="p">	new_list = [‘apple’, ‘banana’, ‘orange’]</td><td class="g">// creates a new list called groceries</td></table></h6>
+                    <h6><table><td class="p">	new_list.splice(1,0,’grapes’);</td><td class="g">// adds grapes to left of index 1; i.e. [‘apple’, ‘grapes’, ‘banana’, ‘orange’]</td></table></h6>
+                    <h6><table><td class="p">	new_list.length;</td><td class="g">// returns the number of elements in an array</td></table></h6>
+                    <h6><table><td class="p">	new_list.indexOf(‘banana’)</td><td class="g">// searches array for apple</td></table></h6>
+                    <h4><strong>	Dictionary: </strong>Includes a series of unordered key: value pairs. The key is used to describe an item and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute. Example:</h4>
+                    <h6 class="p">	var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</h6>
+                    <h6 class="p">var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</h6>
+                    <h6><table><td class="p">	my_hotel[‘address’];</td><td class="g">// looks up the key ‘address’ and returns the value for that key, ‘111 main street’</td></table></h6>
+                    <br>
+                    <h3>2.5.	Functions </h3>
+                    <h4>Functions are a series of statements that have been grouped together and can be run whenever function is called</h4>
+                    <h4><strong>Parameters </strong>are variables that you can pass to functions that they can perform actions on; </h4>
+                    <h4><strong>	Arguments </strong>are values of paramters</h4>
+                    <h4><strong>	Declaring</strong>function is creating the function. Below is JS:</h4>
+                    <div class="p">
+                      <h6>	function add_numbers(x,y) {</h6>
+                      <h6>&emsp;	    print(x+y);</h6>
+                      <h6>	}</h6>
+                    </div>
+                    <h4><strong>	Calling</strong>a function will run code in function</h4>
+                    <h6><table><td class="p">	add_numbers(1,2);</td><td class="g">// outputs 3</td></table></h6>
+                    <h4><strong>	Global variables vs local variables: </strong>If a variable is declared within a function, then it is a local variable that can only be used or accessed within that function. If a variable is declared outside a function, then it is a global variable and can be used or accessed anywhere.</h4>
+                    <br>
+                    <h3>2.6.	Object oriented programming</h3>
+                    <h4>	Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are built. </h4>
+                    <h4> <strong> 	Properties: </strong>characteristics about object; have both <strong> “key” </strong>that describes property (e.g., address) and <strong> “value”</strong> (e.g., 111 main st)</h4>
+                    <h4><strong>	Events: </strong>These run programs when different events occur (e.g., hotel room booked, car breaks, button clicked)</h4>
+                    <h4><strong>	Methods: </strong>Functions that are specifically built for each object (e.g., book_hotel_room(), find_room_price(), …)</h4>
+                    <h4><strong>	Built-in Objects: </strong>web browsers and application interfaces typically come with built in objects and methods that make it easier to create webpages or applications.</h4>
+                    <h4><strong>	Object / Class Constructor: </strong>Declare a new class that you can use to construct objects</h4> 
+                    <div class="p">
+                      <h6>	function MovieStar(name, birthday) {</h6>
+                      <h6>&emsp;	    this.name = name; </h6>
+                      <h6>&emsp;	    this.birthday = birthday </h6>
+                      <h6>&emsp;	    this.greeting = function(){ </h6>
+                      <h6>&emsp;&emsp;	        alert(‘hi, my name is ‘ + this.name); </h6>
+                      <h6>&emsp;	    } </h6>
+                      <h6>	} </h6>
+                    </div>
+                    <h5>	Create a new object using the class you created</h5>
+                    <h6 class="p">	var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</h6>
+                    <h6 class="p">	var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</h6>
+                    <h5> 	Recall or change values from the object </h5>
+                    <h6><table><td class="p">	tom_cruise.birthday;</td><td class="g">// returns July 3, 1962</td></table></h6>
+                    <h6><table><td class="p">	tom_cruise[“birthday”];</td><td class="g">// returns July 3, 1962</td></table></h6>
+                    <h6><table><td class="p">	tom_cruise.birthday  = ‘July 4, 1962’; </td> <td class="g"></td>// changes value of birthday to July 4th</table></h6>
+                    <h6><table><td class="p">	tom_cruise.greeting();</td><td class="g">// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</td></table></h6>
+                    <h5>	Create a list of objects</h5>
+                    <h6><table><td class="p">	var star_list = [tom_cruise];</td><td class="g">// adds tom_cruise object to star_list</td></table></h6>
+                    <h6><table><td class="p">	star_list.push(dwayne_johnson);</td><td class="g">// adds dwayne_johnson object to star_list</td></table></h6>
+                    <h5><strong>for… in loop </strong>can be used to loop through all of the key / value pairs in an object</h5>
+                    <div class="p">
+                      <h6>	for (p in person) {</h6>
+                      <h6>&emsp;	   alert(p);</h6>
+                      <h6>	} </h6>
+                    <div>
+                    <br>
+                  <!-- endregion -->
                   <!-----------------------------------------------  /Coding 101.2 - Programming Overview  -->
-                  
-
-
-                  
-
-                </div>
-                <!-------------------------------------------------  /Cheat Sheet                         -->
-
-                
-                
-
-
+                  </div>
+                <!-- endregion -->
+              <!-------------------------------------------------  /Cheat Sheet                         -->                  
               </div>
             </div>
             <!-- /.tab-content -->
