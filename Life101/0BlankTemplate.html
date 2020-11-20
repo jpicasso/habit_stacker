@@ -1,3 +1,4 @@
+<!-- Last update: 2020.11.20 -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -77,34 +78,36 @@
               <!-- /.megamenu -->
 
               <ul class="accordion nav flex-column" id="sidebarAccordion">
-                <li class="nav-item" id="intro">
-                  <a href="#code101-L0-slides" class="nav-link">
-                    0. Intro <span class="sr-only">(current)</span>
+                <li class="nav-item" id="quickStart">
+                  <a href="#coding101-1" class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseQuickStart" aria-expanded="false" aria-controls="collapseQuickStart">
+                    1. First part
+                  </a>
+                  <ul id="collapseQuickStart" class="collapse" aria-labelledby="quickStart" data-parent="#sidebarAccordion">
+                    <li><a href="#life101-1GTD-1.1">1.1 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.2 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.3 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.4 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.5 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.6 FillIn </a></li>
+                  </ul>
+                </li>
+                <li class="nav-item" id="programmingOverview">
+                  <a class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseProgrammingOverview" aria-expanded="false" aria-controls="collapseQuickStart">
+                    2. Second Part
+                  </a>
+                  <ul id="collapseProgrammingOverview" class="collapse" aria-labelledby="quickProgrammingOverview" data-parent="#sidebarAccordion">
+                    <li><a href="#life101-1GTD-2.1">2.1 FillIn </a></li>
+                    <li><a href="#life101-1GTD-2.2">2.2 FillIn </a></li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <a href="#coding101-3" class="nav-link">
+                    3. Third Part
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a href="#code101-L1-slides" class="nav-link">
-                    1. Coding Quick Start
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="#code101-L2-slides" class="nav-link">
-                    2. Programming with Javascript
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="#code101-L3-slides" class="nav-link">
-                    3. Your First Website (HTML/CSS)
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="#code101-L4-slides" class="nav-link">
-                    4. JQuery
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="#code101-L5 -slides" class="nav-link">
-                    5. Capstone
+                  <a href="#life101-1GTD-4" class="nav-link">
+                    4. FourthPart
                   </a>
                 </li>
               </ul>
@@ -121,52 +124,69 @@
                 <a class="nav-link" id="classes-tab" href="/index.html" role="tab" >Classes</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="slides-tab" href="/coding101/slides.html" role="tab" aria-selected="true">Slides</a>
+                <a class="nav-link" id="slides-tab" href="/coding101/slides.html" role="tab">Slides</a>
               </li>
               <li class="nav-item" role="presentation">
                 <a class="nav-link " id="projects-tab" href="/coding101/projects.html" role="tab">Projects</a>
               </li>
               <li class="nav-item" role="presentation">
-                <a class="nav-link" id="cheat-sheets-tab" href="/coding101/cheat-sheets.html" role="tab">Cheat Sheets</a>
+                <a class="nav-link active" id="cheat-sheets-tab" href="/coding101/cheat-sheets.html" role="tab" aria-selected="true">Cheat Sheets</a>
               </li>
             </ul>
             <!-- /.nav-tabs -->
 
             <!-- .tab-content -->
             <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="#">Courses</a></li>
+                  <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Cheat Sheets</li>
+                </ol>
+              </nav>
+              <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+              <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+                <div class="cheat-sheet">
+                  <!-- Bryce Example -->
+                  <div class="bryce-example">
+                    <!-----------------------------------------------  Life 101.1-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 1. Part 1 </h2>
+                    <h3> 1.1 Part 1</h3>
+                    <h4> FillIn</h4>
 
-              <!-- #slides -->
-              <div class="tab-pane fade active show" id="slides" role="tabpanel" aria-labelledby="slides-tab">
-                <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Courses</a></li>
-                    <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Slides</li>
-                  </ol>
-                </nav>
-                <h2 id="code101-L0-slides">0. Intro </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
-                  <iframe src="//www.slideshare.net/slideshow/embed_code/key/oSLH4zgJjE1lHD" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/JohnPicasso/uprise-university-coding-101-0-intro" title="Uprise University - Coding 101 - 0. Intro" target="_blank">Uprise University - Coding 101 - 0. Intro</a> </strong> from <strong><a href="https://www.slideshare.net/JohnPicasso" target="_blank">John Picasso</a></strong> </div>
-                </div>
-                <h2 id="code101-L1-slides">1. Coding Quick Start </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
-                  <iframe src="//www.slideshare.net/slideshow/embed_code/key/zzSvO3uyFWuTT2" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/JohnPicasso/1-coding101-fewdlesson1codingquickstart" title="1 coding101 fewd_lesson1_coding_quickstart" target="_blank">1 coding101 fewd_lesson1_coding_quickstart</a> </strong> from <strong><a href="https://www.slideshare.net/JohnPicasso" target="_blank">John Picasso</a></strong> </div>                </div>
-                <h2 id="code101-L2-slides">2. Programming with Javascript </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
-                  <iframe src="//www.slideshare.net/slideshow/embed_code/key/dLJQgKhqpSp5Nh" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/JohnPicasso/2-coding101-fewdlesson2programmingoverview" title="2 coding101 fewd_lesson2_programming_overview" target="_blank">2 coding101 fewd_lesson2_programming_overview</a> </strong> from <strong><a href="https://www.slideshare.net/JohnPicasso" target="_blank">John Picasso</a></strong> </div>                </div>
-                <h2 id="code101-L3-slides">3. Your First Website (HTML/CSS) </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
-                </div>
-                <h2 id="code101-L4-slides">4. JQuery </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
-                </div>
-                <h2 id="code101-L5-slides">5. Capstone </h2>
-                <div class="embed-responsive embed-responsive-16by9">               
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.1-GTD ----------------    -->
+                    
+                    
+                    <!-----------------------------------------------  Life 101.2-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 2. Part 2 </h2>
+                    <h3> 2.1 Part 2</h3>
+                    <h4> FillIn</h4>
+
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.2-GTD ----------------    -->
+                    
+
+                    
+                    <!-----------------------------------------------  Life 101.3-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 3. Part 3 </h2>
+                    <h3> 3.1 Part 3</h3>
+                    <h4> FillIn</h4>
+
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.3-GTD ----------------    -->
+                    
+
+
+                  </div>
+                  <!--/Bryce Example-->
+              
+                  <!-------------------------------------------------  /Cheat Sheet                         -->
                 </div>
               </div>
-              <!-- /#slides -->
-              
-            </div>
             <!-- /.tab-content -->
 
           </section>
