@@ -1,0 +1,353 @@
+---
+title: 'Coding 101: Classes'
+---
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- {{> coding101-sidebar}} -->
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          {{> mega-menu}}
+          {{> coding101-class-accord}}
+      </nav>
+      <!-- /.sidebar -->
+
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        {{> nav-tabs}}
+
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <!-- #classes -->
+          <div class="tab-pane fade active show" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Courses</a></li>
+                <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Classes - Lesson 4 </li>
+              </ol>
+            </nav>
+
+            <!------------------------------------------------------------------------------------- -->
+            <!-------------------------------  Coding 101.4 - JQuery and buttons                    -->
+            <!------------------------------------------------------------------------------------- -->
+            <!-- #region -->
+            <p id="coding101-4"></p>
+            <p id="code101-L4-0-class"></p><br><br><br>
+            <article class="section">
+              <header class="section__header">
+                <h2>Coding 101: Lesson 4 - JQuery and buttons</h2>
+              </header>
+              <!----------------------------  #coding101-4.0 -------------------------------------- -->
+              <section class="section__subsection subsection" id="coding101-4.0">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 4 - JQuery and buttons</h2>
+                  <h3>4.0 Intro</h3>
+                </header>
+                <h4>Lesson Overview</h4>
+                <ol>
+                  <li>Intro to JQuery and Buttons</li>
+                  <li>JQuery Selectors</li>
+                  <li>JQuery Methods</li>
+                </ol>
+                <h4>Projects Overview</h4>
+                <img src="../../img//4_JQuery/projects.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/L4-PzorUTiQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </section>
+              <!----------------------------  /coding101-4.0 -------------------------------------- -->
+
+              <!----------------------------  #coding101-4.1 -------------------------------------- -->
+              <p id="code101-L4-1-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 4 - JQuery and buttons</h2>
+                  <h3>4.1 JQuery Overview  </h3>
+                </header>
+                <h4>Intro to JQuery and Buttons </h4>
+                <p><strong>What is JQuery? Why use JQuery?</strong></p>
+                <ul>
+                  <li>“Library” of JavaScript code to make it easier for you to use JS to interact and dynamcially change HTML and CSS files</li>
+                  <li>Open-source, cross browser</li>
+                  <li>It allows you to easily perform DOM manipulation and event listening without some of the issues and length of plain javascript</li>
+                  <li>Most websites use it</li>
+                  <li>Syntax format</li>
+                  <ul>
+                    <li><code>$(‘CSSselector’).action()</code></li>
+                  </ul>
+                  <li>Example syntax</li>
+                  <ul>
+                    <code><li>$(‘button’).click(color_switcher); 	/* When any button is clicked, color_switcher function is run */</li></code>
+                  </ul>
+                </ul>
+                <hr>
+                <h4>Adding JQuery to HTML</h4>
+                <p><strong> Option 1) Add link to JQuery: </strong> API in index.html file ABOVE the script link (it links to file with a CDN). Note if you don’t add JQuery first then you won’t be able to reference it in .js file</p>
+                <script type="text/plain" class="language-javascript"> <script type="text/plain" class="language-javascript">&lt;/script></script>
+                <p><strong>Option 2) Download JQuery file and link to it </strong></p>
+                <ul>
+                  <li> Save JQuery file locally as .js in a js folder</li>
+                  <li> In your index.html file, add below code right before closing &lt;/body> tag</li>
+                  <ul>
+                    <li><code>&lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">&lt;/script></code></li>
+                  </ul>
+                  <li> Again, make sure this link comes before any of your JS file links</li>
+                </ul>
+                <h4>Good Practice</h4>
+                <p>Wrap all of your JS and JQuery code with below method as good practice</p>
+                <p>This prevents your code from running until the entire document is done loading</p>
+                <script type="text/plain" class="language-javascript">$(document).ready(function() { 
+// put all of your code in here
+}); </script>
+<div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/jMnqd-G3M_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4> JQuery Selectors  </h4>
+                <p>These are the most commonly used JQuery Selectors</p>
+                <img src="../../img//4_JQuery/selectors.png" alt="">
+                <hr>
+                <h4>JQuery Methods </h4>
+                <p><strong> These are the most commonly used JQuery Methods</strong></p>
+                <img src="../../img//4_JQuery/1methods.png" alt="">
+                <p><strong> These are other methods that commonly used in JQuery</strong></p>
+                <img src="../../img//4_JQuery/2methods.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/B4isn_RwU44" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </section>
+              <!----------------------------  /coding101-4.1 -------------------------------------- -->
+
+              <!----------------------------  #coding101-4.2 -------------------------------------- -->
+              <p id="code101-L4-2-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - JQuery and buttons</h2>
+                  <h3>4.2 JQuery Projects   </h3>
+                </header>
+                <h4>Project 4.1. Color Switcher</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>Create a form that allows the user to type in a color and the press a button to change the background color of the webpage</p>
+                <p>Hints:</p>
+                <ul> <code>
+                  <li>	&lt;input type="text"></li>
+                  <li>	&lt;button> &lt;/button></li>
+                  <li>	$('input').val();</li>
+                  <li>	$('body').css("background-color",’yellow’);</li>
+                  <li>	$('button').click(my_color_switcher_function);</li>
+                </code></ul>
+                <img src="../../img//4_JQuery/p1.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/WI2MzSoTGtA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/9AjsUbSMpB0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.2. Background drop down menu</h4>
+                <p>Try it yourself before looking at the answers</p>
+                <p>Create a dynamic dropdown menu that allows a user to select what the background of the image will be</p>
+                <p>Find images of 6 different backgrounds that the user can choose from and store them in an images folder</p>
+                <p>Create 6 different classes, one for each background image</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>$('form').change(set_picture_function);</li>
+                    <li>var background = $("#background_pick").val();</li>
+                    <li>$('body').attr('class',background);</li>
+                    <li>$('#pic').append('&lt;option>' + picks[i] + '&lt;/option>');</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p2.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/kEA0c4KzRvg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/OS-aeLgSboI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/Gf2nvwGuCZs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.3. Grocery List</h4>
+                <p>Try it yourself before looking at the answers</p>
+                <p>Build a grocery shopping app that allows the user to add new items to a grocery list, have the list displayed on the page, and allow the user to delete items that have been added</p>
+                <p>When “add new item” button is clicked, the user should be prompted with an “enter item” prompt</p>
+                <p>When the user presses ok, the app should add the item entered it an unordered html list and concurrently add a button that allows the user to delete the item</p>
+                <p>Hints</p>
+                <code>
+                  <ul>
+                    <li>$('#groceries').append("&lt;li id='" + item_id + "'>" + new_item + "&lt;button class='del_btn' value='" + item_id + "'> delete &lt;/button> &lt;/li>");</li>
+                    <li>var id = $(this).val();</li>
+                    <li>$(line).remove();</li>
+                    <li>$('#add_btn').click(add_item);</li>
+                    <li>$('#groceries').on('click', '.del_btn', delete_item);</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p3.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/G2o7YTUcQK4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>                  
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/mWZzaLKf48o" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.4. Bob’s Blog</h4>
+                <p>Try it yourself before looking at the answers</p>
+                <p>Allow users to click on a button to read more. Similar to blogs or eCommerce more info buttons.</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>$(‘#id’).show()</li>
+                    <li>$(‘#id’).hide()</li>
+                    <li>$(‘#id’).slideDown()</li>
+                    <li>$(‘#id’).click(run_my_cool_function)</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p4.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/Qqk-R7QBC1k" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/huHvUnpkr4k" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>                  
+                <h4>Project 4.5. Traffic Light</h4>
+                <p>Create a traffic light / stop light!</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>$(‘#id’).css(‘background-color’,’red’);</li>
+                    <li>$(‘#id’).click(run_my_cool_function);</li>
+                  </ul>
+                </code>
+                <p>Extra credit: make the light automatically switch from red for 3 seconds to yellow for 1 second to green for 3 seconds and then back to red!</p>
+                <img src="../../img//4_JQuery/p5.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/QCtYhShdQu4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/bWNyX4NsBfE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.6. Cash Register</h4>
+                <p>Add item dollar amounts to create a running tally of expenses.</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>CAUTION: This is a grave accent (`); It is not a single parenthesis (‘)!!</li>
+                    <li>$(‘#id’).append(`<tr> </tr>`)</li>
+                    <li>$(‘#id’).val(‘’)</li>
+                    <li>$(‘#id’).submit(my_function)</li>
+                    <li>return</li>
+                    <li>my_num.toFixed(2)</li>
+                    <li>parseFloat()</li>
+                    <li>event.preventDefault()</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p6.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/LTAtGJQpvgY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/3sgqfFl-FYg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.7. Rock Paper Scissors</h4>
+                <p>Play rock paper scissors against the computer and keep score!</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>$(‘#id’).removeClass(‘rock’)</li>
+                    <li>$(‘#id’).addClass(user_input)</li>
+                    <li>if ((x == y) && (a == b) { }</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p7.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/WzV3CORZjoQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/TrVtVNmVRc0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 4.8. User Profile</h4>
+                <p>Create an app that allows a user to create a user profile and submit it</p>
+                <p>When user clicks submit button, it is saved to local storage, and the user is taken to a profile page that shows their profile</p>
+                <p>Try to make the profile page look the one to the right</p>
+                <p>Try to dynamically create the dropdown boxes and the interests check boxes using JQuery</p>
+                <p>Hints:</p>
+                <code>
+                  <ul>
+                    <li>&lt;fieldset> &lt;legend> &lt;label> &lt;textarea></li>
+                    <li>localStorage.setItem("first_name",first_name);</li>
+                    <li>$('#cell').html(localStorage.getItem("cell"));</li>
+                    <li>window.location.href = "profile.html";</li>
+                  </ul>
+                </code>
+                <img src="../../img//4_JQuery/p8.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/FRbqPGVoJyA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/PDmk-ovCeUY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Lesson Recap</h4>
+                <ul>
+                  <li>Intro to JQuery and Buttons</li>
+                  <li>JQuery Selectors</li>
+                  <li>JQuery Methods</li>
+                </ul>
+                <h4>Projects Recap</h4>
+                <img src="../../img//4_JQuery/projects.png" alt="">
+                <hr>
+                <h4>Vocab and Concept Review</h4>
+                <ul>
+                  <li><strong>JQuery: </strong>“Library” of JavaScript code to make it easier for you to use JS to interact and dynamcially change HTML and CSS files</li>
+                  <li><strong>Library: </strong>Group of code files that share with you objects, functions, etc. so that you can easily use commonly used functions in different programs; Many libraries are <strong> open-source</strong> (i.e. free to use).</li>
+                  <li><strong>Open-source: </strong>Publicly available code to view and use; Editing is typically controlled to select users</li>
+                  <li><strong>JQuery Selectors: </strong>Used to find and select HTML elements</li>
+                  <li><strong>JQuery Methods: </strong>Functions built into JQuery that you can easily use</li>
+                  <li><strong>JQuery Syntax format</strong></li>
+                  <ul>
+                    <li><code>$(‘CSSselector’).action()</code></li>
+                  </ul>
+                </ul>
+                <hr>
+                <h4> Homework</h4>
+                <p><strong>Flashcard App: </strong>Build an application that allows user to learn and memorize a stack of five flash cards. User should see “front” of card that has a prompt on it (e.g., what is the capital of the U.S.?). When the user clicks a button, the card flips to the “back” and shows the answer (e.g., Washington D.C.). When the user clicks the button again, it goes to the next card in the stack and shows the front of the card. Once the stack is finished, the user goes back again to the first card.</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/Pkr_uSaC18A" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </section>
+              <!----------------------------  /coding101-4.2 -------------------------------------- -->
+            </article>
+
+
+            <!------------------------------- /Coding 101.4 - JQuery and buttons ------------------ -->
+            <!-- endregion -->
+
+      </article>
+      <!-- /Intro -->
+
+    </div>
+    <!-- /#classes -->
+
+  </div>
+  <!-- /.tab-content -->
+
+  </section>
+  <!-- /.main -->
+
+  </div>
+  </div>
+</main>

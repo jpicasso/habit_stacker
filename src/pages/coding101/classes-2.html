@@ -1,0 +1,643 @@
+---
+title: 'Coding 101: Classes'
+---
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- {{> coding101-sidebar}} -->
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          {{> mega-menu}}
+          {{> coding101-class-accord}}
+      </nav>
+      <!-- /.sidebar -->
+
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        {{> nav-tabs}}
+
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <!-- #classes -->
+          <div class="tab-pane fade active show" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Courses</a></li>
+                <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Classes - Lesson 2 </li>
+              </ol>
+            </nav>
+            
+            <!------------------------------------------------------------------------------------- -->
+            <!-------------------------------  Coding 101.2 - Programming Overview with JavaScript  -->
+            <!------------------------------------------------------------------------------------- -->
+            <!-- #region -->
+            <p id="code101-L2-0-class"></p><br><br><br>
+            <article class="section">
+              <header class="section__header">
+                <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+              </header>
+              <!-- #coding101-2.0 -->
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.0 Intro </h3>
+                </header>
+                <h4> Lessons Overview </h4>
+                <ol>
+                  <li><strong>Basics: </strong> Scripts, Pseudo Code, Lesson 1 review</li>
+                  <li><strong>Expressions and Operators:</strong> Assignment, arithmetic, string, comparison, and
+                    logical operators; Various expressions </li>
+                  <li>
+                    <stron>If then for loops:</stron> If (true) then…else if (true)…else…, For loops, While (true) do…
+                  </li>
+                  <li><strong>Data types: </strong>String, Float, Integer, List, Dictionary, Boolean</li>
+                  <li><strong>Functions:</strong> Declaring and calling functions; Passing along parameters</li>
+                  <li><strong>Object oriented programming:</strong> Properties, Events, Methods, Object / Class
+                    Constructors</li>
+                  <li></li>
+                </ol>
+                <h4> Projects Overview </h4>
+                <ol>
+                  <li><strong> App (for loop) –</strong> User picks 4 numbers, 7 numbers are all called ranging from
+                    1-100, if user gets 1 number right they win $5, 2 gets $25, 3 gets $525, and 4 gets $275,625</li>
+                  <li>Multiplication Quiz 2.0 (while loop) – </strong> User continues to play until they get one
+                    wrong.</li>
+                  <li> <strong># Memorizer (while loop) –</strong> User is given a random 4 digit number, they must
+                    memorize it and then re-enter it, if the user gets it right, the game plays again with 5 digits.
+                    Keeps going until user gets it wrong. </li>
+                  <li> <strong>Grocery list (add, delete from list) –</strong> User can add, delete, or finish the
+                    grocery list. App continues until finish is entered in. Each iteration, user is shown entire
+                    grocery list. </li>
+                  <li> <strong>Friend Facts (dictionary) – </strong> is asked what is their friends name, favorite
+                    cake type, and birthday, hometown. Then user can type in what they want to know about their friend
+                    or enter finish.</li>
+                  <li> <strong>Dice Game (functions) –</strong> User can place a bet before rolling the dice and then
+                    roll the dice. If they roll a 7, they double their money, if they roll a 2, they lose it all.</li>
+                  <li><strong>Celebrity greeting (object constructors) –</strong> Create an Object Constructor for
+                    movie stars that greets users and tells them the celebrity’s top grossing movie.</li>
+                  <li><strong>Celebrity trivia (objects in a list) – </strong> thing as Friends fact except the 3
+                    celebrities are already populated with information as MovieStar objects and put into a stars list.
+                    User is asked 3 random questions about the celebrity.</li>
+                </ol>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZnvFM5AHzCA" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.0 -->
+
+              <!-- #coding101-2.1 -->
+              <p id="code101-L2-1-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.1 Basics </h3>
+                </header>
+
+                <p><strong>“Scripts” </strong>are a series of instructions computers can follow one by one; Scripting
+                  languages include JavaScript and Python as well as others; These are different from “markup
+                  languages” like HTML and CSS that are presentation languages that don’t include any kind of logic or
+                  algorithm; We will dive into this more later.</p>
+                <p><strong>Pseudo Code </strong>is plain English describing what your code will do. This is very
+                  helpful to outline a new coding project. Example:</p>
+                <script type="text/plain" class="language-javascript">Function – Check customers IDs
+Count number of customers in line
+Until you have checked all customers, check each id
+Function – Check ID
+If user is under 21, they can’t drink, otherwise they can </script>
+                <h4>Prior Lesson Reminders</h4>
+                <script type="text/plain"
+                  class="language-javascript">// double back space indicates a comment </script>
+                <script type="text/plain" class="language-javascript">alert(‘hello’)			// send user message
+                    </script>
+                <script type="text/plain"
+                  class="language-javascript">prompt(‘enter info’)		// get input from user </script>
+                <script type="text/plain"
+                  class="language-javascript">console.log(‘test’)		// good for debugging; sends message to console</script>
+                <script type="text/plain"
+                  class="language-javascript">parseInt()			// turn string into number </script>
+                <script type="text/plain"
+                  class="language-javascript">Math.floor(Math.random()* 10) + 1	// random # between 1 and 10 </script>
+                <br>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/PwIhgQd39fQ" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <br>
+                <br>
+                <h4>Project 2.1. Lottery App (part 1 of 2)</h4>
+                <p>User picks 4 lottery numbers</p>
+                <p>7 numbers are all called ranging from 1-100; Numbers can be used multiple times</p>
+                <p>If user gets 1 number right they win $5, 2 gets $25, 3 gets $525, and 4 gets $275,625</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li><code>for…loop…</code></li>
+                  <li><code>Math.floor()</code></li>
+                  <li><code>Math.random()</code></li>
+                  <li><code>if () {}</code></li>
+                </ul>
+                <p> Lottery App Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/Ypw818VeEwc" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p> Lottery App Project Answer</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/bo_7Nbw06jg" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.1 -->
+
+              <!-- #coding101-2.2 -->
+              <p id="code101-L2-2-class"></p>
+              <br>
+              <br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.2 Expressions and Operators </h3>
+                  <p>JavaScript has a wide range of different operators and expressions; below are some examples</p>
+                </header>
+
+                <script type="text/plain"
+                  class="language-javascript">var color = ‘white’;		// assignment operator</script>
+                <script type="text/plain"
+                  class="language-javascript">var weight = 30*15;		// arithmetic operators</script>
+                <script type="text/plain"
+                  class="language-javascript">greeting = ‘Hi’ + ‘John’;	// string operator</script>
+                <script type="text/plain"
+                  class="language-javascript">buy = 3 > 5;		// comparison operator…buy=false</script>
+                <script type="text/plain"
+                  class="language-javascript">buy = (5>3) && (2>4);	// logical operators; and statement; buy = false</script>
+                <script type="text/plain"
+                  class="language-javascript">buy = (5>3) || (2>4);	// logical operators; or statement; buy = true</script>
+                <script type="text/plain" class="language-javascript">i++;			// adds one to current number</script>
+                <script type="text/plain"
+                  class="language-javascript">i--;			// subtracts one from current number</script>
+                <script type="text/plain" class="language-javascript">8 % 5;			// returns the remainder of 3</script>
+                <script type="text/plain"
+                  class="language-javascript">2**4;			// exponent of 2^4, which equals 16</script>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/skOMhqWEW1s" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.2 -->
+
+              <!-- #coding101-2.3 -->
+              <p id="code101-L2-3-class"></p>
+              <br>
+              <br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.3 If then for loops </h3>
+                </header>
+
+                <p> Most of program’s “brains” comes from if then functions and loops. This is primarily why it is can
+                  be smarter than a simple calculator or database.</p>
+                <p><strong>If (true) then…else if (true)…else…: </strong>Can allow computers to make decisions (sort
+                  of). A simple example, is an ID checker program. The program asks the user their birthday. If the
+                  user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. </p>
+                <p><strong>For loops: </strong>Allow you to repeat certain functions while something is true. For
+                  example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing
+                  out 100 numbers and 100 plus signs (ugh), you could use write a for loop that does it for you.</p>
+                <p><strong>While (true) do…:</strong>Will continue to run until the statement is false. Note that this
+                  loop can run infinitiy times if the statement is always true so be careful not to accidentially
+                  create an “infinite loop”!</p>
+                <h4>If (true) then…else if (true)…else…: </h4>
+                <p>Can allow computers to make decisions (sort of). A simple example, is an ID checker program. The
+                  program asks the user their birthday. If the user is greater than 21 years, it lets them drink.
+                  “Else” or otherwise, it doesn’t. Below is how to write this in javascript:</p>
+                <script type="text/plain" class="language-javascript">if (today - user_birthday > 21 ) {
+print(‘you can drink’); 
+} else if (user_birthday <=0) {
+print(‘not a valid ID’);
+} else {
+print(‘you can’t drink);
+}
+</script>
+                <h4>For (true) loops: </h4>
+                <p>allow you to repeat certain functions while something is true. For example, lets say you want to
+                  add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus
+                  signs (ugh), you could use write belowJS function</p>
+                <script type="text/plain" class="language-javascript">var sum = 0;
+for (x=1; x <= 100; x++) {
+  sum = sum + x;
+}	
+alert(sum);			// this will show the number 5050
+</script>
+                <h4>While (true) do…:</h4>
+                <p>Will continue to run until the statement is false. Note that this loop can run infinitiy times if
+                  the statement is always true so be careful not to accidentially create an “infinite loop”!</p>
+                <script type="text/plain" class="language-javascript">while (still_playing == true) {
+play_game();
+}
+</script>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/CxZfelBRO8M" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.2. Multiplication Quiz 2.0</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>Create a math quiz that asks the user to multiply two random numbers together</p>
+                <p>If the user gets the right answer, then alert the user that they got it right, otherwise alert them
+                  that they got it wrong</p>
+                <p>Make the first random number an integer between 1 and 100 and the second random number an integer
+                  between 10 and 100 that is a multiple of 10!</p>
+                <p>User continues to play game until they get one wrong</p>
+                <p>Program then tells user number that they got correct</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li><code>while… loop</code></li>
+                  <li><code>if () {} else {}</code></li>
+                  <li><code>Math.floor()</code></li>
+                  <li><code></code>Math.random()</li>
+                </ul>
+                <p>Multiple Quiz Project Prompt</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/4mdhbhM2EN8" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Multiple Quiz Prompt Answer </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/bA_rXt4ybCA" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.3. # Memorizer</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>User is given a random 4 digit number</p>
+                <p>User must memorize it, press ok, and then re-enter it</p>
+                <p>If user gets it right, user plays again with 5 digits, then 6, then 7…until user gets one wrong</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li><code>while … loop</code></li>
+                  <li><code>if () {} else {}</code></li>
+                  <li><code>Math.floor()</code></li>
+                  <li><code>Math.random()</code></li>
+                </ul>
+                <p># Memorizer Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/yYsfKphf0qI" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p># Memorizer Project Answer </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/RNlGEkItSQM" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.3 -->
+
+              <!-- #coding101-2.4 -->
+              <p id="code101-L2-4-class"></p>
+              <br>
+              <br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.4 Data types </h3>
+                  <h4>Most commonly used data types</h4>
+                </header>
+                <p><strong>Strings: </strong>letters, words, sentences…Note: To make quotes within quotes use either
+                  double quotes on the outside of the string and single quotes on the inside or vice versa. You just
+                  can’t put single quotes within single quotes.</p>
+                <ul>
+                  <li><code>‘I am a string’</code></li>
+                  <li><code>“I’m a string too”</code></li>
+                  <li><code>‘I’m a syntax error!!’</code></li>
+                </ul>
+                <p><strong>Floats: </strong>these are numbers</p>
+                <p><strong>Integers: </strong>these are whole numbers</p>
+                <p><strong>Boolean: </strong>special data type that can only have two values: true or false</p>
+                <p><strong>Lists: </strong>lists can include strings, floats, variables, etc. Lists items are ordered
+                  starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point
+                  0, 2nd is at 1, 3rd at 2. Commonly used list methods include: push(), pop(), splice(), length, and
+                  indexOf().</p>
+                <code>var new_list = [‘apple’, ‘banana’, ‘orange’]</code>
+                <p><strong>Dictionary: </strong>Includes a series of unordered key: value pairs. The key is used to
+                  describe an item and value is associated with that key. It could be a definition, like in an actual
+                  dictionary or an attribute. Examples:</p>
+                <ul>
+                  <li><code>var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</code></li>
+                  <li><code>var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</code></li>
+                </ul>
+                <h4>Lists</h4>
+                <script type="text/plain"
+                  class="language-javascript">var new_list = []; 		// declares a new list</script>
+                <script type="text/plain"
+                  class="language-javascript">new_list = [2, 81, 52];	// sets new_list equal to a list containing three numbers: 2, 81, and 52</script>
+                <script type="text/plain" class="language-javascript">new_list[1];		// returns the number 81</script>
+                <script type="text/plain"
+                  class="language-javascript">new_list[1] = 82; 		// changes the element in position 1 (i.e. 81) to the number 82</script>
+                <script type="text/plain"
+                  class="language-javascript">new_list.push(3);		// adds the number 3 to that list</script>
+                <script type="text/plain"
+                  class="language-javascript">new_list.pop();		// removes and returns the last item from that list</script>
+                <script type="text/plain"
+                  class="language-javascript">new_list.splice(1,2);	// starting at index position 1, removes two elements from list</script>
+                <script type="text/plain"
+                  class="language-javascript">var fruits = [‘apple’, ‘banana’, ‘orange’];	// creates a new list called groceries</script>
+                <script type="text/plain"
+                  class="language-javascript">fruits.splice(1,0,’grapes’);	// adds grapes to left of index 1; [‘apple’, ‘grapes’, ‘banana’, ‘orange’]</script>
+                <script type="text/plain"
+                  class="language-javascript">fruits.length;		// returns the number of elements in an array; returns 4</script>
+                <script type="text/plain"
+                  class="language-javascript">fruits.indexOf(‘banana’);	// searches array for banana; returns 1</script>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/Kij0GRZUM5g" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.1. Lottery App (Part 2 of 2)</h4>
+                <p> Try it yourself before going to next slide</p>
+                <p>User picks 4 lottery numbers</p>
+                <p>7 numbers are all called ranging from 1-100; Numbers can be used multiple times</p>
+                <p>If user gets 1 number right they win $5, 2 gets $25, 3 gets $525, and 4 gets $275,625</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li><code>var new_list = [ ]</code></li>
+                  <li><code>new_list.push(‘apples’,’bananas’)</code></li>
+                  <li><code>for…loop…</code></li>
+                  <li><code>Math.floor()</code></li>
+                  <li><code>Math.random()</code></li>
+                  <li><code>if () {}</code></li>
+                </ul>
+                <p>Lottery App (Part 2) Project Prompt</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/O5d5dKoAOUY" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Lottery App (Part 2) Project Answer </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/rn205SWEQVo" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.4. Grocery list</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>User can add or delete items from  grocery list</p>
+                <p>App continues to run until user types in finish</p>
+                <p>Each iteration, user is shown entire grocery list</p>
+                <p>Remember to use</p>
+                <ul>
+                  <li><code>while… loop</code></li>
+                  <li><code></code>if () {} else {}</li>
+                  <li><code></code>list</li>
+                </ul>
+                <p>Grocery List Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/qhwUp-yXzs8" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Grocery List Project Answer </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/orI6pxa6Riw" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Dictionaries</h4>
+                <script type="text/plain"
+                  class="language-javascript">var quick_dict = {}; 		// declare a new empty dictionary called quick_dict</script>
+                <script type="text/plain"
+                  class="language-javascript">var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</script>
+                <script type="text/plain"
+                  class="language-javascript">var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</script>
+                <script type="text/plain"
+                  class="language-javascript">my_hotel[‘address’]	;  // looks up the key ‘address’ and returns the value for that key, ‘111 main street’</script>
+                <script type="text/plain"
+                  class="language-javascript">my_hotel[‘address’] = ‘123 main street’	;  // sets the key ‘address’ to new value</script>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/YiCw1QxJeLo" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.5. Friend Facts</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>User is asked what is their friends name, favorite cake type, birthday, and hometown</p>
+                <p>Then user can type in what they want to know about their friend or enter finish.</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li>dictionary</li>
+                  <li><code>while… loop</code></li>
+                  <li><code>if () {} else {}</code></li>
+                </ul>
+                <p>Friend Facts Project Prompt</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/mMT1ns8---U" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Friend Facts Project Answer</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/fLRp4bAyqtI" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.4 -->
+
+              <!-- #coding101-2.5 -->
+              <p id="code101-L2-5-class"></p>
+              <br>
+              <br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.5 Functions </h3>
+                </header>
+                <h4>Declaring and calling functions; Passing along parameters</h4>
+                <p>Functions are series of statements that have been grouped together and can be run whenever function
+                  is called</p>
+                <p><strong>Parameters </strong>are variables that you can pass to functions that they can perform
+                  actions on; Arguments are values of paramters</p>
+                <p><strong>“Declaring” </strong>a function is creating the function. Below is an example:</p>
+                <script type="text/plain" class="language-javascript">function add_numbers(x,y) {
+print(x+y);
+}</script>
+                <p><strong>Calling function will run code in function</strong></p>
+                <script type="text/plain" class="language-javascript">add_numbers(1,2);		// outputs 3 </script>
+                <p><strong>Global variables vs local variables: </strong>If a variable is declared within a function,
+                  then it is a local variable that can only be used or accessed within that function. If a variable is
+                  declared outside a function, then it is a global variable and can be used or accessed anywhere.</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/vkiNryKB9sU" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.6. Dice Game</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>User starts off with $100 and then places a bet</p>
+                <p>User rolls two dice</p>
+                <p>If dice roll a 7, then user gets 6x their money, otherwise, they lose it all. </p>
+                <p>User continues to play until they say stop or they lose all of their money</p>
+                <p>If user loses all of their money, they get one chance to win $10 by rolling a 12</p>
+                <p>Remember to use: functions</p>
+                <p>Dice Game Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/z5IbbVWXUdk" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Dice Game Project Answer </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/hXyKDoq5UOs" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+
+              </section>
+              <!-- /#coding101-2.5 -->
+
+              <!-- #coding101-2.6 -->
+              <p id="code101-L2-6-class"></p>
+              <br>
+              <br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
+                  <h3>2.6 Object oriented programming </h3>
+                </header>
+                <p>Most programming languages allow you to build objects (e.g., house, car, person ,..) and give those
+                  object properties, events and methods. Objects are constructed in a similar way to how functions and
+                  dictionaries are built.</p>
+                <p><strong>Properties: </strong>characteristics about object; have both “key” that describes property
+                  (e.g., address) and “value” (e.g., 111 main st)</p>
+                <p><strong>Events: </strong>These run programs when different events occur (e.g., hotel room booked,
+                  car breaks, button clicked)</p>
+                <p><strong>Methods: </strong>Functions that are specifically built for each object (e.g.,
+                  book_hotel_room(), find_room_price(), …)</p>
+                <p>Built-in Objects: web browsers and application interfaces typically come with built in objects and
+                  methods that make it easier to create webpages or applications.</p>
+                <h4>Object / Class Constructors</h4>
+                <p><strong>Declare a new class that you can use to construct objects</strong></p>
+                <script type="text/plain" class="language-javascript">function MovieStar(name, birthday) { 
+this.name = name; 
+this.birthday = birthday
+this.greeting = function(){
+    alert(‘hi, my name is ‘ + this.name);
+}
+}
+</script>
+                <p><strong>Create a new object using the class you created</strong></p>
+                <script type="text/plain"
+                  class="language-javascript">var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</script>
+                <script type="text/plain"
+                  class="language-javascript">var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</script>
+                <p><strong>Recall or change values from the object </strong></p>
+                <script type="text/plain"
+                  class="language-javascript">tom_cruise.birthday;		// returns July 3, 1962</script>
+                <script type="text/plain"
+                  class="language-javascript">tom_cruise[“birthday”];		// returns July 3, 1962</script>
+                <script type="text/plain"
+                  class="language-javascript">tom_cruise.birthday  = ‘July 4, 1962’;	// changes value of birthday to July 4th</script>
+                <script type="text/plain"
+                  class="language-javascript">tom_cruise.greeting();	// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</script>
+                <p><strong>Create a list of objects</strong></p>
+                <script type="text/plain"
+                  class="language-javascript">var star_list = [tom_cruise];		// adds tom_cruise object to star_list</script>
+                <script type="text/plain"
+                  class="language-javascript">star_list.push(dwayne_johnson);		// adds dwayne_johnson object to star_list</script>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/OXteZdZng5A" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.7. Celebrity Greeting</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>Create a object constructor called MovieStar</p>
+                <p>MovieStars should take name, birthday, top grossing movie, and spouse</p>
+                <p>Constructor should have a method that greets the user</p>
+                <p>Greeting should tell user what celebrity's name is and highest grossing moving</p>
+                <p>Create a new object called tom_cruise and have it greet the user</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li>Object oriented programming – object properties and methods</li>
+                  <li>Object Constructor</li>
+                </ul>
+                <p>Celebrity Greeting Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/2kZPOdlyyfs" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Celebrity Greeting Project Prompt </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/eSpMCHVwNgs" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <h4>Project 2.8. Celebrity trivia</h4>
+                <p>Try it yourself before going to next slide</p>
+                <p>This is similar to the Friends Fact project except you will have 3 celebrities that are already
+                  populated with information about their name, birthday, top grossing movie, and spouse</p>
+                <p>For this exercise, you can use the following data</p>
+                <ul>
+                  <li>MovieStar('Tom Cruise', 'July 3, 1962', 'Mission Impossible: Ghost Protocol ($695M)', 'single')
+                  </li>
+                  <li>MovieStar('Dwayne Johnson', 'May 2, 1972', 'Furious 7 ($1,500M)', 'Lauren Hashian')</li>
+                  <li>MovieStar('Scarlett Johansson', 'November 22, 1984', 'Avengers: End Game ($858M)', 'single')
+                  </li>
+                </ul>
+                <p>Create a “MovieStar” object to store each celebrities data</p>
+                <p>Put all stars into a single list</p>
+                <p>User is asked 3 random questions about the celebrity</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li>Object constructors</li>
+                  <li>Lists</li>
+                </ul>
+                <p>Celebrity Trivia Project Prompt</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/8laH6AdnwAc" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+                <p>Celebrity Trivia Project Answer</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/vz0iwCoH4Mw" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+                </div>
+              </section>
+              <!-- /#coding101-2.6 -->
+            </article>
+            <!-- /Coding 101.2 - Programming Overview with JavaScript -->
+            <!-- endregion -->
+
+      </article>
+      <!-- /Intro -->
+
+    </div>
+    <!-- /#classes -->
+
+  </div>
+  <!-- /.tab-content -->
+
+  </section>
+  <!-- /.main -->
+
+  </div>
+  </div>
+</main>

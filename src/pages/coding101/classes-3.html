@@ -1,0 +1,503 @@
+---
+title: 'Coding 101: Classes'
+---
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          {{> mega-menu}}
+          {{> coding101-class-accord}}
+      </nav>
+      <!-- /.sidebar -->
+
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        {{> nav-tabs}}
+
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <!-- #classes -->
+          <div class="tab-pane fade active show" id="classes" role="tabpanel" aria-labelledby="classes-tab">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Courses</a></li>
+                <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Classes - Lesson 3 </li>
+              </ol>
+            </nav>
+           
+            <!------------------------------------------------------------------------------------- -->
+            <!-------------------------------  Coding 101.3 - Your First Website                    -->
+            <!------------------------------------------------------------------------------------- -->
+            <!-- #region -->
+            <p id="coding101-3"></p>
+            <p id="code101-L3-0-class"></p><br><br><br>
+            <article class="section">
+              <header class="section__header">
+                <h2>Coding 101: Lesson 3 - Your First Website</h2>
+              </header>
+              <!----------------------------  #coding101-3.0 -------------------------------------- -->
+              <section class="section__subsection subsection" id="coding101-3.0">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.0 Intro</h3>
+                </header>
+                <h4>Lesson Overview</h4>
+                  <ol>
+                    <li>HTML and CSS overview</li>
+                    <li>HTML tags and structure</li>
+                    <li>CSS intro and properties</li>
+                    <li>Boxes and layouts</li>
+                    <li>Mobile First Design and dynamic formatting</li>
+                  </ol>
+                <h4> Projects Overview</h4>
+                <img src="../../img//3_first_website/projects_overview.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/ARAOkSLzP-E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </section>
+              <!----------------------------  /coding101-3.0 -------------------------------------- -->
+
+              <!----------------------------  #coding101-3.1 -------------------------------------- -->
+              <p id="code101-L3-1-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.1 HTML and CSS overview </h3>
+                </header>
+              </section>
+              <p><strong>HTML </strong>is used to create the structure of your webpage (e.g., like the bones in your body)</p>
+              <p><strong>CSS </strong>is used to create the formatting and style of your webpage (e.g., like the skin of your body)</p>
+              <p><strong>Tags - </strong>HTML documents use <tags> to tell the browser how to format content. Pictures need tags, texts need tags, the entire website is made up of tags. Everything must be sandwiched within the tags. In the below code, <code>&lt;p> </code> is the <strong>opening tag </strong> and <code>&lt;/p> </code> <strong>closing tag</strong> and this is used for a paragraph. You can write the content of your paragraph in between the tags. </p>
+              <script type="text/plain" class="language-html"><p> Hello World </p>
+<p class=“feelings”> I am exited to get started! </p> </script>
+              <p>We can add some style to this pargraph using CSS in a separate .css file. We can make the font size 12</p>
+              <script type="text/plain" class="language-css">p { font-size: 12px;}</script>
+              <p>We can be more specific by using classes to distringuish between different paragraph lines. In HTML,</p>
+              <script type="text/plain" class="language-html"><p class=“greetings”> Hello World </p>
+<p class=“feelings”> I am exited to get started! </p> </script>
+              <p>Notes:</p>
+              <ul>
+                <li>Opening tag is &lt;p></li>
+                <li>Attribute name is class and attribute value is ”greetings”</li>
+                <li>Closing tag &lt;/p></li>
+              </ul>                    
+
+              <p>We can then add some CSS to make all greetings green font and all feelings blue font</p>
+              <script type="text/plain" class="language-css">.greetings {color:green;}
+.feelings {color:blue;} </script>
+              <p>Notes:</p>
+              <ul>
+                <li>Selector is .greetings</li>
+                <li>Declaration block is {color:green;}</li>
+                <li>Property name is color and property value is green</li>
+              </ul>
+              <p>Then link your html file to your CSS file using this code in your html file</p>
+              <script type="text/plain" class="language-html"><link rel=“stylesheet” href=“main.css”></script>
+              <h4>Project 3.1. Hello World!</h4>
+              <h5>Try to create this before going to the next slide</h5>
+              <img src="../../img//3_first_website/p1.png" alt="your first website">
+              <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/gEPM-gHcgH4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </div>
+              <!----------------------------  #coding101-3.1 -------------------------------------- -->
+
+              <!----------------------------  /coding101-3.2 -------------------------------------- -->
+              <p id="code101-L3-2-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.2 HTML tags and structure </h3>
+                </header>
+                <h4>Key HTML tags and structure </h4>
+                <script type="text/plain"
+                  class="language-html"><!-- Comments are placed in between the following --> 
+<head>...</head > 		<!-- put all browser info in here (e.g., doc title, technical information) -->
+<link href="main.css" rel="stylesheet">	<!-- Link to external style sheet; put this in head section -->
+<body> … </body>		<!-- Includes all the content of the website -->
+<header> … </header> 	<!-- Often has navigation bar & site logo; this is different from <head> -->
+<nav> …</nav>		<!-- Groups together major navigational blocks; put inside header -->
+<a href=’www.fb.com’></a>	<!-- links to other sites or internal sites -->
+<h1> … </h1>		<!-- Header 1 used typically in <header> tags -->	
+<main>… </main>		<!-- General tags for main part of the website -->
+<h2> … </h2>		<!-- Header 2 used in <main> tags, can also use <h3>, <h4>, <h5> -->
+<p> …</p>		<!-- chunks of texts on site; html is whitespace insensitive -->
+<footer> ….</footer>	<!--  Web page footer --></script>
+              </section>
+              <h4>Other commonly used HTML tags and boilerplate code </h4>
+              <script type="text/plain"
+                  class="language-html"><!doctype html>
+<!-- needed once for all websites; tells browser to expect html code -->
+<html>...</html>		<!-- surrounds all the code for your website’s html file -->
+<meta charset=”UTF-8”>  	<!-- Goes inside <head> tag for U.S. websites -->
+<title> … </title >		<!-- Shows up in the web browser title; Goes inside the <head> tag -->
+<article> …</article>	<!-- Used for unique part of site (e.g., used for individual blog post) -->
+<aside>... </aside>		<!-- Not required to understand the rest of the page -->
+<section> … </section>	<!-- use for section tag -->
+<div>… </div>		<!--  great non-semantic, multi-purpose tag -->
+<ul> <li> point 1  <li> point 2  </ul> 	<!--  Unordered bullet point lists -->
+<ol> <li> step 1  <li> step 2  </ol> 		<!--  Ordered lists with numbers not bullets -->
+<img src=”images/gummy.jpg”>		<!--  add image using file location or URL -->
+              </script>
+              <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/CEFHk1cl9s0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </div>
+              <h4>Project 3.2. Gigantic Candy Company Webpage (Step 1 of 3)</h4>
+              <h5>Create a page that looks similar to following site </h5>
+              <p>Remember to use</p>
+              <ul>
+                <li>Separate css and html files</li>
+                <li>Different types of HTML tags to break up and structure the site (e.g., &lt;html>, &lt;h1>, etc.)</li>
+                <li>Starter code to avoid manually typing</li>
+              </ul>
+              <img src="../../img//3_first_website/p2a.png" alt="">
+              <img src="../../img//3_first_website/p2b.png" alt="">
+              <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/aFltdvBt0XM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+
+              <!----------------------------  #coding101-3.2 -------------------------------------- -->
+
+              <!----------------------------  /coding101-3.3 -------------------------------------- -->
+              <p id="code101-L3-3-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.3 CSS intro and properties </h3>
+                </header>
+                <h4>Cascading Style Sheets and how to use</h4>
+                <p><strong>CSS = Cascading Style Sheet. </strong>It means that styles flow or cascades in order of what came last and what is most specific to that HTML element</p>
+                <ul>
+                  <li><strong>Source Order – </strong>whatever came last overrides what came before it</li>
+                  <li><strong>Specificity Order – </strong>whatever is more specific overrides other style commands regardless of the Source Order (external less than specific than internal; p span is more specific than span)</li>
+                  <li><strong>Inheritance – </strong>A child element will inherit any applicable styles from its parent HTML element</li>
+                </ul>
+                <p><strong>Three ways to add CSS code:</strong></p>
+                <ul>
+                  <li><strong>Using separate CSS files (Preferred method): </strong>External Style Sheets allow you to put all of your CSS code in one place and apply it to all of the pages in your website. Need to add below code between <code>&lt;head></code> tags of html <code>&lt;link href="normalize.css" rel="stylesheet"></code></li>
+                  <li><strong>Internal CSS: </strong> <code>&lt;style>&lt;/style> </code>For small projects you can use this to denote CSS is being used in between the tags; put inside your <code>&lt;head></code> file within HTML and add CSS between the style tags</li>
+                  <li><strong>InLine / Embedded CSS: </strong>allows you to impact just one paragraph; not best practice to use. <code>&lt;p style=”color: green;”> fill in &lt;/p></code></li>
+                </ul>
+                <hr>
+                <h4>Definitions</h4>
+                <p><strong>Selector – </strong> this is the element that you want to change; for example, pargraphs in the following <code>p {color:purple;} </code></p>
+                <p><strong>Property – </strong> what you want to change about your elements; for example, color in above example</p>
+                <p><strong>Value – </strong> what you want to change you element property too; for example, purple</p>
+                <hr>
+                <h4>Detailed properties</h4>
+                <p><strong>Font Properties</strong></p>
+                <ul>
+                  <li>font-family: “georgia”, “serif”;  	/* If Georgia font does not load, serif is back up */</li>
+                  <li>color:blue;</li>
+                  <li>color:#630600;</li>
+                  <li>color: rgba(255,255,255,1); 	 /* 0 to 255 for R,G, B and 0 to 1 for A transparency */</li>
+                  <li>font-weight: bold;</li>
+                  <li>font-weight: 600;</li>
+                  <li>font-style: italic;</li>
+                  <li>font-size:16px;</li>
+                  <li>text-transform: uppercase;</li>
+                  <li>text-decoration: underline;</li>
+                  <li>font:bold 14px Tahoma;</li>
+                  <li>text-indent:25px;</li>
+                  <li>text-align: center;</li>
+                </ul>
+                <p><strong>Background properties</strong></p>
+                <ul>
+                  <li>background-color: rgba(0,0,0,0.5);</li>
+                  <li>background-image: url("http:dash.ga.co/assets/anna-bg.png");</li>
+                  <li>background-image: url(“../images/header_bg.jpg”); 	 /* select image up one folder */</li>
+                  <li>background-size: cover;</li>
+                  <li>background-repeat: no-repeat;</li>
+                  <li>background-repeat: repeat-x; 	/* Left Right Tile */</li>
+                  <li>background-repeat: repeat-y; 	/* UpDown tile */</li>
+                  <li>background-position: 10px 60px; 	/* Change starting position */</li>
+                  <li>background-position: 50% 60px; 	 /* Change starting position */</li>
+                </ul>
+                <p><strong>Floating properties</strong></p>
+                <ul>
+                  <li>img {float:right;} 	/* Element float images to right or left or none */</li>
+                  <li>p {clear:none;} 	/* Allows floating elements on both sides; This is default */</li>
+                  <li>p {clear: left;}  	/* No floating elements allowed on left side; can use right or both */</li>
+                  <li>p {clear: inherit;} 	 /* Element inherits the clear value of its parent */</li>
+                </ul>
+                <p><strong>HTML element properties</strong></p>
+                <ul>
+                  <li>max-width: 500; 	 /* Allows website to be responsive & have 500 max width */</li>
+                  <li>width:60%;</li>
+                  <li>height:5%;</li>
+                </ul>
+                <p><strong>Other properties</strong></p>
+                <ul>
+                  <li>ol { list-style-image:url(checkmark.jpg); }	/* Custom Bullet points */</li>
+                </ul>
+                <p><strong>Google Fonts: </strong>Allows you to easily import different types of fonts</p>
+                <ul>
+                  <li>Go to Google Fonts - https://fonts.google.com/</li>
+                  <li>Click the plus sign on the fonts you want to add</li>
+                  <li>Click the minus sign next to the “family selected” tab</li>
+                  <li>There will be instructions on what code to add to the HTML <head> section and the CSS code</li>
+                </ul>
+                <hr>
+                <h4>CSS Selectors</h4>
+                <ul>
+                  <li>p { }  		/* Type - selects all elements of specified type (e.g., <p>)*/</li>
+                  <li>* { } 		/* Universal - selects all elements in html file not selected by other selectors */</li>                    
+                  <li>#myID { }	/* ID - are supposed to singular and unique to allow you format a specific element */</li>
+                  <li>.class { } 	/* Class – similar to ID but for formatting multiple elements at same time */</li>
+                  <li>/* Note HTML elements can have multiple classes */</li>
+                  <li>h1, h2, #myID { } 	/* Compound - format multiple selectors at same time</li>                    
+                  <li>body article p { } 	/* Descendent - element that is nested inside of specified parent element */</li>
+                  <li>a:link 		/* Pseudo class - links in their default state before visitor has interacted with them */</li>
+                  <li>a:visited 	/* Links after user has already clicked on them and is visiting that page again */</li>
+                  <li>a:hover 	/* Links when the user is hovering their mouse over the link */</li>
+                  <li>a:active 	/* Links for only moment when mouse button is pressed when clicking on the link */</li>
+                </ul>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/8gQK0rV02zw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <h4>Project 3.2. Gigantic Candy Company – 2 pages (Step 2 of 3)</h4>
+                <p>Create a simple two page web page with links between the two of them</p>
+                <p>First page is a home page; Second page is an about us page</p>
+                <img src="../../img//3_first_website/p2c.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/4Azx4TcCPs0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+              </section>
+              <!----------------------------  #coding101-3.3 -------------------------------------- -->
+
+              <!----------------------------  /coding101-3.4 -------------------------------------- -->
+              <p id="code101-L3-4-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.4 Box model </h3>
+                </header>
+                <h4>CSS Box Model</h4>
+                <p>All HTML elements can be thought of as boxes within a CSS box wrapping around each element. The box has four dimensions: margin, border, padding, and actual content.</p>
+                <ul>
+                  <li><strong>Margin: </strong>distance between the element’s box and what is around it</li>
+                  <li><strong>Border: </strong>thickness of the border</li>
+                  <li><strong>Padding: </strong>space between the content and the border</li>
+                  <li><strong>Content: </strong>size of the content of the element</li>
+                </ul>
+                <img src="../../img//3_first_website/3.4_box.png" alt="">
+                <p><strong>Margin: </strong>distance between the element’s box and what is around it</p>
+                <ul>
+                  <li>Margin: 40px 0px 0px 0px; 	 /* 40px on top, 0 on right, 0 on bottom, 0 on left */</li>
+                  <li>Margin: 0 auto; 		 /* Zero margin on top and bottom; auto margin on left/right */</li>
+                  <li>Margin-top:40px;</li>
+                </ul>
+                <p><strong>Border: </strong>thickness of the border</p>
+                <ul>
+                  <li>border-width: 5px; 		/* sets border width to 5px */</li>
+                  <li>border: solid;  		/* border style */</li>
+                  <li>border-color: black;</li>
+                  <li>border-top-color: green;</li>
+                  <li>border: 2px dashed;  		/* border width and border style */</li>
+                  <li>border: 10px ridge rgba(0,0,0,.5); 	/* border width, style and color */</li>
+                  <li>border-radius:12px; 		/* makes the borders curved rather than square */</li>
+                  <li>border-radius:20%; 		/* makes the borders curved rather than square */</li>
+                </ul>
+                <p><strong>Padding: </strong>space between the content and the border</p>
+                <ul>
+                  <li>padding:10px; puts 10px 		 /* padding on all sides */</li>
+                  <li>padding:0px 10px 0px 10px; 	/* Padding on top, right, bottom, left (i.e. it goes clockwise) */</li>
+                  <li>padding-top:20px;</li>
+                  <li>padding:0px 10px; 		/* Padding on vertical, horizontal */</li>
+                </ul>
+                <hr>
+                <h4>Block vs Inline</h4>
+                <ul>
+                  <li>display:block; 	/* Makes an inline element act like an block element */</li>
+                  <li>display:inline-block; 	/* Flows like inline element but can use properties of block element */</li>
+                  <li>display:none; 	/* hides the element */</li>
+                  <li>text-align: center; 	/* only works on block level elements!! Not in-line! */</li>
+                </ul>
+                <p><strong>Block-level </strong>elements begin on new lines, which means that the “boxes” for block-level elements extend the full width of the available space (even if the content doesn’t)</p>
+                <p><strong>In-line </strong>elements do not begin on new lines. Width and height have no impact on in-line elements (must wrap them in a block-level element). Padding, border, and margin don’t vertically push away other elements. Links and images are in line are inline elements.</p>
+                <ul>
+                  <li>display: inline; 	/* Makes a block element act like an inline element */ </li>
+                </ul>
+                <hr>
+                <h4>Positioning and sizing</h4>
+                <p><strong>Content box vs. border box sizing</strong></p>
+                <ul>
+                  <li>box-sizing: “content-box”;		/* specifies size of content box (margin, border, padding</li>
+                  <li>added on top of content); default setting */</li>
+                  <li>box-sizing: “border-box”; 		/* specifies size of entire element (margin + border + padding</li>
+                  <li>+ content); good to use to avoid mistakes */</li>
+                </ul>
+
+                <p><strong>Absolute vs Relative vs. Fixed Layout types</strong>Note: You should not chose one of the below layouts for your entire website; you should use a combination of the below layouts</p>
+                <ul>
+                  <li><strong>Absolute positioning </strong> allows you to control exactly where div is based on top left 0 position</li>
+                  <ul>
+                    <li><code># div1 {position:absolute; top:2px; left:2px; }</code></li>
+                  </ul>
+                  <li><strong>Fixed positioning </strong>is similar to absolute positioning but doesn’t move when user scrolls</li>
+                  <ul>
+                    <li><code>#div1 {position:fixed; top:2px; left:2px; }</code></li>
+                  </ul>
+                  <li><strong>Relative positioning </strong> instead of using the 
+                    origin and then moving it absolutely, it starts at where top left position of element would be 
+                    without adjustments; this can be tricky to use</li>
+                  <ul>
+                    <li><code># div1 {position:relative; top:2px; left:2px; }</code></li>
+                  </ul>
+                </ul>
+                <hr>
+                <h4>Flex Boxes </h4>
+                <p>Flex box layouts allow you to have the size of your boxes dynamically change based on the size of the browser or screen being used to view your site</p>
+                <p>In HTML, you can set up a main section with two div’s inside</p>
+                <script type="text/plain" class="language-html"> <main> 
+<div id=”1”> </div> 
+<div id=”2”> </div> 
+</main> </script>
+                <p>In CSS, <code>main {display:flex;} </code>changes main element to a flex container and all elements underneath it (i.e. div1, div2) to a flex items</p>
+
+                <script type="text/plain" class="language-css">main {display:flex;}
+#div1 {width:60%;}
+#div2 {width:40%;}
+main {justify-content:flex-start;} 	/* Items are positioned horizontally at left of container; flex- end, center, space-around, space-between */
+main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of container; flex-end, center, stretch, baseline */ </script>
+
+
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/ie_KWsXoB28" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.2. Gigantic Candy Company – Flex Box (Step 3 of 3)</h4>
+                <p>Boxes should expand and shrink as the size of the browser window changes</p>
+                <img src="../../img//3_first_website/p2d.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/zkiIJlBCaNY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/RCHxHUQhiYI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/DEuz8qvH7i4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/kej3QH3W5tE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.3. CSS Puzzles</h4>
+                <p>Quiz…Figure out what the color of each puzzle text will be!</p>
+                <img src="../../img//3_first_website/p3.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/0_3ylWeTBds" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/SjNbpu_bWrc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.4. Winston’s Landing Page</h4>
+                <p>Create a page that looks similar to following site</p>
+                <img src="../../img//3_first_website/p4a.png" alt="">
+                <img src="../../img//3_first_website/p4b.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/tQu36NlYXVU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/0vqBVKxH9Aw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.5. Pisco Sour Recipe - Two Column Page</h4>
+                <p>Create a page that looks similar to following site</p>
+                <img src="../../img//3_first_website/p5.png" alt="">
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/9dR0LewIB74" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.6. Mentor Finder Home Page</h4>
+                <p>Create a page that looks similar to following site</p>
+                <img src="../../img//3_first_website/p6.png" alt="">
+                <hr>
+
+
+              </section>
+              <!----------------------------  #coding101-3.4 -------------------------------------- -->
+
+              <!----------------------------  /coding101-3.5 -------------------------------------- -->
+              <p id="code101-L3-5-class"></p><br><br><br>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Lesson 3 - Your First Website</h2>
+                  <h3>3.5 Mobile First Design and dynamic formatting  </h3>
+                </header>
+                <p><strong>Responsive web design</strong>is about automatically adjusting the look and feel of a website based on the screen size and the device being used (e.g., mobile vs. desktop) instead of having to create two separate websites (one for mobile and one for desktop). 3 types of layouts:</p>
+                <ul>
+                  <li><strong>Fixed – </strong>fixed pixel width container; can create “pixel perfect” design</li>
+                  <li><strong>Flexible – </strong>scales based on size of screen size; not optimized for all screens though</li>
+                  <li><strong>Responsive – </strong>combo of media query and flexible boxes so that you can change the website layout if the screen is smaller; creates breakpoints at different screen sizes</li>
+                </ul>
+                <p><strong>“Mobile-First” Design </strong>is creating your website to look good on mobile first (instead of desktop, which is what developers used to do) and then use media queries to change formatting when screen size is larger</p>
+                <ul>
+                  <li>Benefit: This makes you design for the mobile experience first because it is most important</li>
+                  <li>Benefit: it allows mobile devices to only load up the necessary code!!! Which matters more for load speeds on mobile than on desktop</li>
+                </ul>
+                <p><strong>Media Query: </strong>Allows you to change format of different items based on screen size (measured in pixels). Below code sets background to red when screen size is more than 480px wide:</p>
+                <ul>
+                  <li><code>@media screen and (min-width: 480px) {body {background: red;}}</code></li>
+                </ul>
+                <p>NOTE: NEED TO ADD VIEWPORT META TAG TO &lt;HEAD> to make media query work!</p>
+                <p>Common media query <strong>“breakpoints”</strong></p>
+                <ul>
+                  <li>Min 480px, 768px, 992px, 1200px…(Mobile first; do this)</li>
+                  <li>Max 1200px, 992, 768, 480px (Non-mobile first; don’t do this!)</li>
+                </ul>
+                <p><strong>Em…responsive sizing: </strong>Em is a CSS relative unit for font-siz; 1em = 100% of the font-size of the parent element (default is 16px if not defined)</p>
+                <ul>
+                  <li>letter-spacing:0.09em;	/* em inherits either default font size or font size of parent; 1em = parent size; 2em = 2x parent’s size */</li>
+                  <li>margin: 0 0 1.5em 0;</li>
+                  <li>font-size: 2em;</li>
+                  <li>overflow:hidden;		/* Hide content that overflows (e.g., nav bar) */</li>
+                </ul>
+                <p>Bootstrap is an open source webframework and library that allows you to create websites quickly!</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/ZcMkvbD3Hzk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <hr>
+                <h4>Project 3.7. Mobile First</h4>
+                <p>Create a page that looks similar to following site</p>
+                <hr>
+                <h4>Lesson Recap</h4>
+                <ul>
+                  <li>HTML and CSS overview</li>
+                  <li>HTML tags and structure</li>
+                  <li>CSS intro and properties</li>
+                  <li>Boxes and layouts</li>
+                  <li>Mobile First Design and dynamic formatting</li>
+                </ul>
+                <hr>
+                <h4> Project Recap</h4>
+                <img src="../../img//3_first_website/project_recap.png" alt="">
+              </section>
+            </article>
+            <!-- /Coding 101.3 - Your First Website -->
+            <!-- endregion -->
+
+      </article>
+      <!-- /Intro -->
+
+    </div>
+    <!-- /#classes -->
+
+  </div>
+  <!-- /.tab-content -->
+
+  </section>
+  <!-- /.main -->
+
+  </div>
+  </div>
+</main>
