@@ -1,0 +1,151 @@
+<!-- Last update: 2020.11.20 -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <title>UpriseU</title>
+  </head>
+
+  <body>
+    {{> navbar}}
+
+    <main id="main">
+      <div class="container-fluid">
+        <div class="row">
+
+          <!-- .sidebar -->
+          <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+
+              {{> mega-menu}}
+
+
+              <ul class="accordion nav flex-column" id="sidebarAccordion">
+                <li class="nav-item" id="quickStart">
+                  <a href="#coding101-1" class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseQuickStart" aria-expanded="false" aria-controls="collapseQuickStart">
+                    1. First part
+                  </a>
+                  <ul id="collapseQuickStart" class="collapse" aria-labelledby="quickStart" data-parent="#sidebarAccordion">
+                    <li><a href="#life101-1GTD-1.1">1.1 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.2 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.3 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.4 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.5 FillIn </a></li>
+                    <li><a href="#life101-1GTD-1.1">1.6 FillIn </a></li>
+                  </ul>
+                </li>
+                <li class="nav-item" id="programmingOverview">
+                  <a class="nav-link has-children collapsed" data-toggle="collapse" data-target="#collapseProgrammingOverview" aria-expanded="false" aria-controls="collapseQuickStart">
+                    2. Second Part
+                  </a>
+                  <ul id="collapseProgrammingOverview" class="collapse" aria-labelledby="quickProgrammingOverview" data-parent="#sidebarAccordion">
+                    <li><a href="#life101-1GTD-2.1">2.1 FillIn </a></li>
+                    <li><a href="#life101-1GTD-2.2">2.2 FillIn </a></li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <a href="#coding101-3" class="nav-link">
+                    3. Third Part
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="#life101-1GTD-4" class="nav-link">
+                    4. FourthPart
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <!-- /.sidebar -->
+
+          <!-- .main -->
+          <section class="col-md-9 ml-sm-auto col-lg-10 main">
+
+            <!-- .nav-tabs -->
+            <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <a class="nav-link" id="classes-tab" href="/index.html" role="tab" >Classes</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link" id="slides-tab" href="/coding101/slides.html" role="tab">Slides</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link " id="projects-tab" href="/coding101/projects.html" role="tab">Projects</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="cheat-sheets-tab" href="/coding101/cheat-sheets.html" role="tab" aria-selected="true">Cheat Sheets</a>
+              </li>
+            </ul>
+            <!-- /.nav-tabs -->
+
+            <!-- .tab-content -->
+            <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="#">Courses</a></li>
+                  <li class="breadcrumb-item"><a href="#">Coding 101</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Cheat Sheets</li>
+                </ol>
+              </nav>
+              <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+              <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+                <div class="cheat-sheet">
+                  <!-- Bryce Example -->
+                  <div class="bryce-example">
+                    <!-----------------------------------------------  Life 101.1-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 1. Part 1 </h2>
+                    <h3> 1.1 Part 1</h3>
+                    <h4> FillIn</h4>
+
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.1-GTD ----------------    -->
+                    
+                    
+                    <!-----------------------------------------------  Life 101.2-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 2. Part 2 </h2>
+                    <h3> 2.1 Part 2</h3>
+                    <h4> FillIn</h4>
+
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.2-GTD ----------------    -->
+                    
+
+                    
+                    <!-----------------------------------------------  Life 101.3-GTD -----------------    -->
+                    <!-- #region -->
+                    <h2> 3. Part 3 </h2>
+                    <h3> 3.1 Part 3</h3>
+                    <h4> FillIn</h4>
+
+                    <!-- endregion -->
+                    <!-----------------------------------------------  /Life 101.3-GTD ----------------    -->
+                    
+
+
+                  </div>
+                  <!--/Bryce Example-->
+              
+                  <!-------------------------------------------------  /Cheat Sheet                         -->
+                </div>
+              </div>
+            <!-- /.tab-content -->
+
+          </section>
+          <!-- /.main -->
+      
+        </div>
+      </div>
+      
+    </main>
+
+    <script src="/js/prism.min.js"></script>
+    <script src="/js/jquery-3.5.1.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
+  </body>
+</html>

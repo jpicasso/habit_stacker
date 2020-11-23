@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.materia.min.css">
+	<link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+<body>
+	<div class="container">
+		<header>
+			<h1>Rock, Paper, Scissors</h1>
+		</header>
+
+		<div class="row">
+			<div class="col-sm-12">
+				<h3>Make a selection:</h3>
+				<button class="btn btn-default" id="rock">Rock</button>
+				<button class="btn btn-default" id="paper">Paper</button>
+				<button class="btn btn-default" id="scissors">Scissors</button>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-sm-12">
+				<h3 id="score1"> User Score: 0 || Comp Score: 0 || Ties: 0 </h3>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-sm-4 offset-sm-1" id="userPlay">
+				<h4>User Play:</h4>
+			</div>
+			<div class="col-sm-4 offset-sm-2" id="compPlay">
+				<h4>Computer Play:</h4>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="js/index.js"></script>
+</body>
+</html>
