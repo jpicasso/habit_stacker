@@ -1,0 +1,15 @@
+h1, p {color: pink;}
+main h1 {color: green;}
+h1 p {color: red;}
+#puzzle3 {color: blue;}
+.green {color: green;}
+#puzzle3 {color: violet;}
+#puzzle5 {color:black;}
+.blue {color:blue;}
+footer .green {color:orange;}
+footer p {color:orangered;}
+#puzzle9 {color:yellowgreen;}
+.under {text-decoration: underline;}
+
+
+

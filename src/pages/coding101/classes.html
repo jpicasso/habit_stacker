@@ -8,27 +8,20 @@ title: 'Coding 101: Classes'
   <div class="container-fluid">
     <div class="row">
 
-      {{> coding101-sidebar}}
+      <!-- {{> coding101-sidebar}} -->
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          {{> mega-menu}}
+          {{> coding101-class-accord}}
+      </nav>
+      <!-- /.sidebar -->
+
 
       <!-- .main -->
       <section class="col-md-9 ml-sm-auto col-lg-10 main">
-
-        <!-- .nav-tabs -->
-        <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
-          <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="classes-tab" href="/index.html" role="tab" aria-selected="true">Classes</a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="slides-tab" href="/coding101/slides.html" role="tab">Slides</a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link " id="projects-tab" href="/coding101/projects.html" role="tab">Projects</a>
-          </li>
-          <li class="nav-item" role="presentation">
-            <a class="nav-link" id="cheat-sheets-tab" href="/coding101/cheat-sheets.html" role="tab">Cheat Sheets</a>
-          </li>
-        </ul>
-        <!-- /.nav-tabs -->
+        {{> nav-tabs}}
 
         <!-- .tab-content -->
         <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
@@ -41,7 +34,6 @@ title: 'Coding 101: Classes'
                 <li class="breadcrumb-item active" aria-current="page">Classes</li>
               </ol>
             </nav>
-
             <!------------------------------------------------------------------------------------- -->
             <!-------------------------------  Coding 101.0 - Intro                                 -->
             <!------------------------------------------------------------------------------------- -->
@@ -49,7 +41,7 @@ title: 'Coding 101: Classes'
             <p id="coding101-0"></p>
             <article class="section">
               <header class="section__header">
-                <h2>Coding 101: Introduction! </h2>
+                <h2>Coding 101: Introduction!! </h2>
               </header>
               <!-- #coding101-0.0 -->
               <section class="section__subsection subsection" id="coding101-0.0">
@@ -124,7 +116,7 @@ title: 'Coding 101: Classes'
                   <li>No prior programming experience required</li>
                 </ul>
                 <p>Mentors are software engineers and developers from large corporations</p>
-                <img src="img/0_intro/company_logos.png" alt="company_logos">
+                <img src="../../img/0_intro/company_logos.png" alt="company_logos">
                 <hr>
                 <h4>Coding Major Curriculum</h4>
                 <h5>100 level classes give you coding fundamentals to build and deploy applications; Finish these
@@ -202,28 +194,28 @@ title: 'Coding 101: Classes'
                 </ul>
                 <hr>
                 <h5>What is full stack web development? It let’s you build and deploy websites!!</h5>
-                <img src="img/0_intro/full_stack.png" alt="full_stack">
+                <img src="../../img//0_intro/full_stack.png" alt="full_stack">
                 <hr>
                 <h5>101: Front end web development overview</h5>
-                <img src="img/0_intro/102.png" alt="">
+                <img src="../../img//0_intro/102.png" alt="">
                 <hr>
                 <h5>102: Back End Web Development (Python)</h5>
-                <img src="img/0_intro/102.png" alt="">
+                <img src="../../img//0_intro/102.png" alt="">
                 <hr>
                 <h5>103: Intro to database management and analysis (SQL)</h5>
-                <img src="img/0_intro/103.png" alt="">
+                <img src="../../img//0_intro/103.png" alt="">
                 <hr>
                 <h5>104: Full Stack Web Development to tie together front and back end (Flask-SQLAlchemy)</h5>
-                <img src="img/0_intro/104.png" alt="">
+                <img src="../../img//0_intro/104.png" alt="">
                 <hr>
                 <h5>105: Deployment and Tools (Heroku, AWS, GitHub, Command Line Interface)</h5>
-                <img src="img/0_intro/105.png" alt="">
+                <img src="../../img//0_intro/105.png" alt="">
                 <hr>
                 <h5>Learning Summary</h5>
-                <img src="img/0_intro/learning_summary.png" alt="">
+                <img src="../../img//0_intro/learning_summary.png" alt="">
                 <hr>
                 <h5>What you will build?</h5>
-                <img src="img/0_intro/project_picmonic.png" alt="">
+                <img src="../../img//0_intro/project_picmonic.png" alt="">
                 <hr>
                 <h5>Instructions</h5>
                 <p><strong>To start, </strong>flip through all lessons, slides, cheat sheet, and deployed course
@@ -257,7 +249,7 @@ title: 'Coding 101: Classes'
             <!-------------------------------- Coding 101.1 - Coding Quick Start                    -->
             <!------------------------------------------------------------------------------------- -->
             <!-- #region -->
-            <p id="code101-L1-0-class"></p><br><br>
+            <p id="code101-L1-0-class"></p><br><br><br>
             <article class="section">
               <header class="section__header">
                 <h2>Coding 101: Coding Quick Start</h2>
@@ -270,7 +262,7 @@ title: 'Coding 101: Classes'
 
                 <h4> Coding 100 Level Courses: Full Stack Web Development & Deployment </h4>
                 <p> What is full stack web development? It let’s you build and deploy websites!!</p>
-                <img src="img/101.1.full_stack_overview.png">
+                <img src="../../img//101.1.full_stack_overview.png">
                 <br>
                 <br>
                 <br>
@@ -284,7 +276,7 @@ title: 'Coding 101: Classes'
                   <li> JavaScript provides site with functionality and computation ability (like your muscles)</li>
                 </ul>
 
-                <img src="img/101.1.FEWD_overview.png">
+                <img src="../../img//101.1.FEWD_overview.png">
                 <br>
                 <h4> Lesson Overview </h4>
                 <ol>
@@ -318,9 +310,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.0 -->
 
               <!-- #code101-L1-1-class -->
-              <p id="code101-L1-1-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-1-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -353,14 +343,12 @@ title: 'Coding 101: Classes'
                 </header>
                 <p> Google Chrome Inspector Tool and your first project: 1.1 Hello World </p>
                 <p> alert('hello world, I love Uprise University')</p>
-                <img src="img/101.1.hello_world.png">
+                <img src="../../img//101.1.hello_world.png">
               </section>
               <!-- /#coding101-1.2 -->
 
               <!-- #coding101-1.3 -->
-              <p id="code101-L1-3-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-3-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -372,7 +360,7 @@ title: 'Coding 101: Classes'
                 <p> It then sends an alert message to the user using the information stored in the variable “name”</p>
                 <p>Notes - Press shift and return to type in the second line of code without running the first; then
                   press enter to run the code </p>
-                <img src="img/101.1.var_alert.png">
+                <img src="../../img//101.1.var_alert.png">
                 <div class="embed-responsive embed-responsive-16by9">
                   <iframe width="560" height="315" src="https://www.youtube.com/embed/t4DafT2Cn4k" frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -388,6 +376,7 @@ title: 'Coding 101: Classes'
 
 
               <!-- #coding101-1.4 -->
+              <p class="code101-L1-4-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -424,8 +413,8 @@ title: 'Coding 101: Classes'
                   <li>parseInt()</li>
                   <li>var x = 2020 – age;</li>
                 </ul>
-                <img src="img/101.1.tip_calculator_hint.png">
-                <img src="img/101.1.tip_calculator.png">
+                <img src="../../img//101.1.tip_calculator_hint.png">
+                <img src="../../img//101.1.tip_calculator.png">
                 <p> Tip Calculator Prompt</p>
                 <div class="embed-responsive embed-responsive-16by9">
                   <iframe width="560" height="315" src="https://www.youtube.com/embed/BSznwdbtqTI" frameborder="0"
@@ -442,9 +431,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.4 -->
 
               <!-- #coding101-1.5 -->
-              <p id="code101-L1-5-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-5-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -453,7 +440,7 @@ title: 'Coding 101: Classes'
                 <p>If then else statements create the basic logic in your program</p>
                 <p>It reads: if something is true then do some tasks, else, if it is not true, do some other tasks
                 </p>
-                <img src="img/101.1.if_then.png">
+                <img src="../../img//101.1.if_then.png">
                 <p>Note that each line that is doing something has a semicolon after it but not the lines with the if
                   or else</p>
                 <p>One of the most annoying things about coding is that computers are very literal and programs don’t
@@ -485,7 +472,7 @@ title: 'Coding 101: Classes'
                   <li>if () { } else { }</li>
                   <li>var x = 2020 – age;</li>
                 </ul>
-                <img src="img/101.1.ID_checker.png">
+                <img src="../../img//101.1.ID_checker.png">
                 <p>ID Checker Project Prompt</p>
                 <div class="embed-responsive embed-responsive-16by9">
                   <iframe width="560" height="315" src="https://www.youtube.com/embed/gfjwXx6hMok" frameborder="0"
@@ -502,9 +489,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.5 -->
 
               <!-- #coding101-1.6 -->
-              <p id="code101-L1-6-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-6-class"></p><br><br><br>
               <section class="section__subsection subsection" id="#coding101-1.6">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -513,7 +498,7 @@ title: 'Coding 101: Classes'
                 <p>Comments are notes that you can use to help you or other programmers looking at your code remember
                   what the code does</p>
                 <p>The program does not actually do anything with this code</p>
-                <img src="img/101.1.comments.png">
+                <img src="../../img//101.1.comments.png">
                 <div class="embed-responsive embed-responsive-16by9">
                   <iframe width="560" height="315" src="https://www.youtube.com/embed/qR-A4465psA" frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -523,9 +508,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.6 -->
 
               <!-- #coding101-1.7 -->
-              <p id="code101-L1-7-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-7-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -582,9 +565,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.7 -->
 
               <!-- #coding101-1.8 -->
-              <p id="code101-L1-8-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-8-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -611,9 +592,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-1.8 -->
 
               <!-- #coding101-1.9 -->
-              <p id="code101-L1-9-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-9-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
@@ -658,9 +637,7 @@ title: 'Coding 101: Classes'
             <!-------------------------------  Coding 101.2 - Programming Overview with JavaScript  -->
             <!------------------------------------------------------------------------------------- -->
             <!-- #region -->
-            <p id="code101-L2-0-class"></p>
-            <br>
-            <br>
+            <p id="code101-L2-0-class"></p><br><br><br>
             <article class="section">
               <header class="section__header">
                 <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
@@ -717,9 +694,7 @@ title: 'Coding 101: Classes'
               <!-- /#coding101-2.0 -->
 
               <!-- #coding101-2.1 -->
-              <p id="code101-L2-1-class"></p>
-              <br>
-              <br>
+              <p id="code101-L2-1-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 2 - Programming Overview with JavaScript</h2>
@@ -1255,6 +1230,7 @@ this.greeting = function(){
             <!------------------------------------------------------------------------------------- -->
             <!-- #region -->
             <p id="coding101-3"></p>
+            <p id="code101-L3-0-class"></p><br><br><br>
             <article class="section">
               <header class="section__header">
                 <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1266,19 +1242,20 @@ this.greeting = function(){
                   <h3>3.0 Intro</h3>
                 </header>
                 <h4>Lesson Overview</h4>
-                  <ul>
+                  <ol>
                     <li>HTML and CSS overview</li>
                     <li>HTML tags and structure</li>
                     <li>CSS intro and properties</li>
                     <li>Boxes and layouts</li>
                     <li>Mobile First Design and dynamic formatting</li>
-                  </ul>
+                  </ol>
                 <h4> Projects Overview</h4>
-                <img src="img/3_first_website/projects_overview.png" alt="">
+                <img src="../../img//3_first_website/projects_overview.png" alt="">
               </section>
               <!----------------------------  /coding101-3.0 -------------------------------------- -->
 
               <!----------------------------  #coding101-3.1 -------------------------------------- -->
+              <p id="code101-L3-1-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1315,10 +1292,11 @@ this.greeting = function(){
               <script type="text/plain" class="language-html"><link rel=“stylesheet” href=“main.css”></script>
               <h4>Project 3.1. Hello World!</h4>
               <h5>Try to create this before going to the next slide</h5>
-              <img src="img/3_first_website/p1.png" alt="your first website">
+              <img src="../../img//3_first_website/p1.png" alt="your first website">
               <!----------------------------  #coding101-3.1 -------------------------------------- -->
 
               <!----------------------------  /coding101-3.2 -------------------------------------- -->
+              <p id="code101-L3-2-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1361,12 +1339,13 @@ this.greeting = function(){
                 <li>Different types of HTML tags to break up and structure the site (e.g., &lt;html>, &lt;h1>, etc.)</li>
                 <li>Starter code to avoid manually typing</li>
               </ul>
-              <img src="img/3_first_website/p2a.png" alt="">
-              <img src="img/3_first_website/p2b.png" alt="">
+              <img src="../../img//3_first_website/p2a.png" alt="">
+              <img src="../../img//3_first_website/p2b.png" alt="">
 
               <!----------------------------  #coding101-3.2 -------------------------------------- -->
 
               <!----------------------------  /coding101-3.3 -------------------------------------- -->
+              <p id="code101-L3-3-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1462,12 +1441,13 @@ this.greeting = function(){
                 <h4>Project 3.2. Gigantic Candy Company – 2 pages (Step 2 of 3)</h4>
                 <p>Create a simple two page web page with links between the two of them</p>
                 <p>First page is a home page; Second page is an about us page</p>
-                <img src="img/3_first_website/p2c.png" alt="">
+                <img src="../../img//3_first_website/p2c.png" alt="">
                 <hr>
               </section>
               <!----------------------------  #coding101-3.3 -------------------------------------- -->
 
               <!----------------------------  /coding101-3.4 -------------------------------------- -->
+              <p id="code101-L3-4-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1481,7 +1461,7 @@ this.greeting = function(){
                   <li><strong>Padding: </strong>space between the content and the border</li>
                   <li><strong>Content: </strong>size of the content of the element</li>
                 </ul>
-                <img src="img/3_first_website/3.4_box.png" alt="">
+                <img src="../../img//3_first_website/3.4_box.png" alt="">
                 <p><strong>Margin: </strong>distance between the element’s box and what is around it</p>
                 <ul>
                   <li>Margin: 40px 0px 0px 0px; 	 /* 40px on top, 0 on right, 0 on bottom, 0 on left */</li>
@@ -1565,24 +1545,24 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 <hr>
                 <h4>Project 3.2. Gigantic Candy Company – Flex Box (Step 3 of 3)</h4>
                 <p>Boxes should expand and shrink as the size of the browser window changes</p>
-                <img src="img/3_first_website/p2d.png" alt="">
+                <img src="../../img//3_first_website/p2d.png" alt="">
                 <hr>
                 <h4>Project 3.3. CSS Puzzles</h4>
                 <p>Quiz…Figure out what the color of each puzzle text will be!</p>
-                <img src="img/3_first_website/p3.png" alt="">
+                <img src="../../img//3_first_website/p3.png" alt="">
                 <hr>
                 <h4>Project 3.4. Winston’s Landing Page</h4>
                 <p>Create a page that looks similar to following site</p>
-                <img src="img/3_first_website/p4a.png" alt="">
-                <img src="img/3_first_website/p4b.png" alt="">
+                <img src="../../img//3_first_website/p4a.png" alt="">
+                <img src="../../img//3_first_website/p4b.png" alt="">
                 <hr>
                 <h4>Project 3.5. Pisco Sour Recipe - Two Column Page</h4>
                 <p>Create a page that looks similar to following site</p>
-                <img src="img/3_first_website/p5.png" alt="">
+                <img src="../../img//3_first_website/p5.png" alt="">
                 <hr>
                 <h4>Project 3.6. Mentor Finder Home Page</h4>
                 <p>Create a page that looks similar to following site</p>
-                <img src="img/3_first_website/p6.png" alt="">
+                <img src="../../img//3_first_website/p6.png" alt="">
                 <hr>
 
 
@@ -1590,6 +1570,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
               <!----------------------------  #coding101-3.4 -------------------------------------- -->
 
               <!----------------------------  /coding101-3.5 -------------------------------------- -->
+              <p id="code101-L3-5-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
@@ -1638,7 +1619,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 </ul>
                 <hr>
                 <h4> Project Recap</h4>
-                <img src="img/3_first_website/project_recap.png" alt="">
+                <img src="../../img//3_first_website/project_recap.png" alt="">
               </section>
             </article>
             <!-- /Coding 101.3 - Your First Website -->
@@ -1649,6 +1630,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
             <!------------------------------------------------------------------------------------- -->
             <!-- #region -->
             <p id="coding101-4"></p>
+            <p id="code101-L4-0-class"></p><br><br><br>
             <article class="section">
               <header class="section__header">
                 <h2>Coding 101: Lesson 4 - JQuery and buttons</h2>
@@ -1666,11 +1648,12 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                   <li>JQuery Methods</li>
                 </ol>
                 <h4>Projects Overview</h4>
-                <img src="img/4_JQuery/projects.png" alt="">
+                <img src="../../img//4_JQuery/projects.png" alt="">
               </section>
               <!----------------------------  /coding101-4.0 -------------------------------------- -->
 
               <!----------------------------  #coding101-4.1 -------------------------------------- -->
+              <p id="code101-L4-1-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 4 - JQuery and buttons</h2>
@@ -1714,13 +1697,13 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 <hr>
                 <h4> JQuery Selectors  </h4>
                 <p>These are the most commonly used JQuery Selectors</p>
-                <img src="img/4_JQuery/selectors.png" alt="">
+                <img src="../../img//4_JQuery/selectors.png" alt="">
                 <hr>
                 <h4>JQuery Methods </h4>
                 <p><strong> These are the most commonly used JQuery Methods</strong></p>
-                <img src="img/4_JQuery/1methods.png" alt="">
+                <img src="../../img//4_JQuery/1methods.png" alt="">
                 <p><strong> These are other methods that commonly used in JQuery</strong></p>
-                <img src="img/4_JQuery/2methods.png" alt="">
+                <img src="../../img//4_JQuery/2methods.png" alt="">
 
 
 
@@ -1728,6 +1711,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
               <!----------------------------  /coding101-4.1 -------------------------------------- -->
 
               <!----------------------------  #coding101-4.2 -------------------------------------- -->
+              <p id="code101-L4-2-class"></p><br><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Lesson 3 - JQuery and buttons</h2>
@@ -1744,7 +1728,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                   <li>	$('body').css("background-color",’yellow’);</li>
                   <li>	$('button').click(my_color_switcher_function);</li>
                 </code></ul>
-                <img src="img/4_JQuery/p1.png" alt="">
+                <img src="../../img//4_JQuery/p1.png" alt="">
                 <hr>
                 <h4>Project 4.2. Background drop down menu</h4>
                 <p>Try it yourself before looking at the answers</p>
@@ -1761,7 +1745,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                   </ul>
                 </code>
 
-                <img src="img/4_JQuery/p2.png" alt="">
+                <img src="../../img//4_JQuery/p2.png" alt="">
                 <hr>
                 <h4>Project 4.3. Grocery List</h4>
                 <p>Try it yourself before looking at the answers</p>
@@ -1778,7 +1762,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li>$('#groceries').on('click', '.del_btn', delete_item);</li>
                   </ul>
                 </code>
-                <img src="img/4_JQuery/p3.png" alt="">                  
+                <img src="../../img//4_JQuery/p3.png" alt="">                  
                 <hr>
                 <h4>Project 4.4. Bob’s Blog</h4>
                 <p>Try it yourself before looking at the answers</p>
@@ -1792,7 +1776,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li>$(‘#id’).click(run_my_cool_function)</li>
                   </ul>
                 </code>
-                <img src="img/4_JQuery/p4.png" alt="">
+                <img src="../../img//4_JQuery/p4.png" alt="">
                 <hr>                  
                 <h4>Project 4.5. Traffic Light</h4>
                 <p>Create a traffic light / stop light!</p>
@@ -1804,7 +1788,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                   </ul>
                 </code>
                 <p>Extra credit: make the light automatically switch from red for 3 seconds to yellow for 1 second to green for 3 seconds and then back to red!</p>
-                <img src="img/4_JQuery/p5.png" alt="">
+                <img src="../../img//4_JQuery/p5.png" alt="">
                 <hr>
                 <h4>Project 4.6. Cash Register</h4>
                 <p>Add item dollar amounts to create a running tally of expenses.</p>
@@ -1821,7 +1805,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li>event.preventDefault()</li>
                   </ul>
                 </code>
-                <img src="img/4_JQuery/p6.png" alt="">
+                <img src="../../img//4_JQuery/p6.png" alt="">
                 <hr>
                 <h4>Project 4.7. Rock Paper Scissors</h4>
                 <p>Play rock paper scissors against the computer and keep score!</p>
@@ -1833,7 +1817,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li>if ((x == y) && (a == b) { }</li>
                   </ul>
                 </code>
-                <img src="img/4_JQuery/p7.png" alt="">
+                <img src="../../img//4_JQuery/p7.png" alt="">
                 <hr>
                 <h4>Project 4.8. User Profile</h4>
                 <p>Create an app that allows a user to create a user profile and submit it</p>
@@ -1849,7 +1833,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li>window.location.href = "profile.html";</li>
                   </ul>
                 </code>
-                <img src="img/4_JQuery/p8.png" alt="">
+                <img src="../../img//4_JQuery/p8.png" alt="">
                 <hr>
                 <h4>Lesson Recap</h4>
                 <ul>
@@ -1858,7 +1842,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                   <li>JQuery Methods</li>
                 </ul>
                 <h4>Projects Recap</h4>
-                <img src="img/4_JQuery/projects.png" alt="">
+                <img src="../../img//4_JQuery/projects.png" alt="">
                 <hr>
                 <h4>Vocab and Concept Review</h4>
                 <ul>
@@ -1872,6 +1856,7 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                     <li><code>$(‘CSSselector’).action()</code></li>
                   </ul>
                 </ul>
+                <hr>
                 <h4> Homework</h4>
                 <p><strong>Flashcard App: </strong>Build an application that allows user to learn and memorize a stack of five flash cards. User should see “front” of card that has a prompt on it (e.g., what is the capital of the U.S.?). When the user clicks a button, the card flips to the “back” and shows the answer (e.g., Washington D.C.). When the user clicks the button again, it goes to the next card in the stack and shows the front of the card. Once the stack is finished, the user goes back again to the first card.</p>
 
@@ -1882,156 +1867,6 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
 
             <!------------------------------- /Coding 101.4 - JQuery and buttons ------------------ -->
             <!-- endregion -->
-
-            <!------------------------------------------------------------------------------------- -->
-            <!-------------------------------  Coding 101.5 - Capstone                              -->
-            <!------------------------------------------------------------------------------------- -->
-            <!-- #region -->
-            <p id="coding101-5"></p>
-            <article class="section">
-              <header class="section__header">
-                <h2>Coding 101: Lesson 5 - Capstone</h2>
-              </header>
-              <!-- #coding101-5.0 -->
-              <section class="section__subsection subsection" id="coding101-5.0">
-                <header class="subsection__header">
-                  <h2>Coding 101: Lesson 5 - Capstone</h2>
-                  <h3>5.0 Intro</h3>
-                </header>
-              </section>
-            </article>
-            <!-- /Coding 101.5 - Capstone -->
-            <!-- endregion -->
-
-            <!------------------------------------------------------------------------------------- -->
-            <!--------------------------------------------------------------  Coding 101.6 - Appendix  -->
-            <!------------------------------------------------------------------------------------- -->
-            <p id="coding101-6"></p>
-            <article class="section">
-              <header class="section__header">
-                <h2>Coding 101: Appendix</h2>
-              </header>
-
-              <!-- #introduction-01 -->
-              <section class="section__subsection subsection" id="introduction-01">
-                <header class="subsection__header">
-                  <h3>0.1 Introduction</h3>
-                </header>
-
-                <h4>Welcome to the course!</h4>
-                <p>
-                  Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus
-                  mollis interdum. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius
-                  blandit sit amet non magna.
-                </p>
-                <div class="embed-responsive embed-responsive-16by9">
-                  <iframe class="embed-responsive-item" width="560" height="315"
-                    src="https://www.youtube.com/embed/wrdR5Su_Stg" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
-                </div>
-          </div>
-        </div>
-        <p>
-          Nullam quis risus eget urna mollis ornare vel eu leo. Morbi leo risus, porta ac consectetur ac, vestibulum
-          at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Donec ullamcorper nulla non metus auctor
-          fringilla.
-        </p>
-
-        <h4 class="mt-3">Q&amp;A</h4>
-
-        <!-- .q-and-a -->
-        <dl class="q-and-a">
-          <div class="q-and-a__wrapper">
-            <dt>
-              <h5>Q: Curabitur blandit tempus porttitor?</h5>
-            </dt>
-            <dd>
-              A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit
-              amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula
-              porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis
-              vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-            </dd>
-          </div>
-          <div class="q-and-a__wrapper">
-            <dt>
-              <h5>Q: Curabitur blandit tempus porttitor?</h5>
-            </dt>
-            <dd>
-              A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit
-              amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula
-              porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis
-              vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-            </dd>
-          </div>
-          <div class="q-and-a__wrapper">
-            <dt>
-              <h5>Q: Curabitur blandit tempus porttitor?</h5>
-            </dt>
-            <dd>
-              A: Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit
-              amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Vestibulum id ligula
-              porta felis euismod semper. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis
-              vestibulum. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-            </dd>
-          </div>
-        </dl>
-        <!-- /.q-and-a -->
-
-      </section>
-      <!-- /#introduction-01 -->
-
-      <!-- #the-basics-02 -->
-      <section class="subsection" id="the-basics-02">
-        <header class="subsection__header">
-          <h2>Coding 101: Intro</h2>
-          <h3>0.2 The Basics</h3>
-        </header>
-
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum id ligula porta felis euismod semper.
-          Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Sed posuere consectetur est at lobortis.
-          Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-        </p>
-        <p>
-          Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Cras justo odio, dapibus ac
-          facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Integer posuere erat a
-          ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur. Vestibulum id
-          ligula porta felis euismod semper. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-        </p>
-        <p>
-          Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at
-          eros. Nullam quis risus eget urna mollis ornare vel eu leo. Morbi leo risus, porta ac consectetur ac,
-          vestibulum at eros. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
-      </section>
-      <!-- /#the-basics-02 -->
-
-      <!-- #setting-up-your-ide-03 -->
-      <section class="subsection" id="setting-up-your-ide-03">
-        <header class="subsection__header">
-          <h2>Coding 101: Intro</h2>
-          <h3>0.3 Setting Up Your IDE</h3>
-        </header>
-
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum id ligula porta felis euismod semper.
-          Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Sed posuere consectetur est at lobortis.
-          Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-        </p>
-        <p>
-          Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Cras justo odio, dapibus ac
-          facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Integer posuere erat a
-          ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur. Vestibulum id
-          ligula porta felis euismod semper. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
-        </p>
-        <p>
-          Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at
-          eros. Nullam quis risus eget urna mollis ornare vel eu leo. Morbi leo risus, porta ac consectetur ac,
-          vestibulum at eros. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
-      </section>
-      <!-- /#setting-up-your-ide-03 -->
 
       </article>
       <!-- /Intro -->

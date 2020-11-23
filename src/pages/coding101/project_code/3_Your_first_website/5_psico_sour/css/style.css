@@ -1,0 +1,35 @@
+body {
+  color: rgba(32, 30, 143, 1);
+}
+
+h1, h2 {
+  font-family: 'Chicle', cursive;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+
+header, footer {
+  padding: 5px 20px;
+  border: 2px solid rgba(32, 30, 143, 1);
+  border-radius: 4px;
+  background: rgba(32, 30, 143, 1);
+  color: #fff;
+}
+
+img {
+  width: 300px; 
+}
+
+main {
+  display:flex;
+}
+
+#left-cl {
+  width: 60%;
+  padding:30px;
+}
+
+#right-cl {
+  width: 40%;
+  padding:30px;
+}
