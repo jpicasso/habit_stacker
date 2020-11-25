@@ -35,8 +35,7 @@ function compileHtml() { // Compile panini templates and output to /dist
     .pipe(panini({
       root: './src/pages/',
       layouts: './src/layouts/',
-      partials: './src/partials/',
-      helpers: './src/helpers/'
+      partials: './src/partials/'
     }))
     .pipe(gulp.dest('dist'));
 }
