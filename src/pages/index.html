@@ -4,14 +4,103 @@ title: 'Home'
 
 {{> navbar}}
 
-<main id="main">
-  <div class="container-fluid">
-    <div class="row">
-      <section class="col-md-9 ml-sm-auto col-lg-10 main">
-        <h1>This is landing page!</h1>
-        <a href="coding101/classes.html"> Link to Coding 101 class</a>
-      </section>
+<!-- .header--hero -->
+<header class="header header--hero header--homepage">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-8 header__content">
+        <h2 class="display-3"><span class="display-4 d-block">30th Century</span> Omni-Channel Learning</h2>
+        <p class="lead mt-2">
+          Self-paced online courses with 1x1 online mentorship and optional engagement in person with an active learning community (currently based in NYC and Bay Area).
+        </p>
+      </div>
     </div>
-  </div>
+  </div>      
+</header>
+<!-- /.header--hero -->
+
+<main class="main main--homepage">
+  
+  <!-- .hp-section--courses-description -->
+  <section class="hp-section hp-section--courses-description">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12 text-center mb-4">
+          <h3 class="font-blue">Lifelong learning, endless curiosity and high quality education for all</h3>
+          <h4>Online Courses and Tutors</h4>
+        </div>
+        <div class="col-lg-4 mb-3 mb-lg-0 text-center">
+          <img src="{{ root }}/img/pencil.svg" alt="Pencil Icon" aria-hidden="true">
+          <h5>1x1 Tutors</h5>
+          <ul class="text-left">
+            <li>Expert tutors in coding, math, science, history, test prep, and admissions</li>
+            <li>High-quality global tutors based in U.S., India, and other countries</li>
+            <li>High-end U.S. tutors at reasonable prices and strong non-U.S. tutors at extremely competitive rates</li>
+          </ul>
+        </div>
+        <div class="col-lg-4 mb-3 mb-lg-0 text-center">
+          <img src="{{ root }}/img/modular.svg" alt="Modular Icon" aria-hidden="true">
+          <h5>Modular Classes</h5>
+          <ul class="text-left">
+            <li>Customized course slides, videos, and overviews developed by Ivy Leaguers</li>
+            <li>Memory tools & cheat sheets so you retain information that you learn</li>            
+          </ul>
+        </div>
+        <div class="col-lg-4 mb-3 mb-lg-0 text-center">
+          <img src="{{ root }}/img/calculator.svg" alt="Calculator Icon" aria-hidden="true">
+          <h5>For Any Budget</h5>
+          <ul class="text-left">
+            <li>Course content is provided for free and is funded with alumni donations</li>
+            <li>lx1 tutoring is charged per hour and class enrollment is per course</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.hp-section--courses-description -->
+
+  <!-- .hp-section--our-courses -->
+  <section class="hp-section hp-section--our-courses hp-section--gray-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <h3>Our Courses</h3>
+          <p class="small"><em>(Free; donations encouraged)</em></p>
+        </div>
+        <div class="col-lg-4">
+          <div class="card">
+            <img class="card-img-top" src="{{ root }}/img/coding101.jpg" alt="Coding 101">
+            <div class="card-body">
+              <h4 class="card-title">Coding 101</h4>
+              <p class="card-text">Learn how to build and deploy a website using HTML, CSS, JavaScript and AWS.</p>
+              <a href="{{ root }}/coding101" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card">
+            <img class="card-img-top" src="{{ root }}/img/coding102.jpg" alt="Coding 102">
+            <div class="card-body">
+              <h4 class="card-title">Coding 102</h4>
+              <p class="card-text">Use Python with object-oriented programming, intro to algorithms and version control using Github.</p>
+              <a href="{{ root }}/coding101" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card">
+            <img class="card-img-top" src="{{ root }}/img/finance101.jpg" alt="Finance 101">
+            <div class="card-body">
+              <h4 class="card-title">Finance 101</h4>
+              <p class="card-text">Learn investing basics, determining business net present value and how to get free cash flow from sales!</p>
+              <a href="{{ root }}/coding101" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.hp-section--our-courses -->
+
 </main>
 

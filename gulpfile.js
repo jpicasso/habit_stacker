@@ -58,8 +58,8 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
   });
   gulp.watch('./src/scss/**/*.scss', style);
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
-  gulp.watch('./src/js/**/*.js').on('change', gulp.series(copyImages, copyJs, browserSync.reload));
-  gulp.watch('./src/img/**/*.*').on('change', gulp.series(copyImages, copyJs, browserSync.reload));
+  gulp.watch('./src/js/**/*.js',{cwd:'./'}).on('change', gulp.series(copyJs, browserSync.reload));
+  gulp.watch('./src/img/**/*.*',{cwd:'./'}).on('change', gulp.series(copyImages, browserSync.reload));
   // gulp.watch('./src/{layouts,partials}/**/*').on('change', gulp.series(resetPages, compileHtml, browserSync.reload));
 }
 

@@ -86,3 +86,12 @@ $('.accordion ul li a').on('click', e => {
     parentAcc.prev().addClass('active')
   })
 });
+
+// Homepage hero parallax  
+$(window).on('scroll', () => {
+  let scrollTop = $(window).scrollTop(),
+      imgPos = scrollTop / 2 + 'px',
+      hero = $('.header--homepage');
+
+  hero.css('background-position-y', imgPos);
+});
