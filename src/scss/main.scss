@@ -227,6 +227,15 @@
   color: $blue;
 }
 
+.gray-bg {
+  background: $gray-100;
+}
+
+.blue-bg {
+  background: $blue;
+  color: $white;
+}
+
 /**
 ** Navigation
 **/
@@ -310,8 +319,14 @@
 /**
 ** Custom Components
 **/
+
 .header {
   padding-top: 60px;
+  background-color: $blue;
+
+  > * {
+    color: $white;
+  }
 
   &__content {
     position: absolute;
@@ -320,29 +335,30 @@
   }
 
   &--hero {
-    background-color: $blue;
     background-size: cover;
     background-position: 50% 50%;
     background-repeat: no-repeat;
     height: 95vh;
     text-align: center;
 
-    > * {
-      color: $white;
-    }
   }
 
   &--homepage {
     background-image: url(../img/homepage-hero.jpg);
   }
+
+  &--interior {
+    color: $white;
+    padding-top: 120px;
+    padding-bottom: 60px;
+  }
 }
 
 .hp-section {
-  padding-top: 4rem;
   padding-bottom: 4rem;
-
-  &--gray-bg {
-    background: $gray-100;
+  
+  &:not(:first-of-type) {
+    padding-top: 4rem;
   }
 
   &--courses-description {
@@ -353,6 +369,89 @@
 
     h5 {
       margin-bottom: 1rem;
+    }
+  }
+
+  &--our-courses {
+    @include media-breakpoint-down(lg) {
+      .course {
+        margin-bottom: 2rem;
+      }
+    }
+  }
+
+  &--community {
+    h3 {
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    img {
+      transform: rotate(6deg);
+    }
+  }
+
+  &--testimonials {
+    .testimonials {
+      [class*="col-"] {
+        text-align: center;
+        padding: 2rem;
+        color: $white;
+
+        &:nth-of-type(1) {
+          background: #6956fb;
+        }
+
+        &:nth-of-type(2) {
+          background: #24d8c0;
+        }
+
+        &:nth-of-type(3) {
+          background: $purple;
+        }
+
+        img {
+          border-radius: 200px;
+          margin-bottom: 2rem;
+          width: 127px;
+        }
+
+        cite {
+          display: block;
+          font-style: normal;
+          text-transform: uppercase;
+          font-weight: $font-weight-bold;
+          margin-top: 1rem;
+        }
+      }
+    }
+  }
+}
+
+.footer {
+  background: $purple;
+  padding: 4rem 0 1rem;
+  color: $white;
+  position: relative;
+  z-index: 999;
+
+  ul {
+    li {
+      a {
+        color: $white;
+        text-decoration: none;
+      }
+    }
+  }
+
+  @include media-breakpoint-up(lg) {
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+
+      li {
+        width: 50%;
+      }
     }
   }
 }
@@ -368,7 +467,16 @@
   @include media-breakpoint-up(lg) {
     padding: 55px 0 0;
   }
-}
+
+  &--interior {
+    .content {
+      padding: 1rem 0;
+
+      @include media-breakpoint-up(lg) {
+        padding: 4rem;
+      }
+    }
+  }
 
 .q-and-a {
   &__wrapper {

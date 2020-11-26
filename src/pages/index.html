@@ -24,11 +24,13 @@ title: 'Home'
   <!-- .hp-section--courses-description -->
   <section class="hp-section hp-section--courses-description">
     <div class="container">
-      <div class="row">
-        <div class="col-sm-12 text-center mb-4">
+      <div class="row justify-content-center">
+        <div class="col-sm-12 col-lg-9 text-center mb-4">
           <h3 class="font-blue">Lifelong learning, endless curiosity and high quality education for all</h3>
           <h4>Online Courses and Tutors</h4>
         </div>
+      </div>
+      <div class="row">
         <div class="col-lg-4 mb-3 mb-lg-0 text-center">
           <img src="{{ root }}/img/pencil.svg" alt="Pencil Icon" aria-hidden="true">
           <h5>1x1 Tutors</h5>
@@ -60,14 +62,14 @@ title: 'Home'
   <!-- /.hp-section--courses-description -->
 
   <!-- .hp-section--our-courses -->
-  <section class="hp-section hp-section--our-courses hp-section--gray-bg">
+  <section class="hp-section hp-section--our-courses gray-bg">
     <div class="container">
       <div class="row">
-        <div class="col-sm-12">
-          <h3>Our Courses</h3>
+        <div class="col-sm-12 mb-2">
+          <h3 class="mb-0">Our Courses</h3>
           <p class="small"><em>(Free; donations encouraged)</em></p>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-4 course">
           <div class="card">
             <img class="card-img-top" src="{{ root }}/img/coding101.jpg" alt="Coding 101">
             <div class="card-body">
@@ -77,7 +79,7 @@ title: 'Home'
             </div>
           </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-4 course">
           <div class="card">
             <img class="card-img-top" src="{{ root }}/img/coding102.jpg" alt="Coding 102">
             <div class="card-body">
@@ -87,7 +89,7 @@ title: 'Home'
             </div>
           </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-4 course">
           <div class="card">
             <img class="card-img-top" src="{{ root }}/img/finance101.jpg" alt="Finance 101">
             <div class="card-body">
@@ -102,5 +104,61 @@ title: 'Home'
   </section>
   <!-- /.hp-section--our-courses -->
 
+  <!-- .hp-section--community -->
+  <section class="hp-section hp-section--community blue-bg">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-7 col-lg-8">
+          <h3 class="mb-0 h5">Join the Community</h3>
+          <h4 class="h3">Stay current. Subscribe to the newsletter.</h4>
+          <p>
+            Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam id dolor id nibh ultricies vehicula ut id elit. Curabitur blandit tempus porttitor. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
+          </p>
+        </div>
+        <div class="col-md-5 col-lg-4 mt-2 mt-md-0">
+          <img src="{{ root }}/img/newsletter.svg" alt="Newsletter">
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.hp-section--community -->
+
+  <!-- .hp-section--testimonials -->
+  <section class="hp-section hp-section--testimonials gray-bg">
+    <div class="container">
+      <div class="row justify-content-center mb-3">
+        <div class="col-md-8 col-lg-7 text-center">
+          <h3>Our students have a few nice things to say about us</h3>
+        </div>
+      </div>
+      <div class="row testimonials">
+        <div class="col-lg-4">
+          <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Person">
+          <blockquote>
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nulla vitae elit libero, a pharetra augue. Etiam porta sem malesuada magna mollis euismod."
+            <cite>Clive Graves</cite>
+          </blockquote>
+        </div>
+        <div class="col-lg-4">
+          <img src="https://images.unsplash.com/photo-1510227272981-87123e259b17?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=3759e09a5b9fbe53088b23c615b6312e" alt="Person">
+          <blockquote>
+            "Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Nullam id dolor id nibh ultricies vehicula ut id elit. Cras justo odio, dapibus ac facilisis in, egestas eget quam."
+            <cite>Naya Schwartz</cite>
+          </blockquote>
+        </div>
+        <div class="col-lg-4">
+          <img src="https://randomuser.me/api/portraits/women/79.jpg" alt="Person">
+          <blockquote>
+            "Donec ullamcorper nulla non metus auctor fringilla. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Sed posuere consectetur est at lobortis."
+            <cite>Maria Sandoval</cite>
+          </blockquote>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  <!-- /.hp-section--testimonials -->
 </main>
+
+{{> main-site-footer }}
 
