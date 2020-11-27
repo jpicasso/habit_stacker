@@ -428,6 +428,20 @@
   }
 }
 
+.courses {
+  &__nav {
+    a {
+      color: $black;
+      transition: 0.15s ease-in-out all !important;
+
+      &:hover {
+        background: $gray-200;
+      }
+
+    }
+  }
+}
+
 .footer {
   background: $purple;
   padding: 4rem 0 1rem;
@@ -477,6 +491,7 @@
       }
     }
   }
+}
 
 .q-and-a {
   &__wrapper {
