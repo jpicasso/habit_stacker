@@ -1,46 +1,6 @@
 // Search alert
 $('.search button').click((e) => alert(`User typed ${$(e.target).prev().val()}`))
 
-// Mega menu
-$(document).on('click', '.megamenu__toggle', e => {
-  let menu = $('.megamenu__menu'),
-      body = $('body');
-
-  menu.toggleClass('show');
-  $(e.target).toggleClass('show');
-
-  if (menu.hasClass('show')) { 
-    saveScroll()
-  } else { 
-    returnScroll()
-  }
-});
-
-window.addEventListener('scroll', () => {
-  document.documentElement.style.setProperty('--scroll-y', window.scrollY);
-});
-
-// Save scroll when mega menu opens
-const saveScroll = () => {
-  const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
-  const body = document.body;
-  body.style.position = 'fixed';
-  body.style.top = `-${scrollY}px`;
-}
-
-// Return scroll when mega menu closes
-const returnScroll = () => {
-  const body = document.body;
-  const scrollY = body.style.top.split('px')[0];
-  body.style.position = '';
-  body.style.top = '';
-
-  // Need a timer here or else it doesn't work ¯\_(ツ)_/¯
-  window.setTimeout(() => {
-    window.scrollTo(0, (scrollY * -1))
-  }, 0.1)
-}
-
 // Active sidebar nav (https://css-tricks.com/sticky-smooth-active-nav/)
 let mainNavLinks = document.querySelectorAll('.accordion ul li a');
 let mainSections = document.querySelectorAll('.subsection');
@@ -53,7 +13,7 @@ window.addEventListener('scroll', event => {
   accTitles.removeClass('active');
 
   mainNavLinks.forEach(link => {
-    let section = document.querySelector(link.hash);
+    let section = $(link.hash);
 
     if (section !== null) {
       if (section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
@@ -102,17 +62,19 @@ $(document).on('click', '.dropdown-menu', (e) => {
 });
 
 // Drawer
-('[data-trigger]').on('click', function(e){
+var mainNav = $('#mainNav');
+var drawerBtn = $('#mainNavTrigger');
+
+drawerBtn.on('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
-  var offcanvas_id =  $(this).attr('data-trigger');
-  $(offcanvas_id).toggleClass('show');
+  mainNav.toggleClass('show');
   $('body').toggleClass('offcanvas-active');
   $('.screen-overlay').toggleClass('show');
 }); 
 
-$('.btn-close, .screen-overlay').click(function(e){
+$('.btn-close, .screen-overlay').click(e => {
   $('.screen-overlay').removeClass('show');
-  $('.mobile-offcanvas').removeClass('show');
+  mainNav.removeClass('show');
   $('body').removeClass('offcanvas-active');
 }); 

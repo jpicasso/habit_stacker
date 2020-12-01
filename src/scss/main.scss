@@ -586,6 +586,10 @@
 
 .section {
   max-width: 800px;
+
+  img {
+    max-width: 100%;
+  }
   
   &__header {
     padding: 1rem;
@@ -653,35 +657,177 @@
 /**
 ** Extended Bootstrap Components
 **/
-@include media-breakpoint-up(md) {
-  .navbar--main-menu { 
-    padding-top: 0; 
-    padding-bottom: 0;
+.navbar {
+  z-index: 999;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
 
-    .has-megamenu {
-      position: static !important;
+  .megamenu {
+    background: $dark-blue;
+    border: none;
+
+    &__view-all {
+      margin-bottom: 1rem;
+
+      a {
+        color: $white;
+
+        &:hover {
+          text-decoration: none;
+        }
+      }
+    }
+  }
+
+  h1,h2,h3,h4,h5,
+  .nav-link {
+    color: $white;
+  }
+
+  h2,h3,h4,h5 {
+    font-weight: normal;
+    font-family: $font-family-sans-serif;
+    margin-top: 0.5rem;
+  }
+
+  .nav-link {
+    padding-left: 0;
+
+    span {
+      font-size: 0.65em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+    }
+  }
+  
+  &--main-menu-mobile {
+    justify-content: flex-start;
+    align-items: center;
+
+    .navbar-brand {
+      margin: 0 0 0 1rem;
+    }
+  }
+
+  &--main-menu {
+    @include media-breakpoint-down(md) { // Drawer menu on smaller devices
+      visibility: hidden;
+      transform: translateX(-100%);
+      border-radius: 0; 
+      display: block;
+      position: fixed;
+      top: 0; left:0;
+      height: 100%;
+      width: 80%;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      transition: visibility .2s ease-in-out, transform .2s ease-in-out;
+      padding: 0;
+
+      &.show {
+        visibility: visible;
+        transform: translateX(0);
+      }
+
+      .btn-close {
+        font-size: 2.25em;
+        color: $white;
+        position: absolute;
+        right: 0;
+      }
+
+      .navbar-brand {
+        margin: 1rem 1.25rem;
+      }
+
+      .has-megamenu.show {
+        background: $dark-blue;
+      }
+
+      .dropdown-toggle::after {
+        position: absolute;
+        right: 2rem;
+        top: 1.5rem;
+      }
+
+      .navbar-nav > .nav-item {
+        .nav-link {
+          padding-top: 0.75rem;
+          padding-bottom: 0.75rem;
+        }
+
+        &:not(:first-of-type) {
+          .nav-link {
+            &::after {
+              content: '';
+              position: absolute;
+              height: 1px;
+              width: calc(100% - 2.5rem);
+              background: $dark-blue;
+              transform: translateY(-50%);
+              left: 1.25rem;
+              top: 0;
+            }
+          }
+        }
+      }
+
+      h1,h2,h3,h4,h5 {
+        font-size: 24px;
+      }
+
+      .nav-link {
+        font-size: 20px;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+        position: relative;
+      }
+
+      .megamenu {
+        margin-left: 1rem;
+        max-height: 60vh;
+        overflow: scroll;
+
+        [class*="col-"] {
+          padding-left: 1.25rem;
+          padding-right: 0;
+
+          &:last-of-type {
+            margin-bottom: 2rem;
+          }
+
+          + [class*="col-"] {
+            margin-top: 1rem;
+          }
+        }
+      }
     }
 
-    .megamenu {
-      left: 0; 
-      right: 0; 
-      width: 100%; 
-      padding: 20px;
-      background: $black;
-    }
+    @include media-breakpoint-up(lg) { // Mega menu on large devices
+      .has-megamenu {
+        position: static !important;
+      }
 
-    .nav-link { 
-      color: $white;
+      .megamenu {
+        left: 0; 
+        width: 100%; 
+        margin: 0;
+        padding: 2rem 0 4rem;
+
+        .row {
+          width: 100%;
+        }
+      }
     }
   }
 }
 
-
-
-.offcanvas-header{ display:none; }
 .screen-overlay {
   height: 100%;
-  z-index: 30;
+  z-index: 100;
   position: fixed;
   top: 0;
   left: 0;
@@ -689,36 +835,12 @@
   visibility:hidden;
   background-color: rgba(34, 34, 34, 0.6);
   transition:opacity .2s linear, visibility .1s, width 1s ease-in;
-}
-.screen-overlay.show {
-  transition:opacity .5s ease, width 0s;
-  opacity:1;
-  width:100%;
-  visibility:visible;
-}
-	
-@media all and (max-width:992px) { 
 
- .offcanvas-header{ display:block; }
- 
- .mobile-offcanvas{
-    visibility: hidden;
-    transform:translateX(-100%);
-    border-radius:0; 
-    display:block;
-    position: fixed;
-    top: 0; left:0;
-    height: 100%;
-    z-index: 1200;
-    width:80%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    transition: visibility .2s ease-in-out, transform .2s ease-in-out;
-  }
-
-  .mobile-offcanvas.show{
-    visibility: visible;
-    transform: translateX(0);
+  &.show {
+    transition:opacity .5s ease, width 0s;
+    opacity:1;
+    width:100%;
+    visibility:visible;
   }
 }
 
@@ -738,24 +860,35 @@
   }
 }
 
-.nav-tabs {
-  justify-content: space-between;
+.nav-tabs-wrapper {
+  overflow: scroll;
+  position: fixed;
+  width: 100%;
+  top: 52px;
+  background: $white;
+  z-index: 99;
+  box-shadow: 0 3px 3px rgba(0,0,0,0.05);
 
-  @include media-breakpoint-down(sm) {
-    li {
-      width: 100%;
+  .nav-tabs {
+    position: relative;
+    z-index: 997;
+    
+    @include media-breakpoint-down(sm) {
+      min-width: 700px;
+      justify-content: space-between;
+    }
+    
+    @include media-breakpoint-up(md) {
+      width: 75%;
+    }
+
+    @include media-breakpoint-up(lg) {
+      width: 83.33333%;
     }
   }
 
-  @include media-breakpoint-up(md) {
-    position: fixed;
-    background: white;
-    box-shadow: 0 3px 3px rgba(0,0,0,0.05);
-    width: 75%;
-    z-index: 1;
-  }
-  @include media-breakpoint-up(md) {
-    width: 83.33333%;
+  @include media-breakpoint-up(lg) {
+    top: 56px;
   }
 }
 
