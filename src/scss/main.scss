@@ -504,85 +504,85 @@
   }
 }
 
-.megamenu {
-  position: relative;
+// .megamenu {
+//   position: relative;
 
-  @include media-breakpoint-up(lg) {
-    position: static;
-  }
+//   @include media-breakpoint-up(lg) {
+//     position: static;
+//   }
 
-  &__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    background: $gray-800;
-    color: $white;
-    z-index: 103;
-    position: relative;
+//   &__list {
+//     list-style: none;
+//     margin: 0;
+//     padding: 0;
+//     background: $gray-800;
+//     color: $white;
+//     z-index: 103;
+//     position: relative;
 
-    .nav-item {
-      a {
-        color: $white;
-        font-size: 1rem;
-        transition: 0.1s ease-in-out background;
+//     .nav-item {
+//       a {
+//         color: $white;
+//         font-size: 1rem;
+//         transition: 0.1s ease-in-out background;
 
-        &::after {
-          @extend .triangle;
-          border-color: $white transparent transparent;
-        }
+//         &::after {
+//           @extend .triangle;
+//           border-color: $white transparent transparent;
+//         }
         
-        &.show {
-          background: $gray-900;
+//         &.show {
+//           background: $gray-900;
 
-          &::after {
-            transform: rotate(180deg);
-            transform-origin: 50% 50%;
-          }
-        }
-      }
-    }
-  }
+//           &::after {
+//             transform: rotate(180deg);
+//             transform-origin: 50% 50%;
+//           }
+//         }
+//       }
+//     }
+//   }
 
-  &__menu {
-    transform: scaleY(0);
-    transform-origin: center top;
-    position: fixed;
-    padding: 2rem 0 6rem;
-    top: 53px;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 102;
-    transition: 0.1s ease-in-out transform;
-    background: $gray-800;
-    // background: rgba(0,0,0,0.8);
-    color: $white;
-    overflow-y: scroll;
+//   &__menu {
+//     transform: scaleY(0);
+//     transform-origin: center top;
+//     position: fixed;
+//     padding: 2rem 0 6rem;
+//     top: 53px;
+//     left: 0;
+//     width: 100%;
+//     height: 100%;
+//     z-index: 102;
+//     transition: 0.1s ease-in-out transform;
+//     background: $gray-800;
+//     // background: rgba(0,0,0,0.8);
+//     color: $white;
+//     overflow-y: scroll;
     
-    ul li {
-      &.active {
-        a {
-          font-weight: $font-weight-bold;
-          text-decoration: underline;
-        }
-      }
+//     ul li {
+//       &.active {
+//         a {
+//           font-weight: $font-weight-bold;
+//           text-decoration: underline;
+//         }
+//       }
       
-      a {
-        font-size: 1rem;
-        color: $white;
-        padding-left: 0;
-      }
-    }
+//       a {
+//         font-size: 1rem;
+//         color: $white;
+//         padding-left: 0;
+//       }
+//     }
 
-    &.show {
-      transform: scaleY(1);
-    }
-  }
+//     &.show {
+//       transform: scaleY(1);
+//     }
+//   }
 
-  &__menu-col {
-    margin-top: 2rem;
-  }
-}
+//   &__menu-col {
+//     margin-top: 2rem;
+//   }
+// }
 
 .section {
   max-width: 800px;
@@ -653,6 +653,75 @@
 /**
 ** Extended Bootstrap Components
 **/
+@include media-breakpoint-up(md) {
+  .navbar--main-menu { 
+    padding-top: 0; 
+    padding-bottom: 0;
+
+    .has-megamenu {
+      position: static !important;
+    }
+
+    .megamenu {
+      left: 0; 
+      right: 0; 
+      width: 100%; 
+      padding: 20px;
+      background: $black;
+    }
+
+    .nav-link { 
+      color: $white;
+    }
+  }
+}
+
+
+
+.offcanvas-header{ display:none; }
+.screen-overlay {
+  height: 100%;
+  z-index: 30;
+  position: fixed;
+  top: 0;
+  left: 0;
+  opacity:0;
+  visibility:hidden;
+  background-color: rgba(34, 34, 34, 0.6);
+  transition:opacity .2s linear, visibility .1s, width 1s ease-in;
+}
+.screen-overlay.show {
+  transition:opacity .5s ease, width 0s;
+  opacity:1;
+  width:100%;
+  visibility:visible;
+}
+	
+@media all and (max-width:992px) { 
+
+ .offcanvas-header{ display:block; }
+ 
+ .mobile-offcanvas{
+    visibility: hidden;
+    transform:translateX(-100%);
+    border-radius:0; 
+    display:block;
+    position: fixed;
+    top: 0; left:0;
+    height: 100%;
+    z-index: 1200;
+    width:80%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    transition: visibility .2s ease-in-out, transform .2s ease-in-out;
+  }
+
+  .mobile-offcanvas.show{
+    visibility: visible;
+    transform: translateX(0);
+  }
+}
+
 .navbar {
   z-index: 105;
 

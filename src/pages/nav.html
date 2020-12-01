@@ -1,0 +1,73 @@
+<b class="screen-overlay"></b>
+
+<button data-trigger="#mainNav" class="d-lg-none btn btn-warning" type="button">  Show navbar </button>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary navbar--main-menu mobile-offcanvas">
+  <h1><a class="navbar-brand" href="{{ root }}">Uprise University</a></h1>
+  
+
+  <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav">
+    <span class="navbar-toggler-icon"></span>
+  </button> -->
+
+  <div class="collapse navbar-collapse " id="mainNav">
+ 
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown has-megamenu {{#if coursesNav }}active{{/if }}">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Courses</a>
+        <div class="dropdown-menu megamenu">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-12 col-md-6 col-lg-4">
+                <h4>Coding</h4>
+                <ul class="nav flex-column megamenu__menu">
+                  <li class="nav-item {{#if coding101 }}active{{/if }}"><a href="/Coding101/classes.html" class="nav-link">Coding 101: Front End Web (HTML/CSS/JS)</a></li>
+                  <li class="nav-item {{#if coding102 }}active{{/if }}"><a href="/Coding102/classes.html" class="nav-link">Coding 102: Back End Web (Python)</a></li>
+                  <li class="nav-item {{#if coding103 }}active{{/if }}"><a href="/Coding103/classes.html" class="nav-link">Coding 103: Databases (SQL)</a></li>
+                  <li class="nav-item {{#if coding104 }}active{{/if }}"><a href="/Coding104/classes.html" class="nav-link">Coding 104: Full Stack (Flask-SQLAclhemy)</a></li>
+                  <li class="nav-item {{#if coding105 }}active{{/if }}"><a href="/Coding105/classes.html" class="nav-link">Coding 105: Deployment & Tools </a></li>
+                  <li class="nav-item {{#if coding106 }}active{{/if }}"><a href="/Coding106/classes.html" class="nav-link">Coding 106: Interview Algorithms </a></li>
+                </ul>
+              </div>
+              <div class="col-sm-12 col-md-6 col-lg-4">
+                <h4>Life 101</h4>
+                <ul class="nav flex-column megamenu__menu">
+                  <li class="nav-item {{#if life101_1 }}active{{/if }}"><a href="/Life101/1GettingThingsDone.html" class="nav-link">1. Getting Things Done</a></li>
+                  <li class="nav-item {{#if life101_2 }}active{{/if }}"><a href="/Life101/2Willpower.html" class="nav-link">2. Willpower </a></li>
+                  <li class="nav-item {{#if life101_3 }}active{{/if }}"><a href="/Life101/3HowToRead.html" class="nav-link">3. How To Read a Book</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-item {{#if mentorsNav }}active{{/if }}"><a class="nav-link" href="{{ root }}/mentors.html">Mentors</a></li>
+      <li class="nav-item {{#if aboutNav }}active{{/if }}"><a class="nav-link" href="{{ root }}/about.html">About</a></li>
+    </ul>
+   </div>
+ </nav>
+
+
+
+
+
+<main class="main main--homepage">
+  <section class="hp-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-sm-12">
+          <h2>Adipiscing Vulputate Quam Egestas Tortor</h2>
+          <p>
+            Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Etiam porta sem malesuada magna mollis euismod. Maecenas faucibus mollis interdum. Maecenas faucibus mollis interdum.
+          </p>
+          <p>
+            Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Etiam porta sem malesuada magna mollis euismod. Cras mattis consectetur purus sit amet fermentum. Nullam id dolor id nibh ultricies vehicula ut id elit.
+          </p>
+          <p>
+            Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Cras mattis consectetur purus sit amet fermentum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
