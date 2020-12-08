@@ -665,7 +665,9 @@
   }
 
   &__project {
-    margin-top: 4rem;
+    &:not(:first-of-type) {
+      margin-top: 4rem;
+    }
   }
 }
 
