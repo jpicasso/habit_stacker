@@ -2,19 +2,19 @@
 <div class="nav-tabs-wrapper">
     <ul class="nav nav-tabs nav-fill" id="mainTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="classes-tab" href="classes.html" role="tab" aria-selected="true">Classes</a>
+            <a class="nav-link  {{#if classesTab }}active{{/if }}" id="classes-tab" href="classes.html" role="tab">Classes</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link" id="slides-tab" href="slides.html" role="tab">Slides</a>
+            <a class="nav-link {{#if slidesTab }}active{{/if }}" id="slides-tab" href="slides.html" role="tab">Slides</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link " id="projects-tab" href="projects.html" role="tab">Projects</a>
+            <a class="nav-link  {{#if projectsTab }}active{{/if }}" id="projects-tab" href="projects.html" role="tab">Projects</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link " id="answers-tab" href="answers.html" role="tab">Answers</a>
+            <a class="nav-link  {{#if answersTab }}active{{/if }}" id="answers-tab" href="answers.html" role="tab">Answers</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link" id="cheat-sheets-tab" href="cheat-sheets.html" role="tab">Cheat Sheets</a>
+            <a class="nav-link  {{#if cheatSheetsTab }}active{{/if }}" id="cheat-sheets-tab" href="cheat-sheets.html" role="tab">Cheat Sheets</a>
         </li>
     </ul>
 </div>
