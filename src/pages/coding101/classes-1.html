@@ -50,11 +50,8 @@ course: 'Coding 101'
 
                 <h4> Coding 100 Level Courses: Full Stack Web Development & Deployment </h4>
                 <p> What is full stack web development? It let’s you build and deploy websites!!</p>
-                <img src="../../img//101.1.full_stack_overview.png">
-                <br>
-                <br>
-                <br>
-                <br>
+                <img src="{{ root }}img/101.1.full_stack_overview.png" alt="fullstack">
+                <hr>
                 <h4> 101: Front end web development overview </h4>
                 <h4>Front End </h4>
                 <ul>
@@ -64,9 +61,10 @@ course: 'Coding 101'
                   <li> JavaScript provides site with functionality and computation ability (like your muscles)</li>
                 </ul>
 
-                <img src="../../img//101.1.FEWD_overview.png">
-                <br>
-                <h4> Lesson Overview </h4>
+                <img src="{{ root }}img/101.1.FEWD_overview.png">
+                <hr>
+                <h4> Coding 101 - Lesson 1 - Coding Quick Start </h4>
+                <h5>Lesson Overview</h5>
                 <ol>
                   <li> Google Chrome inspector tool </li>
                   <li> User input / output with alert() and prompt() </li>
@@ -78,22 +76,20 @@ course: 'Coding 101'
                   <li> MS Visual Studio Code </li>
                   <li> Running JS files locally </li>
                 </ol>
-                <h4> Project Overview </h4>
+                <h5> Project Overview </h5>
                 <ol>
-                  <li> Hello World – Learn the first program typically made in any new language that you are learning.
+                  <li> <strong>Hello World</strong> – Learn the first program typically made in any new language that you are learning.
                     Tell user hello world</li>
-                  <li> Greet User – Ask for the user’s name and then greet them. </li>
-                  <li> Tip Calculator – Ask user for bill amount and what percentage they would like to tip. Tell them
+                  <li> <strong> Greet User </strong> – Ask for the user’s name and then greet them. </li>
+                  <li> <strong>Tip Calculator</strong> – Ask user for bill amount and what percentage they would like to tip. Tell them
                     the tip amount in dollars and the total bill. </li>
-                  <li> ID Checker – Ask for you users birth date and let them drink if they are over 21. </li>
-                  <li> Multiplication Quiz – Create a fun quiz to test your mental math skills.</li>
+                  <li> <strong>ID Checker</strong> – Ask for you users birth date and let them drink if they are over 21. </li>
+                  <li> <strong>Multiplication Quiz</strong> – Create a fun quiz to test your mental math skills.</li>
                 </ol>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/bkdbD7SeA4k" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/YdRKuSvzt9I" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-
+                <hr>
               </section>
               <!-- /#coding101-1.0 -->
 
@@ -105,33 +101,46 @@ course: 'Coding 101'
                   <h3>1.1 Google Inspector Tool</h3>
                 </header>
 
-                <p> Download Google Chrome (https://www.google.com/chrome/) </p>
+                <p> Download Google Chrome <a href="https://www.google.com/chrome/">https://www.google.com/chrome/</a></p>
                 <p> Use insepctor tool </p>
                 <ol>
                   <li> Open any website page with Google Chrome </li>
                   <li> Right click and press inspect </li>
                   <li> Click on “Console” </li>
                 </ol>
+                <h4>Use inspector as a calculator</h4>
+                <p>Type in any calculator function and then press return (e.g., 2*2 returns 4)</p>
+                <p>Note the arrows indicates code being run vs. output of code</p>
+                <p>You can also store data in variables with the equals sign and use it later (e.g., x * y returns 30)</p>
+                <img src="{{ root }}img/coding101/lesson1/calculator.png" alt="calculator">
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/CWUBc98EkbA" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/kpo6gjPekaQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+
+                <hr>
               </section>
               <!-- /#code101-L1-1-class -->
 
               <!-- #coding101-1.2 -->
-              <p id="code101-L1-2-class"></p>
-              <br>
-              <br>
+              <p id="code101-L1-2-class"></p><br><br>
               <section class="section__subsection subsection">
                 <header class="subsection__header">
                   <h2>Coding 101: Coding Quick Start</h2>
                   <h3>1.2 User input / output with alert() and prompt() </h3>
                 </header>
-                <p> Google Chrome Inspector Tool and your first project: 1.1 Hello World </p>
-                <p> alert('hello world, I love Uprise University')</p>
-                <img src="../../img//101.1.hello_world.png">
+                <p> Now that you have Google Chrome Inspector Tool open and have clicked on the "Console", you are ready for your first project: 1.1 Hello World </p>
+                <p>Type the below code into the console and press enter</p>
+                <p> <code> alert('hello world, I love Uprise University')</code></p>
+                <p>You should then see the below pop up alert!</p>
+                <img src="{{ root }}img/coding101/lesson1/hello_world.png" alt="hello">
+                <br><br><br>
+                <p>If you struggled to figure out what to do here, you can watch this video tutorial for a demo of how to do it:</p>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/60Csqtk0Liw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <p>If you figured out how to do this, then congrats! You just wrote your first line of JavaScript code!!!</p>
+                <p>If not, try watching the video again, google for help, or if you are still stuck, email us at questions@upriseuniversity.com </p>
+                <hr>
               </section>
               <!-- /#coding101-1.2 -->
 
@@ -142,23 +151,21 @@ course: 'Coding 101'
                   <h2>Coding 101: Coding Quick Start</h2>
                   <h3>1.3 Storing data in variables</h3>
                 </header>
+                <p>JavaScript allows you to store data in variables and then use those variables to perform tasks or calculations. </p>
+                <p>JavaScript variables are similar to the concept of variables in Algebra, except it is more focused on storing and retreiving information</p>
+                <p>Try the below project to get a basic feel for using variables in JavaScript</p>
                 <h4> Project 1.2: Greet User </h4>
                 <p>This code prompts the user to fill in their name</p>
                 <p>Then it “declares” a variable called “name” and stores that user input into it</p>
                 <p> It then sends an alert message to the user using the information stored in the variable “name”</p>
-                <p>Notes - Press shift and return to type in the second line of code without running the first; then
+                <p>Type in the below code into your JavaScript console to try it out</p>
+                <p>Notes - Press shift and return at the same time to type in the second line of code without running the code; then
                   press enter to run the code </p>
-                <img src="../../img//101.1.var_alert.png">
+                <img src="{{ root }}img/coding101/lesson1/var_alert.png" alt="alert">  
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/t4DafT2Cn4k" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
                 </div>
-                <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/oxwcFGGm8XI" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
-                </div>
+                <p>Congrats on finishing another project! You are getting good at this!! </p>
+                <hr>
               </section>
               <!-- /#coding101-1.3 -->
 
@@ -170,51 +177,46 @@ course: 'Coding 101'
                   <h2>Coding 101: Coding Quick Start</h2>
                   <h3>1.4 Strings vs. Numbers and the ParseInt() function </h3>
                 </header>
-                <p>“Strings” are words, letters, and characters that you would type into a keyboard</p>
+                <h4>Definitions</h4>
+                <p> <strong>“Strings”</strong> are words, letters, and characters that you would type into a keyboard</p>
                 <p>Numbers are the ten digits that you can type into a keyboard</p>
-                <p>If the number has decimals, then it is called a “Float”; if it doesn’t, then it is called an
-                  “Integer”</p>
-                <p>When you add to numbers together, you get the sum total of those two numbers, for example: 2+ 3 -->
+                <p>If the number has decimals, then it is called a <strong>“Float”</strong>; if it doesn’t, then it is called an
+                  <strong>“Integer”</strong></p>
+                <p>When you add two numbers together, you get the sum total of those two numbers, for example: 2 + 3 =
                   5 </p>
-                <p>When you add two strings together, however, it “Concatenates” them; (i.e. puts them together)
-                  For example, ‘2’+’3’ --> ’23’</p>
-                <p>To convert a string into a number, you must use the parseInt() method </p>
-                <p>For example, parseInt(‘2’) + parseInt(‘3’) --> 5 </p>
-                <p> Note that parseInt () is case sensitive! </p>
-                <p> parseInt() can be helpful when you want to convert user input into a number </p>
+                <p>When you add two strings together, however, it <strong>“Concatenates” </strong> them; (i.e. puts them together)
+                  For example, ‘2’+’3’ = ’23’</p>
+                <h4>parseInt()</h4>
+                <p>To convert a string into a number, you must use the <code>parseInt()</code> method </p>
+                <p>For example, <code>parseInt(‘2’) + parseInt(‘3’)</code> = 5 </p>
+                <p> Note that <code>parseInt()</code> is case sensitive! </p>
+                <p> <code>parseInt()</code> can be helpful when you want to convert user input into a number </p>
+                <p>Watch this video if you are still confused (or if you are just looking to pass a few minutes of time!) </p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/__e9dNAp1fE" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/mdR_8rAk0r0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <br>
+                <hr>
                 <h4>Project 1.3: Tip Calculator</h4>
                 <p>Try to create this program yourself first before looking at the answer
                 </p>
-                <p>Create a program that calculates the tip you need to pay at a restaurant</p>
-                <p>Ask user how much the bill was and how much they want to tip</p>
-                <p>Tell the user how much to tip and what the total bill is going to be </p>
-                <p>Remember to use</p>
+                <p>Create a program that calculates the tip you need to pay at a restaurant. First, ask user how much 
+                  the bill was and how much they want to tip. Then tell the user how much to tip and what the total bill is going to be </p>
+                <p>Remember to use:</p>
                 <ul>
                   <li>alert()</li>
                   <li>prompt()</li>
                   <li>parseInt()</li>
                   <li>var x = 2020 – age;</li>
                 </ul>
-                <img src="../../img//101.1.tip_calculator_hint.png">
-                <img src="../../img//101.1.tip_calculator.png">
-                <p> Tip Calculator Prompt</p>
+                <img src="{{ root }}img/coding101/lesson1/tip_calculator_hint.png" alt="hint">
+                <img src="{{ root }}img/coding101/lesson1/tip_calculator.png" alt="calc">
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/BSznwdbtqTI" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/TULfXQdGjMo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <p> Tip Calculator Answer</p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/nOT7yyPkCXw" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/P1mkPavBbHQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
               </section>
               <!-- /#coding101-1.4 -->
 
@@ -228,7 +230,7 @@ course: 'Coding 101'
                 <p>If then else statements create the basic logic in your program</p>
                 <p>It reads: if something is true then do some tasks, else, if it is not true, do some other tasks
                 </p>
-                <img src="../../img//101.1.if_then.png">
+                <img src="{{ root }}img/coding101/lesson1/if_then.png" alt="ifthen">
                 <p>Note that each line that is doing something has a semicolon after it but not the lines with the if
                   or else</p>
                 <p>One of the most annoying things about coding is that computers are very literal and programs don’t
@@ -240,19 +242,16 @@ course: 'Coding 101'
                 <p>Also note that you don’t actually have to write out “then”, you simply use the curly brackets
                   before and after the block of code that you want to run when the statement is true</p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/I_uAN3AJciM" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/XzVy1yy7MMo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
                 <h4>Project 1.4: ID Checker</h4>
                 <p>Try to create this program yourself first before looking at the answer</p>
-                <p>Create a program that asks the user what year they were born</p>
-                <p>It then checks to see if the user is 21</p>
-                <p>If they are 21 or older, the program tells the user that they can drink, otherwise it says that
-                  they can’t</p>
-                <p>For simplicity, just assume the current year is constant and disregard the month and day that they
+                <p>Create a program that asks the user what year they were born. The program then checks to see if the user is 21.
+                  If they are 21 or older, the program tells the user that they can drink, otherwise it says that
+                  they can’t. For simplicity, just assume the current year is constant and disregard the month and day that they
                   were born. For example, someone born in 1990 is 30 years old (i.e. 2020-1990)</p>
-                <p>Remember to use</p>
+                <p>Remember to use:</p>
                 <ul>
                   <li>alert()</li>
                   <li>prompt()</li>
@@ -260,19 +259,14 @@ course: 'Coding 101'
                   <li>if () { } else { }</li>
                   <li>var x = 2020 – age;</li>
                 </ul>
-                <img src="../../img//101.1.ID_checker.png">
-                <p>ID Checker Project Prompt</p>
+                <img src="{{ root }}img/coding101/lesson1/ID_checker.png" alt="idchecker">
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/gfjwXx6hMok" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/gcEY4DBS-KI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <p>ID Checker Project Answer</p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/Ga2CJ2ycKjM" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/fzqNpPqsc8A" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
               </section>
               <!-- /#coding101-1.5 -->
 
@@ -283,15 +277,14 @@ course: 'Coding 101'
                   <h2>Coding 101: Coding Quick Start</h2>
                   <h3>1.6 Comments </h3>
                 </header>
-                <p>Comments are notes that you can use to help you or other programmers looking at your code remember
-                  what the code does</p>
-                <p>The program does not actually do anything with this code</p>
+                <p>Comments are notes that you can use to help you (or other programmers looking at your code) remember
+                  what the code does. Note that JavaScript does does not run this code. As a result, it can also be helpful
+                  to "comment out" lines of your code when you are trying to debug it or to hide features without removing them. </p>
                 <img src="../../img//101.1.comments.png">
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/qR-A4465psA" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/CXX7qro7Dhw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
               </section>
               <!-- /#coding101-1.6 -->
 
@@ -302,53 +295,42 @@ course: 'Coding 101'
                   <h2>Coding 101: Coding Quick Start</h2>
                   <h3>1.7 Random number generators </h3>
                 </header>
-                <p>It is often useful to generate random numbers</p>
-                <p>The function Math.random() returns a random number between 0 and 1</p>
-                <p>The function Math.floor() returns the largest integer less than or equal to a given number</p>
-                <p>Combining them and multiplying the random number by 10 will get you a random between 0 and 9
-                </p>
-                <p>Math.floor(Math.random()* 10)</p>
+                <p>It is often useful to generate random numbers. The function <code>Math.random()</code> returns a random number 
+                  between 0 and 1. The function <code>Math.floor()</code> returns the largest integer less than or equal to a given number. 
+                  Combining them and multiplying the random number by 10 will get you a random number between 0 and 9: <code> Math.floor(Math.random()* 10)</code>
                 <p>You can multiply it by 10 and add 1 to get a random number between 1 and 10 or multiply it by 100
-                  and add 1, to get a number between 1 and 100</p>
-                <p>You can also multiply it by 10 and add 1 to get a random number between 1 and 10, and then multiply
+                  and add 1, to get a number between 1 and 100. </p> 
+                <p> You can also multiply it by 10 and add 1 to get a random number between 1 and 10, and then multiply
                   the result of Math.floor() by 10 again to get a random number between 10 and 100 that is a multiple
                   of 10…tricky, we know!!!</p>
                 <p>Note: These types of tricks are very useful in coding because it safes you a lot of time and lines
                   of code. Coding is all about efficiency and little tricks! So remember to look for them!</p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/4MM5WhiyaRM" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/ENiL1UtXDuw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <br>
-                <br>
+                <hr>
                 <h4>Project 1.5: Multiplication quiz</h4>
                 <p>Create a math quiz that asks the user to multiply two random numbers together</p>
                 <p>If the user gets the right answer, then alert the user that they got it right, otherwise alert them
                   that they got it wrong</p>
                 <p>To make the exercise a little trickier, make the first random number an integer between 1 and 100
                   and the second random number an integer between 10 and 100 that is a multiple of 10!</p>
-                <p>Remember to use</p>
-                <li>
-                <li>alert()</li>
-                <li>prompt()</li>
-                <li>if () { } else { }</li>
-                <li>var x = 2020 – age;</li>
-                <li>Math.floor(Math.random())</li>
-                </li>
-                <img src='img/101.1.multiplication quiz.png'>
-                <p>Multiplication Quiz Project Prompt</p>
+                <p>Remember to use:</p>
+                <ul>
+                  <li>alert()</li>
+                  <li>prompt()</li>
+                  <li>if () { } else { }</li>
+                  <li>var x = 2020 – age;</li>
+                  <li>Math.floor(Math.random())</li>
+                </ul>
+                <img src="{{ root }}img/coding101/lesson1/multiplication quiz.png" alt="mult quiz">
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/YGHNlqwTAho" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/YCSBL3PuGUk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <p>Multiplication Quiz Project Answer</p>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/AyGgwQRNMzU" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/pEjMiNt5_IU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
               </section>
               <!-- /#coding101-1.7 -->
 
@@ -360,22 +342,16 @@ course: 'Coding 101'
                   <h3>1.8 MS Visual Studio Code </h3>
                 </header>
                 <h4>Download and Use MS Visual Studio Code for previous exercises</h4>
-                <p>This will allow you to store files of code easily</p>
-                <p>It is color coordinated so that it is easier to read your code</p>
-                <p>It is free!</p>
-                <img src='img/101.1.visual_studio_code.png'>
-                <p>There are lots of other code editors out there though so feel free to use whichever one you prefer
-                </p>
-                <img src='img/101.1.other_editors.png'>
-                <h4>Download and Use MS Visual Studio Code for previous exercises</h4>
+                <p>This will allow you to store files of code easily. It is color coordinated so that it is easier to read your code. It is also free!</p>
+                <img src="{{ root }}img/coding101/lesson1/visual_studio_code_download.png" alt="download">
+                <img src="{{ root }}img/coding101/lesson1/visual_studio_code.png" alt="code">
+                <p>There are lots of other code editors out there though so feel free to use whichever one you prefer </p>
+                <img src="{{ root }}img/coding101/lesson1/other_editors.png" alt="other">
+                <h4>Download and use it for previous exercises</h4>
                 <h4>Set-up</h4>
-                <p>Link Download Microsoft VS Code</p>
+                <p>Link to download Microsoft VS Code</p>
                 <a href="https://code.visualstudio.com/download">https://code.visualstudio.com/download</a>
-                <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/6yPNzqV4FEQ" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
-                </div>
+                <hr>
               </section>
               <!-- /#coding101-1.8 -->
 
@@ -392,26 +368,48 @@ course: 'Coding 101'
                   <li>playground.html</li>
                 </ul>
                 <p> <strong> Step 2)</strong> Link your html file to your JavaScript file so that it runs when you
-                  open HTML file; Write this in your HTML code</p>
-                <code> script src=index.js> script> </code>
-                <p> <strong> Step 3) </strong> Write you code in JavaScript file</p>
-                <code>alert(‘Hello World’);</code>
+                  open HTML file; Write this in your HTML code: <code> script src=index.js> script> </code></p>
+                <p> <strong> Step 3) </strong> Write you code in JavaScript file: <code>alert(‘Hello World’);</code> </p>
                 <p><strong> Step 4) </strong> Go to the html file and open it with Google chrome</p>
-                <p>Always make sure to save all files before running program</p>
-                <p>Note, to open file in Chrome, you should be able to just double click the file or right click the
-                  file and then click “open with” and then google chrome</p>
-                <h4>Homework Assignments to do before next lesson </h4>
-                <p>Create the following programs</p>
+                <p>Always make sure to save all files before running program. Note, to open file in Chrome, you should 
+                  be able to just double click the file or right click the file and then click “open with” and then google chrome</p>
+                  <div class="embed-responsive embed-responsive-16by9">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/4FZHFu79OrA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                  </div>  
+              </section>
+              <section class="section__subsection subsection">
+                <header class="subsection__header">
+                  <h2>Coding 101: Coding Quick Start</h2>
+                  <h3>Recap and Homework</h3>
+                </header>
+                <h4>Recap </h4>
+                <p>In this lesson, you learned about:</p>
                 <ul>
-                  <li>Days alive : Ask a user how old they are and then tell them how many days they have lived</li>
-                  <li>Temp converter: App converts temperature from Celsius to Fahrenheit or vice versa</li>
-                  <li>Vowel? Ask user to enter a letter. Tell user if it is a vowel or not</li>
+                  <li>Full Stack Web Development</li>
+                  <li>Front End Web Development</li>
+                  <li>Google Inspector Tool & running JavaScript code in the console</li>
+                  <li>alert()</li>
+                  <li>prompt()</li>
+                  <li>Declaring variables and assigning values to them</li>
+                  <li>Data types: Strings, Integers, and Floats</li>
+                  <li>Summing integers vs. concatenating strings that look like integers</li>
+                  <li>parseInt()</li>
+                  <li>if then else statements</li>
+                  <li>Random numbers with Math.random() and Math.floor() </li>
+                  <li>// comments</li>
+                  <li>Using MS Visual Studio Code and running JS files locally</li>
+                </ul>                
+                <h4>Homework </h4>
+                <p>Create the following programs and submit it to <a href="mailto: coding101@upriseuniversity.com">coding101@upriseuniversity.com</a> before moving to the next lesson:</p>
+                <ul>
+                  <li><strong>Days alive: </strong> Ask a user how old they are and then tell them how many days they have lived</li>
+                  <li> <strong>Temp converter:</strong> App converts temperature from Celsius to Fahrenheit or vice versa</li>
+                  <li><strong>Vowel? </strong> Ask user to enter a letter. Tell user if it is a vowel or not</li>
                 </ul>
                 <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/XoAuMQcXqg4" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/ru7Af7Hjw60" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <hr>
               </section>
               <!-- /#coding101-1.9 -->
 
