@@ -89,3 +89,11 @@ $('.btn-close, .screen-overlay').click(e => {
   mainNav.removeClass('show');
   $('body').removeClass('offcanvas-active');
 }); 
+
+
+// Project apps
+$('a.project').on('click', e => {
+  e.preventDefault();
+  let url = e.target.href;
+  window.open(url, 'UpriseU app', 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=960,height=500');
+})
