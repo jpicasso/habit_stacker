@@ -76,137 +76,149 @@ cheatSheetsTab: true
               <div class="bryce-example">
                 <!-----------------------------------------------  Coding 101.1 - Coding Quick Start     -->
                 <!-- #region -->
-                <p id="code101-L1-1-cheat"></p>
-                <h2> 1. Coding Quickstart! </h2>
-                <h4><strong>See appendix for installing and running MS Visual Studio Code, Google Chrome</strong></h4>
-                <br>
-                <h4><strong>JavaScript and Chrome Inspector Tool</strong></h4>
+                <h2 id="code101-L1-1-cheat"> 1. Coding Quickstart! </h2>
+                <h4> See appendix for installing and running MS Visual Studio Code, Google Chrome</h4>
+                <h4>JavaScript and Chrome Inspector Tool</h4>
+                <ol>
+                  <li>Open inspector tool
+                    <ul>
+                      <li> Open up Google Chrome</li>
+                      <li> Right click on page, then click on inspector</li>
+                      <li> Click on console button</li>
+                    </ul>
+                  </li>
+                  <li>Run JavaScript in the inspector tool
+                    <ul>
+                      <li>Press return</li>
+                    </ul>
+                  </li>
+                  <li>Go to next line of code without running script
+                    <ul>
+                      <li>Shift + Return</li>
+                    </ul>
+                  </li>
+                </ol>
+                <h4> User input / output </h4>
                 <ul>
-                  <li>Open inspector tool</li>
-          
-                  <ol>
-                    <li> Open up Google Chrome</li>
-                    <li> Right click on page, then click on inspector</li>
-                    <li> Click on console button</li>
-                  </ol>
-                  <li>Run JavaScript in the inspector tool</li>
-                  <ul>
-                    <li>Press return</li>
-                  </ul>
-                  <li>Go to next line of code without running script </li>
-                  <ul>
-                    <li>Shift + Return</li>
-                  </ul>
+                  <li> Message user with an alert
+                    <ul class="code-list">
+                      <li> <code> alert(‘Hello World!’);</code></li>
+                    </ul>
+                  </li>
+                  <li> Get user input and store it in a variable called “name”
+                    <ul class="code-list">
+                      <li> <code> var name = prompt(‘what is your name’);</code></li>
+                    </ul>
+                  </li>
+                  <li> User variable in user message
+                    <ul class="code-list">
+                      <li> <code> alert(‘Hello’ + name + ‘, it is great to meet you!’); </code></li>
+                    </ul>
+                  </li>
                 </ul>
-                <h4><strong> User input / output </strong></h4>
+                <h4> Calculator and variables</h4>
                 <ul>
-                  <li> Message user with an alert</li>
-                  <ul class="code-comment-list">
-                    <li> <code> alert(‘Hello World!’);</code><code></code></li>
-                  </ul>
-                  <li> Get user input and store it in a variable called “name”</li>
-                  <ul class="code-comment-list">
-                    <li> <code> var name = prompt(‘what is your name’);</code><code></code></li>
-                  </ul>
-                  <li> User variable in user message</li>
-                  <ul>
-                    <li> <code> alert(‘Hello’ + name + ‘, it is great to meet you!’); </code><code></code></li>
-                  </ul>
-                </ul>
-                <h4><strong> Calculator and variables</strong></h4>
-                <ul>
-                  <li> Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line!</li>
-                  <ul>
+                  <li> Calculate numbers (e.g., 2*3); Don’t forget semi-colons after each line!
+                  <ul class="code-list">
                     <li> <code> 2*3;</code></li>
                   </ul>
                   <li> Use variables to store data; You must “var” before the variable the first time you declare but not
-                    afterwards; This returns 8</li>
-                  <ul class="code-comment-list">
-                    <li> <code>var x = 3;</code><code></code></li>
-                    <li> <code>x = 4;</code><code></code> </li>
-                    <li> <code>var y = 2; </code><code></code></li>
-                    <li> <code> x * y;  </code> <code> // this will result in 8 </code></li>
-                  </ul>
+                    afterwards; This returns 8
+                    <ul class="code-comment-list">
+                      <li> <code>var x = 3;</code><code></code></li>
+                      <li> <code>x = 4;</code><code></code> </li>
+                      <li> <code>var y = 2; </code><code></code></li>
+                      <li> <code> x * y;  </code> <code> // this will result in 8 </code></li>
+                    </ul>
+                  </li>
                 </ul>
-                <h4><strong> Parsing user data</strong> </h4>
+                <h4> Parsing user data </h4>
                 <ul>
-                  <li> If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it
-                    with “Parsing” </li>
-                  <ul>
-                    <li> parseInt(prompt(‘what year were you born?’));</li>
-                  </ul>
+                  <li>  If the user inputs data from your prompt, it will get stored a string. To use it as a number, convert it
+                    with “Parsing”
+                    <ul class="code-list">
+                      <li> <code> parseInt(prompt(‘what year were you born?’));</code></li>
+                    </ul>
+                  </li>
                 </ul>
-                <h4><strong> If then else statements </strong></h4>
+                <h4> If then else statements </h4>
                 <ul>
                   <li> These creates basic logic in your program</li>
                   <li> Your program reads if something is true then do some tasks, else, if it is not true, do some other tasks
                   </li>
                   <li>Note that each line that is doing something has a semicolon after but not the lines with the if or else</li>
                   <li>Also note that you don’t actually have to write out “then”, you simply use the curly brackets before and
-                    after the block of code that you want to run when the statement is true</li>
-                  <ul class="code-comment-list">
-                    <li> <code> var age = prompt(‘how old are you?’);</code><code></code></li>
-                    <li><code> if (age >= 21) { </code><code></code></li>
-                    <li> <code> &emsp; alert(‘you can drink!’); </code><code></code></li>
-                    <li> <code> } else { </code><code></code></li>
-                    <li> <code> &emsp; alert(‘you can not drink’);} </code><code></code></li>
-                  </ul>
+                    after the block of code that you want to run when the statement is true:
+                    <ul class="code-comment-list">
+                      <li> <code> var age = prompt(‘how old are you?’);</code><code></code></li>
+                      <li><code> if (age >= 21) { </code><code></code></li>
+                      <li> <code> &emsp; alert(‘you can drink!’); </code><code></code></li>
+                      <li> <code> } else { </code><code></code></li>
+                      <li> <code> &emsp; alert(‘you can not drink’);} </code><code></code></li>
+                    </ul>
+                  </li>
                 </ul>
-                <br>
-                <h4> <strong>Comments: </strong> you can write comments in your code that are ignored by the computer; Typically
-                  you write pseudo code as comments; You can also comment out lines of code to help debug it</h4>
+                
+                <h4> <strong> Comments: </strong> you can write comments in your code that are ignored by the computer; Typically
+                  you write pseudo code as comments; You can also comment out lines of code to help debug it </h4>
                 <ul>
-                  <ul class="code-commment-list">
-                    <li><code>// this is a JavaScript comment</code><code></code></li>
+                  <ul class="code-list">
+                    <li><code>// this is a JavaScript comment</code></li>
                   </ul>
                 </ul>
-                <br>
-                <h4> <strong>Random number generator</strong></h4>
+                
+                <h4>Random number generator</h4>
                 <ul>
                   <li> <code>Math.random() </code> returns a random number between 0 and 1 </li>
                   <li> <code> Math.floor() </code> returns largest integer less than or equal to given # </li>
                   <li> Combining them, then multiplying the random number by 10, and then adding 1 will get you a random between 1
-                    and 10</li>
-                  <ul>
-                    <li><code> Math.floor(Math.random()* 10) + 1 </code></li>
-                  </ul>
+                    and 10
+                    <ul class="code-list">
+                      <li><code> Math.floor(Math.random()* 10) + 1 </code></li>
+                    </ul>
+                  </li>
                 </ul>
-                <br>
-                <h4> <strong> Running JavaScript Programs locally </strong></h4>
+                
+                <h4> Running JavaScript Programs locally </h4>
                 <ol>
-                  <li> Create a HTML file and a JavaScript file</li>
-                  <ul><code>
-                                  <li>	index.js</li>
-                                  <li>	playground.html</li>
-                                </code></ul>
+                  <li> Create a HTML file and a JavaScript file
+                    <ul class="code-list">
+                      <li><code>index.js</code></li>
+                      <li><code>playground.html</code></li>
+                    </ul>
+                  </li>
                   <li> Link your html file to your JavaScript file so that it runs when you open HTML file; Write this in your
                     HTML code</li>
-                  <ul><code><li>	&lt;script src=index.js> &lt;/script></li></code></ul>
-                  <li> Write you code in JavaScript file</li>
-                  <ul><code><li>	alert(‘Hello World’);</li> </code></ul>
-                  <li> Go to the html file and open it with Google chrome</li>
-                  <ul>
-                    <li> Always make sure to save all files before running program</li>
-                    <li> Note, to open file in Chrome, you should be able to just double click the file or right click the file
-                      and then click “open with” and then google chrome</li>
+                  <ul class="code-list">
+                    <li>	<code> </code>&lt;script src=index.js> &lt;/script></code></li>
                   </ul>
+                  <li> Write you code in JavaScript file
+                    <ul class="code-list">
+                      <li> <code>alert(‘Hello World’); </code></li>
+                    </ul>
+                  </li>
+                  <li> Go to the html file and open it with Google chrome
+                    <ul>
+                      <li> Always make sure to save all files before running program</li>
+                      <li> Note, to open file in Chrome, you should be able to just double click the file or right click the file
+                        and then click “open with” and then google chrome</li>
+                    </ul>
+                  </li>
                 </ol>
-                <br>
+                
                 <!-- endregion -->
                 <!-----------------------------------------------  /Coding 101.1 - Coding Quick Start  -->
                 <!-----------------------------------------------  Coding 101.2 - Programming Overview  -->
                 <!-- #region -->
                 <h2> 2. Programming Overview</h2>
-                <br>
-                <p id="code101-L2-1-cheat"></p>
-                <h3> 2.1. Basics</h3>
-                <h4> <strong>Scripts: </strong> series of instructions computer can follow one-by-one</h4>
+                
+                <h3 id="code101-L2-1-cheat"> 2.1. Basics</h3>
+                <h4> <strong> Scripts: </strong> series of instructions computer can follow one-by-one</h4>
                 <ul>
-          
                   <li> Languages include JavaScript and Python and others</li>
                   <li> A very simple script could asks a user for their birthday and check if they are old enough to drink</li>
                 </ul>
-                <h4><strong> Pseudo code: </strong></h4>
+                <h4> <strong> Pseudo code: </strong> </h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li> <code>Function – Check customers IDs</code></li>
@@ -216,7 +228,7 @@ cheatSheetsTab: true
                     <li> <code> &emsp; If user is under 21, they can’t drink, otherwise they can </code></li>
                   </ul>
                 </ul>
-                <h4><strong> Communication:</strong></h4>
+                <h4> Communication:</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li> <code>alert(‘hello’)</code><code>// send user message</code> </li>
@@ -224,25 +236,20 @@ cheatSheetsTab: true
                     <li> <code>console.log(‘test’)</code><code>// good for debugging; sends message to console</code> </li>
                   </ul>
                 </ul>
-                <h4> <strong>Other</strong></li>
-                </h4>
+                <h4> Other</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li> <code>parseInt()</code><code>// turn string into number</code></li>
                     <li> <code>Math.floor(Math.random()* 10) + 1</code><code>// random # between 1 and 10</code></li>
                   </ul>
                 </ul>
-                <br>
-                <p id="code101-L2-2-cheat"></p>
-                <h3>2.2. Expressions and operators:</h3>
+                <h3 id="code101-L2-2-cheat">2.2. Expressions and operators:</h3>
                 <h4> These are built in functions of most programming languages that act like calculators of the program</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li> <code> var color = ‘white’;	</code> <code>// assignment operator</code></li>
-                    <li> <code> var weight = 30*15;</code> <code>// arithmetic operators; declares and sets weight to 450</code>
-                    </li>
-                    <li> <code> greeting = ‘Hi’ + ‘John’;</code>
-                      <code>// string operator; sets greeting equal to ‘Hi John’ </code></li>
+                    <li> <code> var weight = 30*15;</code> <code>// arithmetic operators; declares and sets weight to 450</code></li>
+                    <li> <code> greeting = ‘Hi’ + ‘John’;</code> <code>// string operator; sets greeting equal to ‘Hi John’ </code></li>
                     <li> <code> buy = 3 > 5;</code> <code>// comparison operator…buy=false</code></li>
                     <li> <code> buy = (5>3) && (2>4);</code> <code>// logical operators; and statement; buy = false</code></li>
                     <li> <code> buy = (5>3) || (2>4);</code> <code>// logical operators; or statement; buy = true</code></li>
@@ -252,21 +259,13 @@ cheatSheetsTab: true
                     <li> <code> 8 % 5;</code> <code>// returns the remainder of 3</code></li>
                     <li> <code> 2**4;</code> <code>// exponent of 2^4, which equals 16</code></li>
                   </ul>
-                </ul>
-                <br>
-                <p id="code101-L2-3-cheat"></p>
-                <h3>2.3. If then for loops</h3>
-                <h4> Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be
-                  smarter
-                  than a simple calculator or database. </h4>
-                <h4><strong> If (true) then…else if (true)…else…:</strong>If then functions allow computers to make decisions
-                  (sort
-                  of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater
-                  than 21
-                  years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript:</h4>
+                </ul>                
+                <h3 id="code101-L2-3-cheat">2.3. If then for loops</h3>
+                <h4> Most of a program’s “brains” comes from if then functions and loops. This is primarily why it is can be smarterthan a simple calculator or database. </h4>
+                <h4> <strong>If (true) then…else if (true)…else…: </strong> If then functions allow computers to make decisions (sort of). In our very simple ID checker program, the program asks the user their birthday. If the user is greater than 21 years, it lets them drink. “Else” or otherwise, it doesn’t. Below is how to write this in javascript: </h4>
                 <ul>
-                  <ul class="code-comment-list">
-                    <li> <code> if (today - user_birthday > 21 ) { </code><code></code></li>
+                  <ul class="code-list">
+                    <li><code> if (today - user_birthday > 21 ) { </code><code></code></li>
                     <li><code> &emsp; print(‘you can drink’); </code><code></code></li>
                     <li><code> } else if (user_birthday &lt =0) { </code><code></code></li>
                     <li><code> &emsp; print(‘not a valid ID’); </code><code></code></li>
@@ -275,10 +274,7 @@ cheatSheetsTab: true
                     <li> <code> }</code><code></code></li>
                   </ul>
                 </ul>
-                <h4> <strong> For (true) loops: </strong>allow you to repeat certain functions while something is true. For
-                  example,
-                  lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100
-                  plus signs (ugh), you could use write belowJS function</h4>
+                <h4> <strong>  For (true) loops: </strong>  allow you to repeat certain functions while something is true. For example, lets say you want to add the numbers 1 through 100 together. Instead of manually writing out 100 numbers and 100 plus signs (ugh), you could use write belowJS function</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code> var sum = 0;</code><code></code></li>
@@ -288,22 +284,17 @@ cheatSheetsTab: true
                     <li> <code> alert(sum);</code> <code>// this will show the number 5050 </code> </li>
                   </ul>
                 </ul>
-                <h4><strong> While (true) do… </strong> this function will continue to run until the statement is false. Enclosed
-                  in
-                  the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run
-                  infinitiy times if the statement is always true so be careful not to accidentially create an <strong>“infinite
-                    loop”!</strong></h4>
+                <h4> <strong> While (true) do… </strong>  this function will continue to run until the statement is false. Enclosed in the curly brackets is what tasks the while loop will do as long as it is running. Note that this loop can run infinitiy times if the statement is always true so be careful not to accidentially create an <strong>“infinite loop”! </strong> </h4>
                 <ul>
-                  <ul class="code-comment-list">
-                    <li> <code> while (still_playing == true) { </code><code></code></li>
-                    <li> <code>&emsp; play_game(); </code><code></code></li>
-                    <li><code> } </code><code></code></li>
+                  <ul class="code-list">
+                    <li> <code> while (still_playing == true) { </code></li>
+                    <li> <code>&emsp; play_game(); </code></li>
+                    <li><code> } </code></li>
                   </ul>
                 </ul>
-                <h4> <strong> Switch case…</strong> this is a short hand way of writing out multiple if then statements; example
-                  syntax</h4>
+                <h4><strong>  Switch case… </strong> this is a short hand way of writing out multiple if then statements; example syntax</h4>
                 <ul>
-                  <ul>
+                  <ul class="code-list">
                     <li><code> switch (response) { </code><code></code></li>
                     <li><code> &emsp; case: blue return ‘b’; </code><code></code></li>
                     <li><code> &emsp; case: red return ‘r’;</code></li>
@@ -311,14 +302,9 @@ cheatSheetsTab: true
                     <li><code>}</code></li>
                   </ul>
                 </ul>
-                <br>
-                <p id="code101-L2-4-cheat"></p>
-                <h3>2.4. Data types:</h3>
-                <h4><strong> Strings: </strong>letters, words, sentences…Note: To make quotes within quotes use either double
-                  quotes
-                  on the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes
-                  within
-                  single quotes.</h4>
+                
+                <h3 id="code101-L2-4-cheat">2.4. Data types:</h3>
+                <h4><strong>  Strings: </strong> letters, words, sentences…Note: To make quotes within quotes use either double quotes the outside of the string and single quotes on the inside or vice versa. You just can’t put single quotes within single quotes.</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code> ‘I am a string’ </code><code></code></li>
@@ -327,20 +313,13 @@ cheatSheetsTab: true
                     <li> <code>	str.length;</code><code>			// returns the number of characters in a string</code></li>
                   </ul>
                 </ul>
-                <h4><strong>Floats: </strong> numbers (<strong> integers </strong>are used for whole numbers) </h4>
-                <h4> <strong> Boolean: </strong>only has two values, true or false. Note that these are special words within
-                  JavaScript.</h4>
-                <h4> <strong> Lists: </strong>Simple lists of strings, or floats, or variables, etc. Lists items are ordered
-                  starting
-                  from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd
-                  at
-                  2. Commonly used list methods include: <p>push(), pop(), splice(), length, and indexOf(). </p>
-                </h4>
+                <h4><strong> Floats: </strong>  numbers (<strong> integers </strong>  are used for whole numbers) </h4>
+                <h4> <strong> Boolean: </strong>  only has two values, true or false. Note that these are special words within JavaScript.</h4>
+                <h4> <strong> Lists: </strong>  Simple lists of strings, or floats, or variables, etc. Lists items are ordered starting from 0 up through length of list. For example, below list has 3 items, 1st item is at point 0, 2nd is at 1, 3rd at 2. Commonly used list methods include: <p>push(), pop(), splice(), length, and indexOf(). </p></h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code>	var new_list = []; </code><code>// declares a new list</code></li>
-                    <li>
-                      <code>	new_list = [2, 81, 52];</code><code>// sets new_list equal to list containing three numbers: 2, 81, and 52</code>
+                    <li><code>	new_list = [2, 81, 52];</code><code>// sets new_list equal to list containing three numbers: 2, 81, and 52</code>
                     </li>
                     <li><code>	new_list[1];</code><code>// returns the number 81</code></li>
                     <li><code>	new_list[1] = 82;</code>
@@ -359,92 +338,78 @@ cheatSheetsTab: true
                     <li><code>	new_list.indexOf(‘banana’)</code><code>// searches array for apple</code></li>
                   </ul>
                 </ul>
-                <h4><strong> Dictionary: </strong>Includes a series of unordered key: value pairs. The key is used to describe an
-                  item
-                  and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute.
-                  Example:</h4>
+                <h4><strong>  Dictionary: </strong>  Includes a series of unordered key: value pairs. The key is used to describe an item and value is associated with that key. It could be a definition, like in an actual dictionary or an attribute. Example:</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li> <code>var quick_dict = {‘tiger’: ‘a large cat’, ‘ice cream’: ‘a tasty desert’};</code> <code></code></li>
                     <li><code> var my_hotel = {‘address’: ‘111 main street’, ‘rooms available’: 13};</code><code></code></li>
-                    <li>
-                      <code>	my_hotel[‘address’];</code><code>// looks up the key ‘address’ and returns the value for that key, ‘111 main street’</code>
-                    </li>
+                    <li><code>	my_hotel[‘address’];</code><code>// looks up the key ‘address’ and returns the value for that key, ‘111 main street’</code></li>
                   </ul>
                 </ul>
-                <br>
-                <p id="code101-L2-5-cheat"></p>
-                <h3>2.5. Functions </h3>
-                <h4>Functions are a series of statements that have been grouped together and can be run whenever function is
-                  called
-                </h4>
-                <h4><strong>Parameters </strong>are variables that you can pass to functions that they can perform actions on;
-                </h4>
-                <h4><strong> Arguments </strong>are values of paramters</h4>
-                <h4><strong> Declaring</strong>function is creating the function. Below is JS:</h4>
+                
+                <h3 id="code101-L2-5-cheat">2.5. Functions </h3>
+                <h4>Functions are a series of statements that have been grouped together and can be run whenever function is called</h4>
+                <h4><strong> Parameters </strong>  are variables that you can pass to functions that they can perform actions on;</h4>
+                <h4><strong>  Arguments </strong>  are values of paramters</h4>
+                <h4><strong>  Declaring</strong>  function is creating the function. Below is JS:</h4>
                 <ul>
-                  <ul>
+                  <ul class="code-list">
                     <li> <code> function add_numbers(x,y) {</code></li>
                     <li> <code> &emsp;	    print(x+y); </code></li>
                     <li> <code> } </code></li>
                   </ul>
                 </ul>
-                <h4><strong> Calling</strong>a function will run code in function</h4>
-                <li><code>	add_numbers(1,2);</code><code>// outputs 3</code></li>
-                <h4><strong> Global variables vs local variables: </strong>If a variable is declared within a function, then it is
-                  a
-                  local variable that can only be used or accessed within that function. If a variable is declared outside a
-                  function,
-                  then it is a global variable and can be used or accessed anywhere.</h4>
-                <br>
-                <p id="code101-L2-6-cheat"></p>
-                <h3>2.6. Object oriented programming</h3>
-                <h4> Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object
-                  properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are
-                  built. </h4>
-                <h4> <strong> Properties: </strong>characteristics about object; have both <strong> “key” </strong>that describes
-                  property (e.g., address) and <strong> “value”</strong> (e.g., 111 main st)</h4>
-                <h4><strong> Events: </strong>These run programs when different events occur (e.g., hotel room booked, car breaks,
-                  button clicked)</h4>
-                <h4><strong> Methods: </strong>Functions that are specifically built for each object (e.g., book_hotel_room(),
-                  find_room_price(), …)</h4>
-                <h4><strong> Built-in Objects: </strong>web browsers and application interfaces typically come with built in
-                  objects
-                  and methods that make it easier to create webpages or applications.</h4>
-                <h4><strong> Object / Class Constructor: </strong>Declare a new class that you can use to construct objects</h4>
+                <h4><strong>  Calling</strong>  a function will run code in function</h4>
                 <ul>
-                  <ul>
-                    <li><code> function MovieStar(name, birthday) {</code></li>
-                    <li><code> &emsp; this.name = name; </code></li>
-                    <li><code> &emsp; this.birthday = birthday </code></li>
-                    <li><code> &emsp; this.greeting = function(){ </code></li>
-                    <li><code> &emsp;&emsp; alert(‘hi, my name is ‘ + this.name); </code></li>
-                    <li><code> &emsp; } </code></li>
-                    <li><code> } </code></li>
+                  <ul class="code-comment-list">
+                    <li><code>	add_numbers(1,2);</code><code>// outputs 3</code></li>
                   </ul>
-                  <li> Create a new object using the class you created</li>
-                  <ul>
-                    <li> <code> var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</code></li>
-                    <li><code> var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</code></li>
-                  </ul>
-                  <li> Recall or change values from the object </li>
-                  <ul>
-                    <li><code>	tom_cruise.birthday;</code><code>// returns July 3, 1962</code></li>
-                    <li><code>	tom_cruise[“birthday”];</code><code>// returns July 3, 1962</code></li>
-                    <li><code>	tom_cruise.birthday  = ‘July 4, 1962’; </code> <code></code>// changes value of birthday to July
-                      4th
-                    </li>
-                    <li>
-                      <code>	tom_cruise.greeting();</code><code>// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</code>
-                    </li>
-                  </ul>
-                  <li> Create a list of objects</li>
-                  <ul>
-                    <li><code>	var star_list = [tom_cruise];</code><code>// adds tom_cruise object to star_list</code></li>
-                    <li><code>	star_list.push(dwayne_johnson);</code><code>// adds dwayne_johnson object to star_list</code></li>
-                  </ul>
-                  <li><strong>for… in loop </strong>can be used to loop through all of the key / value pairs in an object</li>
-                  <ul>
+                </ul>
+                <h4><strong>  Global variables vs local variables: </strong>  If a variable is declared within a function, then it is a local variable that can only be used or accessed within that function. If a variable is declared outside a function, then it is a global variable and can be used or accessed anywhere.</h4>
+                
+                <h3 id="code101-L2-6-cheat">2.6. Object oriented programming</h3>
+                <h4> Most programming languages allow you to build objects (e.g., house, car, person ,..) and give that object properties, events and methods. Objects are constructed in a way similar to how functions and dictionaries are built. </h4>
+                <h4> <strong> Properties: </strong>characteristics about object; have both <strong> “key” </strong>that describes property (e.g., address) and <strong> “value”</strong> (e.g., 111 main st)</h4>
+                <h4> <strong> Events: </strong>These run programs when different events occur (e.g., hotel room booked, car breaks, button clicked)</h4>
+                <h4> <strong> Methods: </strong>Functions that are specifically built for each object (e.g., book_hotel_room(), find_room_price(), …)</h4>
+                <h4> <strong> Built-in Objects: </strong>web browsers and application interfaces typically come with built in objects and methods that make it easier to create webpages or applications.</h4>
+                <h4> <strong> Object / Class Constructor: </strong></h4>
+                <ul>
+                  <li>Declare a new class that you can use to construct objects
+                    <ul class="code-list">
+                      <li><code> function MovieStar(name, birthday) {</code></li>
+                      <li><code> &emsp; this.name = name; </code></li>
+                      <li><code> &emsp; this.birthday = birthday </code></li>
+                      <li><code> &emsp; this.greeting = function(){ </code></li>
+                      <li><code> &emsp;&emsp; alert(‘hi, my name is ‘ + this.name); </code></li>
+                      <li><code> &emsp; } </code></li>
+                      <li><code> } </code></li>
+                    </ul>
+                  </li>
+                  <li> Create a new object using the class you created
+                    <ul class="code-comment-list">
+                      <li> <code> var tom_cruise = new MovieStar(‘Tom Cruise’, ‘July 3, 1962’);</code></li>
+                      <li><code> var dwayne_johnson = new MovieStar(‘Dwayne Johnson’, ‘May 2, 1972’)</code></li>
+                    </ul>
+                  </li>
+                  <li> Recall or change values from the object
+                    <ul class="code-comment-list">
+                      <li><code>	tom_cruise.birthday;</code><code>// returns July 3, 1962</code></li>
+                      <li><code>	tom_cruise[“birthday”];</code><code>// returns July 3, 1962</code></li>
+                      <li><code>	tom_cruise.birthday  = ‘July 4, 1962’; </code> <code></code>// changes value of birthday to July 4th </li>
+                      <li><code>	tom_cruise.greeting();</code><code>// calls the greeting method; alerts user ‘hi, my name is Tom Cruise’</code> </li>
+                    </ul>
+                  </li>
+                  <li> Create a list of objects
+                    <ul class="code-comment-list">
+                      <li><code>	var star_list = [tom_cruise];</code><code>// adds tom_cruise object to star_list</code></li>
+                      <li><code>	star_list.push(dwayne_johnson);</code><code>// adds dwayne_johnson object to star_list</code></li>
+                    </ul>
+                  </li>
+                </ul>
+                <h4><strong>for… in loop </strong>can be used to loop through all of the key / value pairs in an object</h4>
+                <ul>
+                  <ul class="code-comment-list">
                     <li><code> for (p in person) {</code></li>
                     <li><code> &emsp; alert(p);</code></li>
                     <li><code> } </code></li>
@@ -454,49 +419,33 @@ cheatSheetsTab: true
                 <!-----------------------------------------------  /Coding 101.2 - Programming Overview  -->
                 <!-- ---------------------------------------------  Coding 101.3 - Your First Website     -->
                 <!-- #region -->
-                <br>
+                
                 <h2>3. Your First Website</h2>
-                <br>
-                <p id="code101-L3-1-cheat"></p>
-                <h3>3.1. Hello World and Intro</h3>
-                <h4><strong> HTML </strong> is used to create the structure of your webpage (e.g., like the bones in your body)
-                </h4>
-                <h4> <strong> CSS </strong>is used to create the formatting and style of your webpage (e.g., like the skin of your
-                  body)</h4>
-                <h4> <strong> Tags: </strong> HTML documents use <code> &lt;tags> </code> to tell the browser how to format
-                  content. Pictures need tags, texts need tags, the entire website is made up of tags. Everything must be
-                  sandwiched within the tags. In the below code, <code> &lt;p></code> is the opening tag and
-                  <code> &lt;/p> </code> is the closing tag and this is used for a paragraph. You can write the content of your
-                  paragraph in between the tags. </h4>
+                
+                <h3 id="code101-L3-1-cheat">3.1. Hello World and Intro</h3>
+                <h4> <strong> HTML </strong> is used to create the structure of your webpage (e.g., like the bones in your body) </h4>
+                <h4> <strong> CSS </strong>is used to create the formatting and style of your webpage (e.g., like the skin of your body)</h4>
+                <h4> <strong> Tags: </strong> HTML documents use <code> &lt;tags> </code> to tell the browser how to format content. Pictures need tags, texts need tags, the entire website is made up of tags. Everything must be sandwiched within the tags. In the below code, <code> &lt;p></code> is the opening tag and <code> &lt;/p> </code> is the closing tag and this is used for a paragraph. You can write the content of your paragraph in between the tags. </h4>
                 <ul>
-                  <ul>
+                  <ul class="code-list">
                     <li> <code> &lt;p> Hello World &lt;/p> </li> </code>
                   </ul>
                 </ul>
-                <h4> We can add an <strong>attribute name</strong> (class) and <strong>attribute value</strong> (”greeting”), to
-                  select specific paragraphs to format differently with CSS</h4>
+                <h4> We can add an <strong>attribute name</strong> (class) and <strong>attribute value</strong> (”greeting”), to select specific paragraphs to format differently with CSS</h4>
                 <ul>
-                  <ul>
+                  <ul class="code-list">
                     <li> <code> &lt;p class=”greeting”> Hello World &lt;/p></code></li>
-                  </ul>
-                </ul>
-                <ul>
-                  <ul>
                     <li><code> p {font-size: 24px;}</code></li>
                   </ul>
                 </ul>
-                <h4>…Or you can change all elements with a class equal to “greeting”. The below code includes a
-                  <strong>Selector</strong> (<code>.greeting</code> ), <strong>Declaration Block</strong>
-                  (<code>{color:pink;}</code> ), <strong>Property Name</strong>(<code>color</code> ) and <strong>Property
-                    Value</strong> (<code>pink</code> )</h4>
+                <h4>…Or you can change all elements with a class equal to “greeting”. The below code includes a <strong>Selector</strong> (<code>.greeting</code> ), <strong>Declaration Block</strong> (<code>{color:pink;}</code> ), <strong>Property Name</strong>(<code>color</code> ) and <strong>Property Value</strong> (<code>pink</code> )</h4>
                 <ul>
-                  <ul>
+                  <ul class="code-list">
                     <li> <code>.greeting {color:pink;} </code> </li>
                   </ul>
                 </ul>
-                <br>
-                <p id="code101-L3-2-cheat"></p>
-                <h3>3.2. HTML tags and structure</h3>
+                
+                <h3 id="code101-L3-2-cheat">3.2. HTML tags and structure</h3>
                 <ul class="code-comment-list">
                   <li><code></code> <code> &lt;!-- Comments are placed in between the following --> </code></li>
                   <li>
@@ -551,12 +500,10 @@ cheatSheetsTab: true
                   <li>
                     <code>&lt;img src=”images/gummy.jpg”>	</code><code>&lt;!--  image found in image folder; use “../images/crispy.jpg” if your index.html is not in same directory --></code>
                   </li>
-                  <br>
                 </ul>
-                <p id="code101-L3-3-cheat"></p>
-                <h3>3.3. CSS Intro and properties</h3>
-                <h4> <strong> CSS </strong>= Cascading Style Sheet. It means that styles flow or cascades in order of what came
-                  last and what is most specific to that HTML element</h4>
+
+                <h3 id="code101-L3-3-cheat">3.3. CSS Intro and properties</h3>
+                <h4> <strong> CSS </strong>= Cascading Style Sheet. It means that styles flow or cascades in order of what came last and what is most specific to that HTML element</h4>
                 <ul>
                   <li><strong> Source Order</strong>: whatever came last overrides what came before it</li>
                   <li><strong> Specificity Order</strong>: whatever is more specific overrides other style commands regardless of
@@ -564,27 +511,21 @@ cheatSheetsTab: true
                   <li><strong> Inheritance</strong>: A child element will inherit any applicable styles from its parent HTML
                     element</li>
                 </ul>
-                <h4> <strong> Three ways to add CSS code: </strong></h4>
+                <h4> <strong> Three ways to add CSS code: </strong> </h4>
                 <ul>
-                  <li><strong> (Preferred method) Using separate CSS files</strong>External Style Sheets allow you to put all of
-                    your CSS code in one place and apply it to all of the pages in your website. Need to add below code between
-                    <code> &lt;head> </code> tags of html <code> &lt;link href="normalize.css" rel="stylesheet">&lt; </code> </li>
+                  <li><strong> (Preferred method) Using separate CSS files</strong> External Style Sheets allow you to put all of your CSS code in one place and apply it to all of the pages in your website. Need to add below code between <code> &lt;head> </code> tags of html <code> &lt;link href="normalize.css" rel="stylesheet">&lt; </code> </li>
                 </ul>
-                <h4><strong> Definitions</strong></h4>
+                <h4> Definitions</h4>
                 <ul>
-                  <li><strong> Selector: </strong>this is the element that you want to change; for example, pargraphs in the
-                    following <code> p {color:purple;} </code></li>
-                  <li><strong> Property: </strong>what you want to change about your elements; for example, color in above example
-                  </li>
-                  <li> <strong> Value:</strong>what you want to change you element property too; for example, purple</li>
+                  <li><strong> Selector:  </strong>this is the element that you want to change; for example, pargraphs in the following <code> p {color:purple;} </code></li>
+                  <li><strong> Property: </strong>what you want to change about your elements; for example, color in above example </li>
+                  <li><strong> Value:</strong>what you want to change you element property too; for example, purple</li>
                 </ul>
                 <h4 class="g">/* Enter comments between these characters in your CSS code */</h4>
                 <h4> <strong> Font Properties </strong></h4>
                 <ul>
                   <ul class="code-comment-list">
-                    <li>
-                      <code>  font-family: “georgia”, “serif”; </code><code>/* If Georgia font does not load on person’s browser, serif is back up font */</code>
-                    </li>
+                    <li> <code>  font-family: “georgia”, “serif”; </code><code>/* If Georgia font does not load on person’s browser, serif is back up font */</code> </li>
                     <li><code>  color:blue; </code><code></code></li>
                     <li><code>  color:#630600;</code><code></code></li>
                     <li><code>	color: rgba(255,255,255,1); </code>
@@ -601,7 +542,7 @@ cheatSheetsTab: true
                     <li><code>	text-align: center; </code><code></code></li>
                   </ul>
                 </ul>
-                <h4><strong> Background properties</strong></h4>
+                <h4> Background properties</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code>  background-color: rgba(0,0,0,0.5);</code><code></code></li>
@@ -616,7 +557,7 @@ cheatSheetsTab: true
                     <li><code>background-position: 50% 60px; </code><code>/* Change starting position */</code></li>
                   </ul>
                 </ul>
-                <h4><strong>Floating properties</strong></h4>
+                <h4>Floating properties</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code> img {float:right;}</code><code> /* Element float images to right or left or none */</code></li>
@@ -628,7 +569,7 @@ cheatSheetsTab: true
                     <li><code>p {clear: inherit;} </code><code>/* Element inherits the clear value of its parent */</code></li>
                   </ul>
                 </ul>
-                <h4><strong>HTML element properties</strong></h4>
+                <h4>HTML element properties</h4>
                 <ul>
                   <ul>
                     <li><code>max-width: 500;</code><code>/* Allows website to be responsive & have 500 max width */</code></li>
@@ -636,24 +577,23 @@ cheatSheetsTab: true
                     <li><code>height:5%;</code></li>
                   </ul>
                 </ul>
-                <h4><strong>Other properties</strong></h4>
+                <h4>Other properties</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code>  ol { list-style-image:url(checkmark.jpg); } </code><code>/* Custom Bullet points */</code></li>
                   </ul>
                 </ul>
-                <h4><strong>Google Fonts:</strong> Allows you to easily import different types of fonts </h4>
+                <h4> Google Fonts:Allows you to easily import different types of fonts </h4>
                 <ol>
                   <ol>
                     <li>Go to Google Fonts: <a href="https://fonts.google.com/">https://fonts.google.com/</a></li>
                     <li>Click the plus sign on the fonts you want to add</li>
                     <li>Click the minus sign next to the “family selected” tab</li>
                     <li>There will be instructions on what code to add to the HTML
-          
                       <head> section and the CSS code</li>
                   </ol>
                 </ol>
-                <h4> <strong>CSS Selectors </strong></h4>
+                <h4> <strong> CSS Selectors </strong></h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li><code>p { }</code><code>/* Type - selects all elements of specified type (e.g., &lt;p>)*/</code></li>
@@ -680,9 +620,8 @@ cheatSheetsTab: true
                     <li><code>a:active </code><code>/* Links when the user is hovering their mouse over the link */</code></li>
                   </ul>
                 </ul>
-                <br>
-                <p id="code101-L3-4-cheat"></p>
-                <h3>3.4. Boxes!</h3>
+                
+                <h3 id="code101-L3-4-cheat">3.4. Boxes!</h3>
                 <h4><strong>CSS Box Model</strong></h4>
                 <ul>
                   <li>All HTML elements can be thought of as boxes within a CSS box wrapping around each element. The box has four
@@ -717,8 +656,8 @@ cheatSheetsTab: true
                   </ul>
                   <li> <strong>Content </strong> = size of the content of the element</li>
                 </ul>
-                <br>
-                <h4><strong> Block vs Inline</strong></h4>
+                
+                <h4> <strong>Block vs Inline</strong></h4>
                 <ul>
                   <li><strong>Block-level elements </strong>begin on new lines, which means that the “boxes” for block-level
                     elements extend the full width of the available space (even if the content doesn’t)</li>
@@ -748,7 +687,7 @@ cheatSheetsTab: true
                     </li>
                   </ul>
                 </ul>
-                <h4><strong>Absolute vs Relative vs. Fixed Layout types</strong></h4>
+                <h4><strong>  Absolute vs Relative vs. Fixed Layout types </strong></h4>
                 <ul>
                   <li>Note: You should not chose one of the below layouts for your entire website; you should use a combination of
                     the below layouts</li>
@@ -764,7 +703,7 @@ cheatSheetsTab: true
                     </li>
                   </ul>
                 </ul>
-                <h4><strong>Flex box </strong>layouts allow you to have the size of your boxes dynamically change based on the
+                <h4><strong> Flex box </strong>layouts allow you to have the size of your boxes dynamically change based on the
                   size of the browser or screen being used to view your site</h4>
                 <ul>
                   <li>In HTML, you can set up a main section with two div’s inside</li>
@@ -785,9 +724,8 @@ cheatSheetsTab: true
                     </li>
                   </ul>
                 </ul>
-                <p id="code101-L3-5-cheat"></p>
-                <h3>3.5. Mobile first design and dynamic formatting</h3>
-                <h4><strong>Responsive web design</strong>is about automatically adjusting the look and feel of a website based on
+                <h3 id="code101-L3-5-cheat">3.5. Mobile first design and dynamic formatting</h3>
+                <h4><strong> Responsive web design </strong> is about automatically adjusting the look and feel of a website based on
                   the screen size and the device being used (e.g., mobile vs. desktop) instead of having to create two separate
                   websites (one for mobile and one for desktop). 3 types of layouts:</h4>
                 <ul>
@@ -796,7 +734,7 @@ cheatSheetsTab: true
                   <li><strong>Responsive:</strong>combo of media query and flexible boxes so that you can change the website
                     layout if the screen is smaller; creates breakpoints at different screen sizes</li>
                 </ul>
-                <h4><strong> “Mobile-First” Design </strong>is creating your website to look good on mobile first (instead of
+                <h4><strong>  “Mobile-First” Design </strong>is creating your website to look good on mobile first (instead of
                   desktop, which is what developers used to do) and then use media queries to change formatting when screen size
                   is larger</h4>
                 <ul>
@@ -804,8 +742,7 @@ cheatSheetsTab: true
                   <li>it allows mobile devices to only load up the necessary code!!! Which matters more for load speeds on mobile
                     than on desktop</li>
                 </ul>
-                <h4><strong>Media Query </strong>Allows you to change the format of different items based on the screen size
-                  (measured in pixels)</h4>
+                <h4><strong> Media Query </strong>Allows you to change the format of different items based on the screen size (measured in pixels)</h4>
                 <ul>
                   <ul class="code-comment-list">
                     <li>
@@ -816,13 +753,13 @@ cheatSheetsTab: true
                   <ul>
                     <li><code>&lt;meta name=”viewport” content=”width=device-width”, initial-scale=1”></code></li>
                   </ul>
-                  <li><strong>Common Breakpoints (used by Bootstrap)</strong></li>
+                  <li>Common Breakpoints (used by Bootstrap)</li>
                   <ul>
                     <li>Min 480px, 768px, 992px, 1200px…(Mobile first; do this)</li>
                     <li>Max 1200px, 992, 768, 480px (Non-mobile first; don’t do this!)</li>
                   </ul>
                 </ul>
-                <h4><strong>Em…</strong>responsive sizing: Em is a CSS relative unit for font-siz; 1em = 100% of the font-size of
+                <h4><strong> Em…</strong>responsive sizing: Em is a CSS relative unit for font-siz; 1em = 100% of the font-size of
                   the parent element (default is 16px if not defined)</h4>
                 <ul>
                   <ul class="code-comment-list">
@@ -834,40 +771,42 @@ cheatSheetsTab: true
                     <li><code>overflow:hidden;</code><code>/* Hide content that overflows (e.g., nav bar) */</code></li>
                   </ul>
                 </ul>
-                <h4><strong>Bootstrap is an open source webframework and library that allows you to create websites
-                    quickly!</strong></h4>
-                <br>
+                <h4>Bootstrap is an open source webframework and library that allows you to create websites
+                    quickly!</h4>
+                
                 <!-- endregion -->
                 <!-----------------------------------------------  /Coding 101.3 - Your First Website    -->
                 <!-----------------------------------------------  #Coding 101.4 - JQuery -----------    -->
-                <p id="code101-L4-cheat"></p>
-                <h2>4.	JQuery and Buttons</h2>
+                <h2 id="code101-L4-cheat">4.	JQuery and Buttons</h2>
                 <h3>4.1.	Intro</h3>
-                <h4><strong> What is JQuery? </strong>a library of Java Script code to make it easier for you to code; JQuery is open-source, cross browser</h4>
-                <h4><strong>	Why jQuery?</strong>It allows you to easily perform DOM manipulation and event listening without some of the issues and length of plain javascript; Most websites use it</h4>
-                <h4><strong>Example syntax</strong></h4>
+                <h4><strong>  What is JQuery? </strong>a library of Java Script code to make it easier for you to code; JQuery is open-source, cross browser</h4>
+                <h4><strong> 	Why jQuery?</strong>It allows you to easily perform DOM manipulation and event listening without some of the issues and length of plain javascript; Most websites use it</h4>
+                <h4>Example syntax</h4>
                 <ul>
                   <li> When button is clicked, color_switcher function is run</li>
-                  <ul><code>
-                    <li>$(‘CSSselector’).action()</li>
-                    <li>$(‘button’).click(color_switcher);</li>
-                  </code></ul>
+                  <ul class="code-list">
+                    <li><code>$(‘CSSselector’).action()</code></li>
+                    <li><code> $(‘button’).click(color_switcher); </code></li>
+                  </ul>
                 </ul>
-                <h4><strong>	Adding JavaScript and JQuery to HTML:</strong></h4>
+                <h4>	Adding JavaScript and JQuery to HTML:</h4>
                 <ul>
-                  <li><strong>Option 1) Add link to JQuery API</strong></li>
+                  <li>Option 1) Add link to JQuery API</li>
                   <ul>
                     <li>In index.html file ABOVE script link  <code> &lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">&lt;/script></code> (it links to file with a CDN)</li>
                     <li>	Note if you don’t add JQuery first then you won’t be able to reference it in .js file</li>
                   </ul>
-                  <li><strong>	Option 2) Download JQuery file and link to it </strong></li>
+                  <li>	Option 2) Download JQuery file and link to it </li>
                   <ol>
-                    <li>	i) Save JQuery file locally as .js in a js folder</li>
-                    <li>	ii) In your index.html file, add below code right before closing &lt;/body> tag <code>•	&lt;script src="js/myscript.js">&lt;/script></code></li>
-                    <li>	iii) Again, make sure this link comes before any of your JS file links</li>
+                    <li>	Save JQuery file locally as .js in a js folder</li>
+                    <li>	In your index.html file, add below code right before closing <code>&lt;/body> </code> tag <code> &lt;script src="js/myscript.js">&lt;/script></code></li>
+                    <li>	Again, make sure this link comes before any of your JS file links</li>
                   </ol>
                 </ul>
-                <h4><strong>-	Wrap code JS and JQuery with below as good practice </strong>– prevents your code from running until the entire document is done loading</h4>
+                <h4>	Wrap code JS and JQuery with below as good practice </h4> 
+                <ul>
+                  <li>prevents your code from running until the entire document is done loading</li>
+                </ul>
                 <ul><ul class="code-comment-list">
                   <li><code>	$(document).ready(function() { </code><code></code></li>
                   <li><code></code><code>     //Put all of your code in here</code></li>

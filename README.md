@@ -6,7 +6,6 @@ Install `gulp-cli` globally, `npm install` from the document root, then run `gul
 
 You’ll need to run `npm update` and then `npm install panini` to download the panini  plugin
 
-
 ### Folder Structure
 - src - Holds all working files 
 - dist - What you upload to web server. This folder is .gitignored since everything in it is generated from src
@@ -21,12 +20,29 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 - View Bootstrap's editable variables in `scss/bootstrap/_variables.scss`
 - Override variables in `scss/_variables-override.scss`
 
-
-
 ### Tech Stack Overview
 - Gulp
 - Panini - Plugin for Gulp that allows you to make basic templates using layouts, pages, partials and variables
 
+### Deployment
+1. delete `dist` folder
+2. cd to folder directory in terminal and enter `gulp watch` (automatically pulls up local deployment)
+3. Copy / paste new `dist` folder onto your hosting site of choice
+
+Note: if gulp watch function is not working, follow these steps
+- go to root directory by pressing `cd` on CLI 
+1. $ brew update
+2. $ brew install nvm
+3. $ mkdir ~/.nvm
+4. $ export NVM_DIR=~/.nvm
+5. $ source $(brew --prefix nvm)/nvm.sh
+6. $ brew install nvm
+7. $ nvm install 14.4.0
+8. $ nvm use 14
+-	Cd to local folder
+9.	Delete node_modules folder
+10.	$ npm install
+11.	$ gulp watch
 
 ### Notes
 - Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character
