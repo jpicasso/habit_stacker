@@ -1,3 +1,5 @@
 node_modules
 access.txt
 dist
+.DS_Store
+src/.DS_Store
