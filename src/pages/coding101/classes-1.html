@@ -44,7 +44,7 @@ course: 'Coding 101'
                 <h2>Coding 101: Coding Quick Start</h2>
               </header>
               <!-- #coding101-1.0 -->
-              <section class="section__subsection subsection" id="code101-L1-0-class">
+              <section class="section__subsection subsection no-top-pad" id="code101-L1-0-class">
                 <header class="subsection__header">
                   <h3>1.0 Intro</h3>
                 </header>
@@ -134,9 +134,6 @@ course: 'Coding 101'
                 <img src="{{ root }}img/coding101/1_quick_start/hello_world.png" alt="hello">
                 <br><br><br>
                 <p>If you struggled to figure out what to do here, you can watch this video tutorial for a demo of how to do it:</p>
-                <div class="embed-responsive embed-responsive-16by9">
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/60Csqtk0Liw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
                 <p>If you figured out how to do this, then congrats! You just wrote your first line of JavaScript code!!!</p>
                 <p>If not, try watching the video again, google for help, or if you are still stuck, email us at questions@upriseuniversity.com </p>
                 <hr>
@@ -152,6 +149,7 @@ course: 'Coding 101'
                 <p>JavaScript allows you to store data in variables and then use those variables to perform tasks or calculations. </p>
                 <p>JavaScript variables are similar to the concept of variables in Algebra, except it is more focused on storing and retreiving information</p>
                 <p>Try the below project to get a basic feel for using variables in JavaScript</p>
+                
                 <h4> Project 1.2: Greet User </h4>
                 <p>This code prompts the user to fill in their name</p>
                 <p>Then it “declares” a variable called “name” and stores that user input into it</p>
@@ -161,6 +159,7 @@ course: 'Coding 101'
                   press enter to run the code </p>
                 <img src="{{ root }}img/coding101/1_quick_start/var_alert.png" alt="alert">  
                 <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/60Csqtk0Liw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
                 <p>Congrats on finishing another project! You are getting good at this!! </p>
                 <hr>
@@ -275,7 +274,7 @@ course: 'Coding 101'
                 <p>Comments are notes that you can use to help you (or other programmers looking at your code) remember
                   what the code does. Note that JavaScript does does not run this code. As a result, it can also be helpful
                   to "comment out" lines of your code when you are trying to debug it or to hide features without removing them. </p>
-                <img src="../../img//101.1.comments.png">
+                <img src="{{root}}img/coding101/1_quick_start/comments.png" alt="comments">
                 <div class="embed-responsive embed-responsive-16by9">
                   <iframe width="560" height="315" src="https://www.youtube.com/embed/CXX7qro7Dhw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
@@ -405,6 +404,8 @@ course: 'Coding 101'
               </section>
               <!-- /#coding101-1.9 -->
 
+              <a href="{{ root }}coding101/classes.html" class="btn btn-primary">Prior Lesson</a>
+              <a href="{{ root }}coding101/classes-2.html" class="btn btn-primary">Next Lesson</a>
 
             </article>
             <!-- /Coding 101. - Coding Quick Start -->

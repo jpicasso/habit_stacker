@@ -43,7 +43,7 @@ course: 'Coding 101'
                 <h2>Coding 101: Lesson 3 - Your First Website</h2>
               </header>
               <!----------------------------  #coding101-3.0 -------------------------------------- -->
-              <section class="section__subsection subsection" id="code101-L3-0-class">
+              <section class="section__subsection subsection no-top-pad" id="code101-L3-0-class">
                 <header class="subsection__header" id="coding101-3.0">
                   <h2>Coding 101: Lesson 3 - Your First Website</h2>
                   <h3>3.0 Intro</h3>
@@ -100,7 +100,7 @@ course: 'Coding 101'
               <p>Then link your html file to your CSS file using this code in your html file</p>
               <script type="text/plain" class="language-html"><link rel=“stylesheet” href=“main.css”></script>
               <h4>Project 3.1. Hello World!</h4>
-              <h5>Try to create this before going to the next slide</h5>
+              <p>Try to create this before going to the next slide</p>
               <img src="{{ root }}img/coding101//3_first_website/p1.png" alt="your first website">
               <div class="embed-responsive embed-responsive-16by9">
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/gEPM-gHcgH4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -243,7 +243,7 @@ course: 'Coding 101'
                 <hr>
                 <h4>CSS Selectors</h4>
                 <ul>
-                  <li>p { }  		/* Type - selects all elements of specified type (e.g., <p>)*/</li>
+                  <li>p { }  		/* Type - selects all elements of specified type (e.g., p elements) */</li>
                   <li>* { } 		/* Universal - selects all elements in html file not selected by other selectors */</li>                    
                   <li>#myID { }	/* ID - are supposed to singular and unique to allow you format a specific element */</li>
                   <li>.class { } 	/* Class – similar to ID but for formatting multiple elements at same time */</li>
@@ -261,10 +261,15 @@ course: 'Coding 101'
                 <h4>Project 3.2. Gigantic Candy Company – 2 pages (Step 2 of 3)</h4>
                 <p>Create a simple two page web page with links between the two of them</p>
                 <p>First page is a home page; Second page is an about us page</p>
-                <img src="{{ root }}img/coding101//3_first_website/p2c.png" alt="">
+                <img src="{{ root }}img/coding101/3_first_website/p2c.png" alt="">
+                <img src="{{ root }}img/coding101/3_first_website/p2d.png" alt="">
                 <div class="embed-responsive embed-responsive-16by9">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/4Azx4TcCPs0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/zkiIJlBCaNY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+                <div class="embed-responsive embed-responsive-16by9">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/RCHxHUQhiYI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+
                 <hr>
               </section>
               <!----------------------------  #coding101-3.3 -------------------------------------- -->
@@ -371,13 +376,6 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 <hr>
                 <h4>Project 3.2. Gigantic Candy Company – Flex Box (Step 3 of 3)</h4>
                 <p>Boxes should expand and shrink as the size of the browser window changes</p>
-                <img src="{{ root }}img/coding101//3_first_website/p2d.png" alt="">
-                <div class="embed-responsive embed-responsive-16by9">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/zkiIJlBCaNY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <div class="embed-responsive embed-responsive-16by9">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/RCHxHUQhiYI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
                 <div class="embed-responsive embed-responsive-16by9">
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/DEuz8qvH7i4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
@@ -463,7 +461,9 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 <hr>
                 <h4>Project 3.7. Mobile First</h4>
                 <p>Create a page that looks similar to following site</p>
+                <img src="{{ root }}img/coding101/3_first_website/p7.png" alt="p7">
                 <hr>
+                
                 <h4>Lesson Recap</h4>
                 <ul>
                   <li>HTML and CSS overview</li>
@@ -475,7 +475,17 @@ main {align-items:flex-start;} 	/* Items are positioned vertically at bottom of 
                 <hr>
                 <h4> Project Recap</h4>
                 <img src="{{ root }}img/coding101//3_first_website/project_recap.png" alt="">
+                <hr>
+                <h4> Homework</h4>
+                <p>Create the following programs and submit it to <a href="mailto: coding101@upriseuniversity.com">coding101@upriseuniversity.com</a> before moving to the next lesson:</p>
+                <ul>
+                  <li><Strong>Restaurant Homepage:</Strong> Create a website for your favorite restaurant. The site should include a landing page, about us page, and a menu page</li>
+                  <li><strong>Build your own site: </strong> Get creative and build something that is interesting to you!</li>
+                </ul>
+                <hr>
               </section>
+              <a href="{{ root }}coding101/classes-2.html" class="btn btn-primary">Prior Lesson</a>
+              <a href="{{ root }}coding101/classes-4.html" class="btn btn-primary">Next Lesson</a>
             </article>
             <!-- /Coding 101.3 - Your First Website -->
             <!-- endregion -->

@@ -29,20 +29,28 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 2. cd to folder directory in terminal and enter `gulp watch` (automatically pulls up local deployment)
 3. Copy / paste new `dist` folder onto your hosting site of choice
 
+### Run locally
+1. cd to folder directory in terminal
+2. enter `gulp watch` (automatically pulls up local deployment)
+
+### Debugging
 Note: if gulp watch function is not working, follow these steps
 - go to root directory by pressing `cd` on CLI 
-1. $ brew update
-2. $ brew install nvm
-3. $ mkdir ~/.nvm
-4. $ export NVM_DIR=~/.nvm
-5. $ source $(brew --prefix nvm)/nvm.sh
-6. $ brew install nvm
-7. $ nvm install 14.4.0
-8. $ nvm use 14
+1. $ brew install nvm
+2. $ mkdir ~/.nvm
+3. $ export NVM_DIR=~/.nvm
+4. $ source $(brew --prefix nvm)/nvm.sh
+5. $ brew install nvm
+6. $ nvm install 14.4.0
+7. $ nvm use 14
 -	Cd to local folder
-9.	Delete node_modules folder
-10.	$ npm install
-11.	$ gulp watch
+8.	Delete node_modules folder
+9.	$ npm install
+10.	$ gulp watch
 
 ### Notes
 - Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character
+
+
+### FAQ
+1. How do I preview the site on my local machine? TK
