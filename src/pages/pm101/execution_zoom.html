@@ -1,0 +1,182 @@
+---
+title: 'PM 101'
+pm101: true
+coursesNav: true
+course: 'PM 101'
+---
+
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+            {{> pm101-accord}}
+        </div>
+      </nav>
+      <!-- /.sidebar -->
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="..//courses.html">Courses</a></li>
+              <li class="breadcrumb-item"><a href="/pm101/overview.html">Product Interview Prep</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Execution - Zoom</li>
+            </ol>
+          </nav>
+            <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+            <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+              <div class="cheat-sheet">
+                <!-- Bryce Example -->
+                <div class="bryce-example">
+                  <!-----------------------------------------------  Life 101.4-Predictably Irrational -----------------    -->
+                  <!-- #region -->
+                  <p>Interview Question: Zoom PM</p>
+                  <h4>Why would we build this? </h4>  
+                  <h4>How would we set goals for this product?</h4>
+                  <h4>What would be our success metrics?</h4>
+
+
+<!-- 1. Assumptions   -->
+<h2>1. Assumptions  </h2>
+<h4>Freemium model with limitations</h4>
+<h4>Publicly traded, independent company</h4>
+<h4>Just the video product</h4>
+
+<h2>2. Product Rationale </h2>
+<h4><strong>Company Mission: </strong> Make video meetings frictionless </h4>
+<h4><strong>Competition: </strong> gMeet, facetime, messenger, slack, teams</h4>
+<h4><strong>Why does this exist?</strong> </h4>
+<ul>
+  <li>Allows people to connect and collaborate globally</li>
+  <li>Provides best in class video conferencing with low latency/lag, high resolution, ability to handle large volume of concurrent users, good built in tools</li>
+  <li>Has huge install base with lots of integrations already with productivity products</li>
+</ul>
+<h4><strong>Weaknesses/Threats? </strong></h4>
+<ul>
+  <li>Return To Office</li>
+  <li>Commoditized over time</li>
+  <li>Doesn't have other offerings (e.g., teams, gMeet) so could lose to integrated and bundled solutions</li>
+</ul>
+<h4><strong>Product lifecycle stage? </strong>Mature / potentially declining; need to focus on retention and monetization</h4>
+
+<h2> 3. Entities </h2> 
+<h4>Meetings</h4>
+<ul>
+  <li>Group meetings</li>
+  <li>1x1 meetings</li>
+  <li>1x many live stream events</li>
+</ul>
+<h4>Business users: enterprise, SMBs, schools</h4>
+<h4>Business Admin / purchasers</h4>
+<h4>Consumers</h4>
+
+<h2> 4. Objectives </h2> 
+<h4>1. Keep users connected and collaborating online </h4>
+<h4>2. Continue having best in class video tool</h4>
+<h4>3. Make online collaboration easier and more effective with additional tools and features </h4>
+<h4>Provide easy to use integrations</h4>
+
+<h2> 5.	Potential Metrics </h2> 
+<h4><strong>Monetization</strong></h4>
+<ul>
+  <li># of paid licenses</li>
+  <li>$ per license</li>
+  <li>ARR </li>
+</ul>
+<h4>Potential north star  </h4>
+<ul>
+  <li># of person meeting hours (ties together # of people and usage per person)</li>
+  <li># of people * meetings</li>
+  <li># of meetings</li>
+  <li>DAUs (most directly tied to # of licenses)</li>
+</ul>
+<h4>Usage</h4>
+<ul>
+  <li>Meetings / DAU</li>
+  <li>Hours / DAU (ties to willingness to pay and $ per license)</li>
+  <li>Hours / Meeting</li>
+  <li># of people per meeting</li>
+</ul>
+<h4>Retention rates</h4>
+<ul>
+  <li>hours</li>
+  <li>DAUs</li>
+  <li>Recurring revenue retention rate</li>
+  <li>License retention rate</li>
+  <li>Meeting minutes / licensed user</li>
+  <li># of meetings attended / licensed user </li>
+</ul>
+<h4>Frictionless, high quality tech </h4>
+<ul>
+  <li>Latency/lag, availability, resolution (p50, p99)</li>
+  <li>% meetings successfully started / attempted starts</li>
+  <li>Customer support ticket volume</li>
+  <li>Integrations with partners</li>
+  <ul>
+    <li># of people that start a meeting through another platform</li>
+    <li>% of meetings started through another platform </li>
+  </ul>
+</ul>
+
+<h2> 6. North Star Metric </h2> 
+<h4># of person meeting hours</h4>
+
+<h2> 7. Leading indicators / Secondary Success Metrics </h2>  
+<h4># of DAUs</h4>
+<h4>Hours / DAU</h4>
+<h4>% of meetings that use white board or other features</h4>
+<h4>Latency/lag, availability, resolution (p50, p99)</h4>
+
+<h2> 8. Health / Guardrail Metrics</h2>
+<h4>Retention rates for hours, DAUs</h4>
+
+<h2> 9. Tradeoff questions</h2>
+<h4><strong># of person meeting hours dropped 10% last month. What do you do?</strong></h4>
+<ul>
+  <li><strong>Clarification</strong></li>
+  <ul>
+    <li> <strong>Was it immediate or a trend?</strong> immediate</li>
+    <li><strong>Yoy?</strong> Yes</li>
+    <li><strong>sequential?</strong> Yes</li>
+  </ul>
+  <li> <strong>Internal questions</strong></li>
+  <ul>
+    <li>People having less meetings? yes</li>
+    <li>Are people creating less meetings? no</li>
+    <li>Are we seeing more meeting creation failures? yes</li>
+    <li>Did we release a code change that might have impacted it? Yes, it looks like we released a code change that created a bug for 10% of users that prevents them from creating new meetings.</li>
+  </ul>
+  <li><strong>External questions</strong> (skip)</li>
+  <li> Actions</li>
+  <ul>
+    <li>Rollback new version </li>
+    <li>Write correction of errors</li>
+    <li>	Marketing communication on Tier 1 outage</li>
+  </ul>
+</ul>
+
+
+
+                </div>
+                <!--/Bryce Example-->
+            
+                <!-------------------------------------------------  /Cheat Sheet                         -->
+              </div>
+            </div>
+          <!-- /.tab-content -->
+  
+        </section>
+        <!-- /.main -->
+    
+    </div>
+  </div>
+  
+</main>

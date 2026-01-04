@@ -972,3 +972,361 @@ div.code-toolbar>.toolbar a:hover, div.code-toolbar>.toolbar a:focus, div.code-t
 div.code-toolbar>.toolbar a:hover, div.code-toolbar>.toolbar a:focus, div.code-toolbar>.toolbar button:hover, div.code-toolbar>.toolbar button:focus, div.code-toolbar>.toolbar span:hover, div.code-toolbar>.toolbar span:focus {
   outline: 0;
 }
+
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+/************************************************** Flashcards CSS **************************************************/
+
+
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+/************************************************** Checkboxes **************************************************/
+
+ /* The form container */
+ 
+ #categories, #groups {
+  width:90%;
+}
+
+ .formSection {
+    display:flex;
+    align-items:center;
+    justify-content: center;
+}
+
+.formSection {
+  font-size: 1.5rem;
+}
+
+.CheckBoxContainer {
+    text-align: left;
+    display: block;
+    width: 75%;
+    position: relative;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin-bottom: 0.1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+ 
+ /* Hide the browser's default checkbox */
+.CheckBoxContainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  /* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 1.5em;
+    width: 1.5em;
+    background-color: #eee;
+    margin-top:0.2em;
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .CheckBoxContainer:hover input ~ .checkmark {
+    background-color: #ccc;
+  } 
+  
+  /* When the checkbox is checked, add a blue background */
+  .CheckBoxContainer input:checked ~ .checkmark {
+    background-color: #2196F3;
+  }
+  
+  /* Create the checkmark/indicator (hidden when not checked) */
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  /* Show the checkmark when checked */
+  .CheckBoxContainer input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  /* Style the checkmark/indicator */
+.CheckBoxContainer .checkmark:after {
+    left: 1.25rem;
+    top: 0.5rem;
+    width: 1rem;
+    height: 2rem;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    
+  }
+
+  /* Laptop layout */
+@media screen and (min-width: 1200px){
+  .CheckBoxContainer {
+    display: inline;
+    width: 25%;
+  }
+}
+
+/**************************************************  Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+/************************************************** Flash cards styles **************************************************/
+
+/* ------------------------Last Updated 2019.09.07-----------------------------*/
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/ 
+
+.textWindow {
+  margin: 1em;
+  height: 10em;
+  border: 0.25em solid black;
+  border-radius: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#FaceBox {
+height: 20em;
+}
+
+.faceBox {
+  height: 20em;
+  margin: 1em;
+  border: 0.25em solid black;
+  border-radius: 1em;
+}
+
+.faceBox p {
+  font-size: 2.5em;
+  text-align: center;
+}
+
+.faceBox h3 {
+  text-align: center;
+}
+
+.textWindow p {
+  font-size: 2.5em;
+  text-align: center;
+}
+#spanishBoxText {
+  font-size: 2em;
+  text-align: center;
+  display: block;
+}
+
+.textWindow h3 {
+  text-align: center;
+}
+
+.ctrWrapper {
+  text-align: center;
+}
+
+.greenButton {
+  text-decoration: none;
+  display: inline-block;
+  width: 5em;
+  height: 5em;
+  font-size: 2em;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 0 10px 0;
+  margin: 5px;
+  border-radius: 50%;  
+}
+
+.greenButton:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+#checkSection, #numberInputForm {
+  display:none;
+}
+
+#wrong {
+  background-image: url(../img/flashcards/xMark.png);
+  background-repeat: no-repeat; 
+  background-size:100%;
+  width:12em;
+  height:10.5em;
+  border:none;
+}
+
+#correct {
+  background-image: url(../img/flashcards/checkMark.png);
+  background-repeat: no-repeat;
+  background-size:100%;
+  width:12em;
+  height:10.5em;
+  border:none;
+}
+
+#spanishButtonArea {
+  margin: 1em 0 0 0;
+  height:11em;
+  
+}
+.basicButton {
+  font-size:1em;
+  display:block;
+  margin: 1em auto;
+  border: 0.05em solid rgba(56, 93, 138, 1);
+  border-radius: 1em;
+  padding: 0.5em;
+  color:white;
+  background-color: rgba(0,102,255,1);
+  width:15em;
+  height:3em;
+  box-shadow: #111 0 0 1px; 
+}
+
+.basicButton:hover {
+  background-color: #ddd;
+  color: black;    
+}
+
+
+#btn-stackSize {
+  background-color: white;
+  color:rgba(0,102,255,1);
+  font-weight: bolder;
+}
+
+.internalLink {
+  font-size:1em;
+  display:block;
+  text-align: center;
+  margin: 1em auto;
+  border: 0.05em solid rgba(56, 93, 138, 1);
+  border-radius: 1em;
+  padding: 0.5em;
+  color:white;
+  background-color: rgba(0,102,255,1);
+  width:15em;
+  height:3em;
+  box-shadow: #111 0 0 1px;    
+}
+
+.internalLink:hover {
+  background-color: #ddd;
+  color: black;    
+}
+
+table {
+  width: 100%;
+  padding:5px;
+  margin:5px;
+}
+
+th {
+  background-color:rgba(0,102,255,1);
+  color: white;
+  text-align: left;
+  padding: 10px;
+}
+
+tr {
+  border-bottom: 0.05em solid rgba(56, 93, 138, 1);
+  padding:5px;
+}
+
+td {
+  padding:5px;
+}
+
+.tableAddRow {
+  font-style: italic;
+  color: rgba(56, 93, 138, 1);
+}
+
+tr:hover {
+  background: rgba(0,102,255,.31);
+}
+
+/* grid system */
+
+.span1 {
+  width:8.3333%;
+}
+.span2 {
+  width: 16.666667%
+}
+
+.span3 {
+  width:25%;
+}
+
+.span4 {
+  width:33.333333%;
+}
+
+.span6 {
+  width: 50%;
+}
+
+.span8 {
+  width: 66.6666667%;
+}
+
+.span10 {
+  width: 83.333333%;
+}
+
+.span12 {
+  width:100%;
+}
+
+
+
+
+/* Laptop layout */
+@media screen and (min-width: 1200px){
+#FaceBox {
+      width: 20em;
+      margin:auto;
+  }
+      
+  .faceBox {
+      width: 20em;
+      margin:auto;
+  }
+
+  table {
+      width:30em;
+      margin:auto;
+  }
+
+}

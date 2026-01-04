@@ -1,0 +1,181 @@
+---
+title: 'PM 101'
+pm101: true
+coursesNav: true
+course: 'PM 101'
+---
+
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+            {{> pm101-accord}}
+        </div>
+      </nav>
+      <!-- /.sidebar -->
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="..//courses.html">Courses</a></li>
+              <li class="breadcrumb-item"><a href="/pm101/overview.html">Product Interview Prep</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Overview - Analytical Thinking and Product Execution</li>
+            </ol>
+          </nav>
+            <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+            <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+              <div class="cheat-sheet">
+                <!-- Bryce Example -->
+                <div class="bryce-example">
+                  <!-----------------------------------------------  Life 101.4-Predictably Irrational -----------------    -->
+                  <!-- #region -->
+
+<!-- 1. The purpose </h2> -->
+<h2>1. The purpose </h2>
+<p>The product execution interview is a critical component of the product manager hiring process and is almost as common and important as the product design interview. Unlike product design or strategy questions that focus on ideation, creativity, and vision, the product execution interview is designed to assess your ability to translate a product idea into a tangible, shippable reality. In essence, it tests your proficiency in the "how" of product management. This interview simulates a real-world scenario where you, as a product manager, are responsible for the day-to-day goals, metrics, and decisions required to iterate on a product or feature to move it in the right direction. The primary question for this interview will be something like "You are the PM for ABC product. What goals would have for the product? How would you measure success?". There also typically follow up questions, such as "The number of daily average users has dropped 10%. What would you do and what data would you need to understand and fix the problem?" or "You launched a feature that caused daily average users to drop 10% but time spent on app for each user to increase by 10%. Is this good or bad? What would you do?".</p>
+
+<p>  In most product roles (unless you are very senior or at a smaller company), you will own a small part of a very big product. It is important that your Chief Product Officer (or VP or GM...) trusts that you will achieve measurable goals that are aligned with the mission and strategic direction of the company. This will allow your leaders to push more decisions to you and run an organization that is "tightly aligned, and loosely coupled" (a generally ideal state in software engineering). </p>
+<br>
+
+<!-- <h2> 2. Core Interview Assessment Criteria </h2> -->
+<h2> 2. Core Interview Assessment Criteria </h2>
+<h4><strong>Product rationale:</strong> Do you understand why this product exists, how it ties to the mission of the company, and how it creates value for users and the company?</h4>
+<h4><strong>Goals - Reasonable, Measureable, and prioritized:</strong> Can you determine goals for the product that will align with the mission of the company and create value for users and the company? Are you able to effectively prioritize these goals and pick goals that you can measure? </h4>
+<h4><strong>Metrics that make sense:</strong> Do you select metrics that effectively measure the goals that you are trying to achieve? Do you identify and prioritize a good north star metric that is purposefully different than your seconadary metrics? Do you identify effective health and guardrail metrics to help ensure that you don't have unintended consequences or an unhealthy product ecosystem? Can you talk about the pros and cons of each metric and your metric prioritization decision? Can your metrics be used for product launch and trade-off decisions?  </h4>
+<h4><strong>Trade-offs decision making and judgement:</strong> Can you identify the root cause of a problem? Can you identify the pros and cons of products that have mixed results? Will you have good judgement as a product owenr?</h4>
+<br>
+
+<!-- <h2> 3. Additional dimensions that they may assess</h2> -->
+<h2> 3. Additional dimensions that they may assess</h2>
+<p>The interviewer uses this session to evaluate several core competencies essential for a successful PM at Meta:</p>
+<h4> <strong>Data Analysis and Metrics:</strong> Are you comfortable with numbers? You will be asked to define success metrics (AARRR, HEART, etc.), identify key performance indicators (KPIs), and diagnose problems based on hypothetical data. The goal is to see if you can use data to make informed decisions and measure a product's health. </h4>
+<h4> <strong>Problem Diagnosis:</strong> If a product's key metric drops unexpectedly, can you systematically and logically figure out why? This tests your ability to form hypotheses, identify potential root causes (technical bugs, UI changes, A/B test results, etc.), and outline a plan to investigate. </h4>
+<h4> <strong>Prioritization and Trade-offs:</strong> You will be presented with a multitude of tasks, bugs, and feature requests. The interviewer wants to see how you prioritize them. Can you articulate your reasoning, weigh trade-offs (e.g., speed vs. quality, user engagement vs. revenue), and build a defensible roadmap? </h4>
+<h4> <strong>Launch and Post-Launch Plan:</strong> The interview may ask you to detail the steps you would take to launch a feature. This includes pre-launch preparations (e.g., A/B tests, risk assessment) and post-launch activities (e.g., monitoring metrics, gathering feedback, planning next steps).</h4>
+<h4> <strong>Attention to Detail:</strong> Do you think about edge cases? Can you anticipate how a change might affect different user segments or parts of the product ecosystem? This part of the interview checks if you are meticulous in your planning and can foresee potential issues. </h4>
+<br>
+
+<!-- 4. Example Framework -->
+<h2>4. Example Framework</h2>
+<p> The below structure is an example framework that you can use to answer product execution questions. The purpose of it is to help you structure your answers and to think from a top down, stragtegic perspective to create measureable goals. This framework can also be used effectively on the job when you work in product. </p>
+<br>
+<br>
+<p><strong> 1. Assumptions: </strong> Ask clarification questions to make sure you what you are being asked and if their are any constraints or company goals that you should be aware of. </p>
+<br>
+
+<p><strong>2. Product Rationale</strong></p>
+<ul>
+  <li><strong>Company Mission:</strong> Your product objectives should support and align with the company's mission (e.g., Netflix's mission is to entertain the world). If your question is for a 0 to 1 startup, then create a hypothetical mission</li>
+  <li><strong>Why does this product exist?</strong>If you can explain why the product exists, it can help you focus on the right goals.</li>
+  <li><strong>Weaknesses/threats?</strong>If the product or company has any existential threats or significant weaknesses (e.g., Uber being disrupted by Waymo), then it can help you focus your objectives on areas that are more defensible for the company (e.g., senior citizens or other riders that need help from a human when riding). </li> 
+  <li><strong>Product lifecycle stage?</strong> Is this a new product looking to attract users, a mature product focused on monetization and retention or somewhere in between. This can change what goals and metrics you focus on now vs later.</li>
+</ul>
+
+<p><strong>3. Use breakdown</strong> The purpose of this section is to help you brainstorm and outline different users and how they might use your product. </p>
+<ul>
+  <li><strong>Customer segments / market sides:</strong> Determine the important customer segments for the product and (if relevant) the different sides of the market. </li>
+  <li><strong>Intent based customer journeys:</strong> Quickly outline the important steps of the user journey. If the user journey is significantly different for different customer segments (e.g., riders vs users for Uber), then outline each one here. </li>
+  <li><strong>Objects: </strong> If relevant, think through different relevant objects with your product (e.g., for Facebook marketplace, you might have sellers and buyers as your customer segments and listings as an object). </li>
+</ul>
+
+<p><strong>4. Objectives</strong></p>
+<ul>
+  <li>Create a list of potential objectives for each customer segment and for different parts of the customer journies.</li>
+  <li>As you are listing objectives, think through how they might tie back to company or product goals, given the products reason to exist, its weaknesses and threats, and its product lifecycle. Also think about which ones are measurable and which ones aren't.</li>
+  <li>Once you have a good list, prioritize the most important objectives. Typically, you want to have at least one objective for each customer segment and 2-3 total objectives.</li>
+</ul>
+
+<p><strong>5. Metrics</strong></p>
+<ul>
+  <li>For each objective, create a list of potential metrics.</li>
+  <li>Try to think through which metrics will be good north star metrics vs secondary success metrics and guardrail metrics. Talk about the  pros and cons of each metric. 
+</li>
+</ul>
+<ul><ul>
+  <li><strong>North star: </strong> Ideally, you can find one good north star metric that ties together all or most of your objectives. This could ideally be used in an A/B test to determine if you should launch a new feature or not. </li>
+  <li><strong>Secondary success: </strong> Typically, you will then have an additional primary success metric for each objective. </li>
+  <li><strong>Guardrail: </strong> Guardrail or health metrics are designed to make sure that you aren't causing harm to other products within your company, creating unintended negative side effects, or creating a product or ecosytem that isn't healthy or sustainable. </li>
+</ul></ul>
+
+<p><strong>6. Follow-up questions </strong>These will typically take two forms:</p>
+<ul>
+  <li><strong>(i) Trade off questions:</strong> These typically ask you a question in the format of a tough trade off. For example, one of your secondary metrics is going up but the other is going down, is this ok? They typically take the form of an engagement metric vs another engagement metric or an engagement metric vs a monetization metric. </li>
+</ul>
+<ul><ul>
+  <li> Step 1. How does this impact your northstar, secondary, and health metrics (if not already stated)</li>
+  <li> Step 2. What are the pro's / con's of this trade-off and what does this mean for your product</li>
+  <li>Step 3. What are 2-3 actions you would want to take to learn more, fix the problem, etc</li>
+</ul></ul>
+<ul><li><strong>(ii) Troubleshooting questions: </strong> When managing a product, you will need to understand what drives your metrics. When one of your metrics changes, you will have diagnose why this happened and what to do about it (if anything). An example question might be something like, your north star metric dropped 10%, what do you do? This exercise may feel a little bit like fishing, when you ask the interviewer a series of questions to try to understand what is causing the change and the interviewer replies back with simple responses (e.g., we didn't see a change there or we saw the change in one segment but not the other).</li></ul>
+
+<p><strong>7. Troubleshooting checklist (if needed): </strong>If you have a troubleshooting question, you can use this checklist to help you find the root cause of the metric change and then determine what to do about it (if anything).</p>
+<ul>
+  <li><strong>Step 1. Pinpoint the drop:</strong> Ask the interviewer...</li>
+  <ul>
+     <li> <strong>(a) Time period? </strong> Over what period did the change occur? </li>
+    <li><strong> (b) Trend? </strong> Was the change a slow trend (might be a new competitor taking share) or an immediate change (might be a bug from a new feature launch)? </li>
+    <li><strong> (c) Yoy? </strong> Was it year over year or sequential (might be due to seasonality if sequential)? </li>
+    <li><strong> (d) Geography?</strong> Did it happen evenely across all geographies?</li>
+    <li><strong> (e) Data clean? </strong> Confirm that data is reliable and there aren't any data quality issues. </li>
+    <li> <strong>(f) Platform: </strong> Did this happen evenly across iOS, android, desktop, mWeb, etc? </li>
+  </ul>
+  <li><strong>Step 2. External factors: </strong> Ask the interviewer...</li>
+  <ul>
+    <li><strong>(a) Industry: </strong> Is this due to seasonality? Were there any changes in market share or similar trends across other companies?</li>
+    <li><strong>(b) Competitors: </strong> Were there any new entrants or changes in competitors content, product, go to market strategy, pricing...?</li>
+    <li><strong> (c) Environment: </strong> Were there any changes to regulations, events, holidays, strikes,...? </li>
+    </ul>
+  <li><strong>Step 3. Internal factors: </strong> Ask the interviewer...</li>
+  <ul>
+    <li><strong>(a) Sales & marketing: </strong> Was there a change in spend, strategy, or pricing?</li>
+    <li><strong> (b) Tech: </strong>Was there a product redesigns, new feature test or launch, or potential bugs (new feature, API down)?</li>
+    <li><strong> (c) Customer Segments: </strong> Did this happen evenly across all customer segments? For example, new vs existing customers. If it was new only, think through the inbound traffic (paid, organic search results), direct, referral. Then walk through through the customer journey and determine if the change happened at any particular step of the journey.</li>
+  </ul>
+  <li><strong>Step 4. Action plan: </strong> Based on what you discovered, determine if you need to take any actions. If the change was due to seasonality, for example, you may not need to make a change. If it was due to a bug, you may just need to rollback the change that introduced the bug. If it was due to a new competitive entrant, then you might need to think a bit more strategically about what to do next. </li>
+</ul>
+<br>
+
+<!-- 5. Using GenAI to mock!</h2> -->
+<h2> 5. Using GenAI to mock!</h2>
+<ul><ul class="code-comment-list">
+  <li><code>I am interviewing for a meta product management interview. In the interview, I am pretending to be a product manager for facebook groups. The interviewer asked three questions: 1. Why does this product exist? 2. How would we set goals for this product? 3. What would be our success metrics?
+  Please provide me a structured answer that talks about 1. Why does this product exist? 2. What are important customer segments and customer journeys for this product, 3. What are potential metrics to track each customer segment, each customer journey step, and the overall health of the product, 4. What should be the objective(s) of this product and why?, 5. which metric would we use to measure if the product was successful in achieving this objective and why? 6. What are some example guardrail or product health metrics? 
+</code></li>
+</ul></ul>
+<br>
+
+
+<!-- 6. Conclusion</h2> -->
+<h2>6. Conclusion</h2>
+<p>Most tech companies operate at an immense scale, and even a small change can have a massive impact. The PM role is not just about big ideas; it's about the execution of those ideas with precision and a deep understanding of data and user behavior. A strong PM must be able to:</p>
+<ul>
+    <li>Identify and communicate measurable goals for their product </li>
+    <li>Use data to justify decisions and measure impact</li>
+    <li>Monitor and own a product's health and performance</li>
+</ul>
+
+<p>By acing the product execution interview, you demonstrate that you have the tactical skills and analytical rigor to succeed as a PM. Understanding how a company can move beyond high-level strategy to the practical art of building, shipping, and maintaining great products.</p>
+
+
+                </div>            
+                <!-------------------------------------------------  /Cheat Sheet                         -->
+              </div>
+            </div>
+          <!-- /.tab-content -->
+  
+        </section>
+        <!-- /.main -->
+    
+    </div>
+  </div>
+  
+</main>

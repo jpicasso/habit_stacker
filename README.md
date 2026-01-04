@@ -29,10 +29,6 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 2. cd to folder directory in terminal and enter `gulp watch` (automatically pulls up local deployment)
 3. Copy / paste new `dist` folder onto your hosting site of choice
 
-### Run locally
-1. cd to folder directory in terminal
-2. enter `gulp watch` (automatically pulls up local deployment)
-
 ### Debugging
 Note: if gulp watch function is not working, follow these steps
 - go to root directory by pressing `cd` on CLI 
@@ -50,7 +46,3 @@ Note: if gulp watch function is not working, follow these steps
 
 ### Notes
 - Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character
-
-
-### FAQ
-1. How do I preview the site on my local machine? TK

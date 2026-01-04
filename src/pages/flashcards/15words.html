@@ -1,0 +1,161 @@
+---
+title: 'Flashcards'
+pm101: true
+coursesNav: true
+course: 'Flashcards'
+---
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+            {{> flashcards-accord}}
+        </div>
+      </nav>
+      <!-- /.sidebar -->
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="..//courses.html">Courses</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Learn a language</li>
+            </ol>
+          </nav>
+            <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+            <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+              <div class="cheat-sheet">
+                <!-- Bryce Example -->
+                <div class="bryce-example">
+                  <!-----------------------------------------------  Life 101.4-Predictably Irrational -----------------    -->
+                  <!-- #region -->
+
+		<h2> 15 words in 15 Languages </h2>
+		<p id="scorecard"> # Correct: Not Started </p>
+		<br>
+		<p id="wordsLoaded"> Box holds 0 words </p>
+		
+		<div id="spanishBox" class="textWindow">
+			<p id="spanishBoxText"> Select categories and press next!<p>
+		</div>
+		<div id='nextSection' class="ctrWrapper">
+			<button id="next" class="greenButton"> Next </button>
+		</div>
+		<div id="checkSection" class="ctrWrapper">
+			<button id="wrong"></button>
+			<button id="correct"> </button>
+		</div>
+		
+		<div id='spanishButtonArea' class="ctrWrapper">
+			<button class='basicButton' id='engToSpanish'>English to Foreign Language </button>
+			<select class='basicButton' id="btn-stackSize">
+				<option>Stack Size</option>
+			</select>
+			<button class='basicButton' id='nextStack'>Next Stack </button>
+		</div>
+		<br>
+		
+		<div class="formSection">
+			<form id="categories">
+				<p> European Languages (6) </p>
+				<br>
+				<label class="CheckBoxContainer"> Spanish
+					<input type="checkbox" name="categories" value="Spanish">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">French
+					<input type="checkbox" name="categories" value="French">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Italian
+					<input type="checkbox" name="categories" value="Italian">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Portuguese
+					<input type="checkbox" name="categories" value="Portuguese">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Greek
+					<input type="checkbox" name="categories" value="Latin">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">German
+					<input type="checkbox" name="categories" value="German">
+					<span class="checkmark"></span>
+			    </label>	
+			
+				<br>
+				<br>
+				<p> Asian Languages (6) </p>
+				<br>
+				<label class="CheckBoxContainer">Mandarin (Chinese)
+					<input type="checkbox" name="categories" value="Mandarin">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Hindi
+					<input type="checkbox" name="categories" value="Hindi">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer"> Bengali
+					<input type="checkbox" name="categories" value="Bengali">
+					<span class="checkmark"></span>
+				</label>	
+				<label class="CheckBoxContainer"> Korean
+					<input type="checkbox" name="categories" value="Korean">
+					<span class="checkmark"></span>
+				</label>	
+				<label class="CheckBoxContainer">Japanese
+					<input type="checkbox" name="categories" value="Japanese">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Russian
+						<input type="checkbox" name="categories" value="Russian">
+						<span class="checkmark"></span>
+				</label>	
+				<br>
+				<br>
+				<p> Other Languages (3) </p>
+				<br>
+				<label class="CheckBoxContainer">Swahili
+					<input type="checkbox" name="categories" value="Swahili">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer">Hebrew
+					<input type="checkbox" name="categories" value="Hebrew">
+					<span class="checkmark"></span>
+				</label>
+				<label class="CheckBoxContainer"> Arabic
+					<input type="checkbox" name="categories" value="Arabic">
+					<span class="checkmark"></span>
+				</label>
+				<br>
+				<br>
+			</form>
+		</div>
+
+
+                </div>
+                <!--/Bryce Example-->
+            
+                <!-------------------------------------------------  /Cheat Sheet                         -->
+              </div>
+            </div>
+          <!-- /.tab-content -->
+  
+        </section>
+        <!-- /.main -->
+    
+    </div>
+  </div>
+  
+</main>
+{{> main-site-footer }}
+
+	
