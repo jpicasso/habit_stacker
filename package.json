@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Static templates for West Arete / Penn State app",
   "main": "./js/index.js",
+  "engines": {
+    "node": "14.4.0"
+  },
   "dependencies": {
     "browser-sync": "^2.26.7",
     "gulp": "^4.0.2",
-    "gulp-sass": "^4.1.0"
+    "gulp-sass": "^4.1.0",
+    "sass": "^1.97.2"
   },
   "devDependencies": {
     "gulp-watch": "^5.0.1",
