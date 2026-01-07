@@ -65,3 +65,4 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
 
 exports.style = style;
 exports.watch = watch;
+exports.build = gulp.series(style, compileHtml, copyImages, copyJs);
