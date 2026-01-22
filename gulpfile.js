@@ -30,6 +30,11 @@ function copyJs() { // Copy the js folder and its subfolders to /dist
     .pipe(gulp.dest('dist/js'));
 }
 
+function copySounds() { // Copy the sounds folder and its subfolders to /dist
+  return gulp.src(['./src/sounds/**/*'])
+    .pipe(gulp.dest('dist/sounds'));
+}
+
 function compileHtml() { // Compile panini templates and output to /dist
   return gulp.src('./src/pages/**/*.html')
     .pipe(panini({
@@ -46,6 +51,7 @@ function startup() { // Run all the tasks (occurs once when gulp watch starts up
   compileHtml();
   copyImages();
   copyJs();
+  copySounds();
 }
 
 function watch() { // Run startup tasks, init browserSync and watch for changes to all project files
@@ -60,9 +66,10 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
   gulp.watch('./src/js/**/*.js',{cwd:'./'}).on('change', gulp.series(copyJs, browserSync.reload));
   gulp.watch('./src/img/**/*.*',{cwd:'./'}).on('change', gulp.series(copyImages, browserSync.reload));
+  gulp.watch('./src/sounds/**/*.*',{cwd:'./'}).on('change', gulp.series(copySounds, browserSync.reload));
   // gulp.watch('./src/{layouts,partials}/**/*').on('change', gulp.series(resetPages, compileHtml, browserSync.reload));
 }
 
 exports.style = style;
 exports.watch = watch;
-exports.build = gulp.series(style, compileHtml, copyImages, copyJs);
+exports.build = gulp.series(style, compileHtml, copyImages, copyJs, copySounds);

@@ -1,0 +1,94 @@
+---
+title: 'Chess'
+chess: true
+coursesNav: true
+course: 'Chess'
+---
+
+
+{{> navbar}}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+            {{> chess-accord}}
+        </div>
+      </nav>
+      <!-- /.sidebar -->
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        <!-- .tab-content -->
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="..//courses.html">Courses</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Product Thinking and PM Interview Prep</li>
+            </ol>
+          </nav>
+            <!---------------------------------------------------  Cheat Sheet ----------------------    -->
+            <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel" aria-labelledby="cheat-sheets-tab">
+              <div class="cheat-sheet">
+                <!-- Bryce Example -->
+                <div class="bryce-example">
+                  <!-----------------------------------------------  Life 101.4-Predictably Irrational -----------------    -->
+                  <!-- #region -->
+
+<!-- 1. Assumptions   -->
+
+<h2>A. Chess Tactics </h2>
+
+<h3> 1. Direct attacks</h3>
+<h4> <strong>1.1 Fork:</strong> One piece attacks two or more enemy pieces simultaneously.</h4>
+<h4> <strong>1.2 Pin:</strong> A piece is unable to move because doing so would expose a more valuable piece (or the King) behind it (only bishops/rooks/queens can do this)</h4>
+<h4> <strong>1.3 Skewer:</strong> A piece attacks a valuable enemy piece, forcing it to move and exposing a less valuable piece behind it; pin has more valuable piece behind less valuable one; skewer is the reverse; only bishops/rooks/queens can do this</h4>
+<h4> <strong>1.4 Discovered Attack:</strong> Moving a piece to unblock a line of attack for a friendly piece standing behind it. Also includes Discovered Check and Double Check.</h4>
+<h4> <strong>1.5 Hanging Pieces:</strong> Leaving a piece unprotected and exposed to capture.</h4>
+<h3> 2. Breaking defences </h3>
+<h4> <strong>2.1 Overloading:</strong> Targeting a defensive piece that is trying to protect too many squares or pieces at once.</h4>
+<h4> <strong>2.2 Undermining:</strong> Capturing or driving away a defending piece to leave an enemy target vulnerable (also called "Removing the Defender").</h4>
+<h4> <strong>2.3 Deflection:</strong> Forcing a key defender to move away from its job</h4>
+<h4> <strong>2.4 Decoy:</strong> Forcing a piece to a bad or “poison square”</h4>
+<h4> <strong>2.5 Pawn break through:</strong> Breaking through a pawn shield to attack the king.</h4>
+<h3> 3. Combos</h3>
+<h4> <strong>3.1 Sacrifice:</strong> Deliberately giving up material to gain a tactical or positional advantage (e.g., to clear a square or open a line); Includes Queen Sacrifice,  Exchange Sacrifice, and Clearance Sacrifice</h4>
+<h4> <strong>3.2 Overloading:</strong> Targeting a defensive piece that is trying to protect too many squares or pieces at once.</h4>
+<h4> <strong>3.3 Intermezzo:</strong> Playing a surprising "in-between" move that creates a new threat before responding to the opponent's previous move.</h4>
+<h4> <strong>3.4 X-Ray attack:</strong> Attacking through a piece to pressure or target what lies behind it; only bishops/rooks/queens can do this</h4>
+<h4> <strong>3.5 Battery:</strong> Lining up two pieces in a row (bishop, rook, or queen) to form an attack across a line or diagonal </h4>
+<h3> 4. Rare but powerful</h3>
+<h4> <strong>4.1 Piece trap:</strong> Forcing a piece into inescapable capture</h4>
+<h4> <strong>4.2 Interference:</strong> Placing a piece to block an enemy line of defense or communication</h4>
+<h4> <strong>4.3 Windmill:</strong> A repeated series of discovered checks that lets you capture material between checks; only bishops/rooks/queens can do this</h4>
+<h4> <strong>4.4 Desperado:</strong> Using a piece that will be lost to try to capture the best opponent piece along the way</h4>
+
+<h3> 5. Endgame wins</h3>
+<h4> <strong>5.1 Simplification:</strong> when winning, trade pieces with opponent to avoid complicated games that could lead to mistakes</h4>
+<h4> <strong>5.2 Zugzwang:</strong> (move compulsion) – Any move worsens your position because you are forced to move</h4>
+<h4> <strong>5.3 Smothered Mate:</strong> Checkmate delivered when the king is trapped by its own pieces, usually via a knight.</h4>
+<h4> <strong>5.4 Underpromotion:</strong> Promoting a pawn to a piece other than a queen for tactical reasons</h4>
+<h3> 6. Endgame draws</h3>
+<h4> <strong>6.1 Forced stalemate:</strong> Deliberately engineering a position with no legal moves but not in check.</h4>
+<h4> <strong>6.2 Perpetual check:</strong> Checking repeatedly so the opponent cannot escape, forcing a draw.</h4>
+<h4> <strong>6.3 Fortress:</strong> create a protected wall so opponent can’t penetrate without a sacrifice </h4>
+
+
+                </div>
+                <!--/Bryce Example-->
+            
+                <!-------------------------------------------------  /Cheat Sheet                         -->
+              </div>
+            </div>
+          <!-- /.tab-content -->
+  
+        </section>
+        <!-- /.main -->
+    
+    </div>
+  </div>
+  
+</main>

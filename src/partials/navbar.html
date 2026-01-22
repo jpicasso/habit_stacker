@@ -33,12 +33,17 @@
                 <li class="nav-item {{#if hackedself }}active{{/if }}"><a href="/hackedSelf/Overview.html" class="nav-link"> Book Summaries </a></li>
                  <li class="nav-item {{#if hackedself }}active{{/if }}"><a href="/flashcards/spanish.html" class="nav-link"> Learn Languages </a></li>
                  <li class="nav-item {{#if hackedself }}active{{/if }}"><a href="/flashcards/quick_math.html" class="nav-link"> Quick Math </a></li>
+                 <li class="nav-item {{#if hackedself }}active{{/if }}"><a href="/hackedSelf/chess_overview.html" class="nav-link"> Chess </a></li>
               </ul>
             </div>
           </div>
         </div>
       </div>
     </li>
+    <li class="nav-item {{#if PrivateNav }}active{{/if }}" id="private-nav-item" style="display: none;"><a class="nav-link" href="{{ root }}private.html">Private</a></li>
+    <li class="nav-item"><a class="nav-link" id="login-button" href="#" onclick="handleLogin(); return false;" style="display: none;">Login</a></li>
+    <li class="nav-item"><a class="nav-link" id="logout-button" href="#" onclick="handleLogout(); return false;" style="display: none;">Logout</a></li>
+    <!-- <li><div id="cart-dropdown"></div></li> -->
     <!-- <li class="nav-item {{#if mentorsNav }}active{{/if }}"><a class="nav-link" href="{{ root }}mentors.html">Mentors</a></li> -->
     <!-- <li class="nav-item {{#if aboutNav }}active{{/if }}"><a class="nav-link" href="{{ root }}about.html">About</a></li> -->
   </ul>

@@ -7,8 +7,8 @@ $(document).ready(function () {
     var foreignDictionarySpan101 = ['hola','sí','no','gracias','Perdóneme','Por favor','lo siento','a la izquierda','a la derecha','derecho','aquí','ahí','Giro de vuelta','agua','cerveza','vino','baño','comida','no hablo español','habla usted Inglés','Cuánto cuesta este','puedes tomar mi foto','Necesito','quiero','tú','yo','nosotros','ellos','adiós','¿como se dice "hello" en español?','me siento cansado','me siento enfermo','¿estas molesto?','¿estas triste?','cansado','enfermo','molesto','triste','feliz','asustado','enojado','confuso','avergonzado','tengo hambre','Soy alto','soy bajito','yo tengo una altura promedio','promedio','Flaco','gordo','Yo soy peso promedio','bonita','feo','Eres hermosa','Señor','Señora','Señorita','pequeña','grande','largo','Quiero bailar','me gusta bailar','¿Quieres bailar conmigo?','quiero festejar','correr','andar','para navegar','ir de excursión','a la bicicleta','levantar pesas','jugar','quiero jugar baloncesto','fútbol','fútbol americano','tenis','golf','béisbol','hockey','lacrosse','voleibol','remo','ping pong','me gusta esquiar','me gusta surfear','ejercitar','hacer ejercicios','ir de compras','ajedrez','videojuegos','cartas','el café','bebidas','jugos','batidos','vino tinto','vino blanco','cócteles','cerveza','agua','soda','refresco','Usted','otra vez','y','pero','Es una buena idea.','No es problema.','de nada','tal vez','ustedes','moderno','Mucho','nada más','de','vendedor','canción','especial','tambien','hasta','manzana','plátano','baya','arándano','rasberry','frutas','maíz','uvas','lechuga','limón','Lima','cebolla','naranja','piña','pepinillos','patata (Spain) / papa','frijoles refritos','Espinacas','fresa','el tomate','ensalada mixta','verduras / las legumbres','Pepino','jalapeño','zanahorias','hongos','pimientos','cebollas','la carne de res','tocino','albóndiga','pepperoni','chorizo','cordero','pollo','bacalao','pato','filete miñón','pescado','el jamón','hamburguesa','carnes','puerco','proteínas','el salmón','mariscos','los camarones','el bistec','el atún','huevo','carne asada','Pancho','pizza','el taco','cangrejo','langosta','el atún','pan de trigo','pan blanco','¿Puedo ver el menú?','plato','Esto es muy bueno','Eso fue muy bueno','comida','aves','fresco','especialidad de la casa','tengo hambre','Quiero','no es problema','lista','nada más','servicio','carrito','aviso','sopa del día','supermercado','restaurante','una dieta','queso','queso suizo','bocadillo','pastas','pan','arroz','mayonesa','mostaza','guacamole','salsa de tomate','aceite y vinagre','orégano','pimienta','sal','salsa','tener hambre','seguir una dieta','tener sed','costar (o>ue)','cenar','tomar el desayuno','almorzar (o>ue)','tomar el almuerzo','tomar un trago','hacer compras','comer','Yo comi una hamburguesa','tomar','¿Qué toma?','cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','treinta','treinta y uno','cuarenta','cincuenta','sesenta','setenta','ochenta','nuventa','cien; ciento','ciento uno','doscientos (~as)','doscientos uno','trescientos','cuartrocientos','quinientos','seiscientos','setecientos','ochocientos','nuvecientos','mil','mil ciento uno','dos mil','diez mil','un millón','dos millones','un billón; mil millones','dinero','el frío','el calor','¿Cuántos grados hace?','húmedo','humedad','Hace frío.','Hace calor.','Hace buen (mal) tiempo.','Llueve.','Nieva','Hace sol.','Hace viento.','el impermeable','lluvioso','el/los paraguas','caliente','el tiempo','¿Qué tiempo hace?','recaudado (recaudar)','desear','aceptar','poder (o>ue)','comienzan (comenzar)','creer','mirar','tocar','comprar','llamar','morir (o>ue)','hacer','beber','comer','tener que','invitar','conducen (conducir)','partir','escuchar','vivir','buscar','deber','abrir','leer','recibir','descansar','volver (o>ue)','correr','mostrar (o>ue)','dormir (o>ue)','oler (o>ue)','fumar','hablar','estudiar','llevar/usar','escribir','encontrar (o>ue)','necesitar','el jefe','compañia','el/la cliente','Hablan español?','empleado','busca un trabajo','Cuánto gana por año?','No trabajo el sábado.','No trabajo los sábados.','los sabados descanso','Trabajo mucho pero no gano mucho','importante','es necesario','por año','salarío','secretario','ganar','ganarse la vida','buscar un trabajo','descansar','trabajar','vacaciones','por semana','Cómo es su jefe?','Cómo es su trabajo?','Quién es su jefe?','trabajo','estudias español','café','marrón','oscuro','verde','gris','claro','rosado','morado','rojo','celeste','violeta','blanco','amarillo','negro','azul','colores','gris','un día','una media hora','un minuto','un mes','un cuarto de hora','un segundo','una semana','de hoy en una semana','un año','cerca de las ocho','después de las siete','hace ','todo el año','una hora','Son las','abril','más o menos las ocho','a eso de las dos','a las nueve en punto','¿a qué hora?','agosto','otoño','antes de las nueve','día','pasado mañana','anteayer','diciembre','durante','temprano','la víspera','febrero','Es la una','Viernes','desde','buenas tardes','buenas noches','Buenos días','dentro de un rato','en una hora','en julio','en verano','por la mañana','por la tarde','de la noche','de la mañana','Es la una y media','Son las cinco menos viente','Son las cuatro y cuarenta','Es la una','es tan tarde','Son las dos','enero','julio','junio','pasado','último','tarde','de retraso','marzo','mayo','la medianoche','Lunes','Lunes y martes son día de vacaciones.','meses','en mi reloj, son las tres','próximo','el mediodía','noviembre','ahora','octubre','hace una hora','por','sábado','estaciones','hasta manana','septiembre','en punto','desde las ocho','¿desde qué hora?','primavera','verano','domingo','pasado mañana','el otoño','la primavera','el verano','el invierno','jueves','la hora','hoy','hoy','Hoy es lunes','mañana por la mañana','mañana','mañana por la tarde','mañana por la noche','martes','hasta las diez','el reloj','miércoles','¿Qué día es hoy?','¿Cuál es la fecha de hoy?','¿Qué hora es?','cuándo?','por qué?','invierno','ayer','enfrente de','la dirección','Detrás de','delante de','entre','direcciones','permiso','perdón / perdóneme / disculpe / dispense','lejos','aquí','el hotel','¿En qué peudo servirle?','Necesito información','deseo probármelo','Vuelvo en seguida.','voy a probármelo','lo siento','Le estoy muy agradecido','en','información','Es un hotel de primera clase','el mapa','cerca','al lado de','en la esquina','por favor','repita, por favor','el restaurante','herido de seriedad','situada','tienda','el calle','a la izquierda (de)','a la derecha (de)','Cuál es la dirección del hotel?','Cómo es el restaurante?','Qué tipo de hotel es?','Dónde está el hotel?','Cuál es el mejor de los dos?','de nada','grande','malo','querido','novio/novia','hermano/hermana','encantador','primo/prima','familia','parentescos','padre/madre','favorito','amigo/amiga','padrino/madrina','bueno','abuelo/abuela','nieto/nieta','contento','esposo/esposa','vamos a ver','hombre/mujer','sobrino/sobrina','persona','reunido','pequeño','hijo/hija','cuidar a los niños','junto','tío/tía','boda','joven/jóvenes','a su sobrino le va a gustar mucho','excelente','No creo.','No creo.','Me siento fatigada.','Me siento bien.','me gusta mucho este modelo','me interesa el equipo de video','me parece moderno','dolor','listo,-a','a ella le gustan ésos','enfermo','seguro,-a','seguramente','terrible','tener frío','tener calor','estar seguro','encantar','sentirse','tener ganas de (+ infinitive)','tener fiebre','tener dolores en/de','interesar','falta / hacer falta','parecer','parecer barato','parecer caro','sufrir','sin duda','una clase de yoga','ejercicio','Escuchamos música','cuenta','mesero','mesera','gaseosa','chuletas','puré de maíz','una dieta alta en proteínas','carbohidratos','plato del día','Todo huele bien.','¿de donde eres?','brazo','espalda','bonito','aburrido','ocupado','pecho','el país','dificil','oreja','madrugador','fácil','ojo','hazaña','dedo','el pie','Adiós','Bueno','saludos','cabello','la mano','cabeza','la salud','Hola','Cómo estás?','Qué tal','Soy de','estoy bien','estoy contento','estoy mal','estoy triste','estoy cansado','interesante','presentaciones','Mucho gusto','pierna','gustos','boca','música','me llamo John','Mi nombre es','llamarse','cuello','la nariz','simpático','hombro','la piel','el gusto es mío','garganta','ser','estar','estar de moda','gustar','tener una cita','tener planes','tener tiempo','lengua','feo','antisimpático','muy','Bienvenido','Qué pasa','Qué hay de nuevo','?cómo te llamas?','De donde eres','con','un par de zapatos','un vestido de seda','en casa','en mi casa','bolsa','el cinturón','blusa','el cuerpo','grabadora para cintas','ropa','televisor de color','disco compacto','el algodón','aparatos electrónicos','equipo','un pañuelo','sombrero','chaqueta','alto-parlantes','máquina','telas','modelo','equipo de música','abrigo','los pantalones','a radio','tocadiscos','camisa','zapatos','seda','falda','cajita','los calcetines','equipo de sonido','estereofónico','las medias','el traje','el suéter','televisor','corbata','video','equipo de video','video-grbadora','máquina filmadora','lana','angostas callejuelas','el hogar de ancianos','soy yo','fábrica','operario','yo tengo','diversiones','las corridas de toros','concursos','fuegos artificiales','desfiles','presenciar este suceso','garantía','el plan','tener cuidado'];
     var categories15Languages = ['Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','Spanish','French','French','French','French','French','French','French','French','French','French','French','French','French','French','French','French','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Italian','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Portugues','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','Greek','German','German','German','German','German','German','German','German','German','German','German','German','German','German','German','German','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Mandarin','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Hindi','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Bengali','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Korean','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Japanese','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Russian','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Swahili','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Hebrew','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic','Arabic'];
     var englishDictionary15Languages = ['hello','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food','hi','yes','no','thank you','excuse me','please','sorry','to the left','to the right','straight','here','there','water','beer','bathroom','food'];
-    var foreignDictionary15Languages = ['Hola (OH-lah)','sí (see)','No (No)','Gracias (grah-syahs)','perdón (pehr-dohn)','por favor (pohr fah-vohr)','lo siento (loh see en toe)','a la izquierda (ah lah ees-kyehr-dah)','a la derecha (ah lah deh-reh-chah)','derecho (deh-reh-choh)','aquí (ah-KEE)','Ahí (ah-ee)','agua (ah-wah)','cerveza (sehr-veh-sah)','baño (bah-nyoh)','comida (koh-mee-dah)','salut (saloo)','oui (wee)','non (nohn)','Merci (mehr-see)','excusez-moi (eks-koo-zay mwah)','S`il vous plaît (seel voo play)','désolé(e) (day-zoh-lay)','à gauche (a gosh)','à droite (a dwat)','droit (drwa)','ici (ee-see)','là (laa)','l`eau (low)','bière (bee-air)','salle de bain (sahl de ban)','nourriture (noo-ree-toor)','ciao (chow)','Sì (see)','no (noh)','Grazie (graht-see-eh)','Scusi (skoo-zee)','per piacere, per favore, or prego (pair pee-ah-CHEH-reh), (pair fah-VOH-reh), or (PREH-goh)','Scusa (skoo-zah)','a sinistra (ah see-NEES-trah)','a destra (ah deh-strah)','retto (ret-toh)','eccoti, eccolo, ecc. (eh-koh-tee, eh-koh-loh, ech)','lì, là (lee, lah)','acqua (ak-kwah)','birra (beer-rah)','bagno (bahn-yoh)','cibo (chibo)','oi (oy)','sim (sing)','não (nah-oom)','obrigado (oh-bree-GAH-doh)','Com licença (kohm lee-sen-sah)','por favor (poor favohr)','Sinto muitíssimo (Seentoo mweetee-seemoo)','à esquerda (ah esh-KER-da)','à direita (ah dee-ray-tah)','em linha reta (eng leen-ya reh-ta)','aqui (ah-kee)','lá (la)','água (awa)','cerveja (sair-vey-zhuh)','casa de banho (kaz-uh dee ban-yoo)','comida (koo-MEE-dah)','(sal-vay)','(eeta)','(non)','(grah-tee-ahs tib-ee ah-go)','(sig-NO-mi)','(parakaló)','(pae-ni-tet)','(apelitikós)','(yoo-stoom)','(isios)','(hik)','(ee-vee)','(Nero)','(ker-WISS-ee-a)','(ba-lin-ee-um, bal-nee-um)','(kibus)','(hah-loh)','(yah)','(nine)','(Dahn-kuh)','(ent-SHOOL-dee-goong)','(BIH-tuh)','(es toot meer lyt)','(leenks)','(rehts)','(guh-RAH-duh)','(heer)','(dort)','(vasa)','(beer)','(Bah-duh-tsim-mer)','(ESS-en)','(hai)','(shih)','(Bù)','(xie xie)','(boo how yee suh)','(qǐng)','(dway-boo-chee)','(kào zuǒbiān)','(yoh-bee-en)','(zhi)','(jeh-lee) or (jeh-er)','(nàr)','(shui)','(píjiǔ)','(xǐshǒujiān)','(shí wù)','Namaste','ha','nahin','Dhanyawad','Maaf Keejiyay','kri-pya','maaf karaNaa','baa-een or','dahinee or','Seedha','yahan','vahaan','Paanee','biyar','snaan-ghar','bhojan','(hai)','(haen)','(na)','(Dhonnobaad)','(Dukkhito)','(onurodh)','(soree)','(baam dike)','daandike','(shoja)','(Ekhāne)','(sekahne)','(jol)','(biar)','(snan-ghor, kol-ghor)','(khaddo)','(annyeong) or (hi)','(ne)','(aniyo)','(gamsahamnida)','(sillyehamnida)','(jebalyo)','(mianhamnida)','(oenjjogeuro)','(oreunjjogeuro)','(godeun)','(yogi)','(mueongaga)','(mul)','(maekju)','(hwajangshil)','(eumshik)','(Kohn-nee-chee-wah)','(hi)','(iie)','(Arigatou)','(Sumimasen)','(Onegaishimasu)','go-men','(hidari ni)','(migi e)','(massugu)','(koko)','(soko)','(mizu)','(biiru)','(Basurūmu)','(Tabemono)','(pree-vyet)','(da)','(nyet)','(Spasiba)','iz-vi-NYEE-tye','(Pozhaluysta)','(Prostite)','(nalevo)','(sprava)','(pryamóy)','(zdes`)','(tam)','(voda)','(PEE-vah)','(vánnaya)','(yeda)','(hoo-jahm-boh)','(ndee-yoh)','(hah-pah-nah)','(ah-sah-nteh)','(sah-mah-hah-nee)','(tah-fah-dah-lee)','(po-leh)','(koo-SHOH-toh)','(kweh-soh-kood-lah)','(sah-wah)','(hah-pah)','(hoo-koh)','(MAA-jee)','(bee-ah)','(bah-foo)','(chah-koo-lah)','(hai)','(ken)','(lo)','(toh-DAH)','(S`lakh Lee)','(bevakashah)','(slee-CHAH)','(l`smo`l)','(yeminah)','(yashar)','(Kan)','(sham)','(Mayim)','(beer)','(chadar ambatiyah)','(ma`achal)','(Ahlan Wa Sahlan)','(na`am)','(La)','(Shukran)','(`afwan)','Min faḍlik (min fahd-lick)','(Ana Asif)','(ila alyasaar)','(ala al-yameen)','(mustaqīm)','(Huna)','(hunak)','(ma`)','(ji`a)','(Hammaam)','(Ta`aam)'];
-
+    var foreignDictionary15Languages = ['Hola (oh lah)','sí (see)','No (No)','Gracias (grah see ahs)','perdón (pehr dohn)','por favor (pohr fah bohr)','lo siento (loh see en toe)','a la izquierda (ah lah ees kyehr dah)','a la derecha (ah lah deh-reh-chah)','derecho (direychow)','aquí (ah kee)','Ahí (ah ee)','agua (ah-gwah)','cerveza (sair ve sah)','baño (banyo)','comida (koh mee dah)','salut (saloo)','oui (wee)','non (nonh)','Merci (mairsee)','excusez-moi (eks-koo-zay mwah)','S`il vous plaît','désolé(e) (dehzohlay)','à gauche (a gosh)','à droite (a drwat)','droit (drwa)','ici (ee see)','là (la)','l`eau (lo)','bière (bee air)','salle de bain (sal duh ban)','nourriture (nooreetyoor)','ciao (chao)','Sì (see)','no (no)','Grazie (grahts-yeh)','Scusi (skoozee)','per piacere, per favore, or prego (pair pee-ah-chay-ray)','Scusa (skoo sah)','a sinistra (a seeneestra)','a destra (ah desstra)','retto (rettoh)','eccoti, eccolo, ecc. (ek-koh-tee) (ek-koh-loh) ecc. is an abbreviation for "etcetera" and does not have a unique pronunciation in this context.','lì, là (lee la)','acqua (ahk wah)','birra (beerra)','bagno (bahnyo)','cibo (chibo)','oi (oy)','sim (sing)','não (nown)','obrigado (ohbreegahdoh)','Com licença (koh leesen sa)','por favor (poor fahvor)','Sinto muitíssimo (seentoo mooeeteezeemoo)','à esquerda (ah eskehrda)','à direita (ah dee ray tah)','em linha reta (eng leenya hehta)','aqui (ah kee)','lá (lah)','água (awa)','cerveja (sair vej zhah)','casa de banho (kah-zah jee bah-nyoo)','comida (ko mee da)','(val-sa-mo)','(ita)','(non)','(grahteeyas tibee ahgoh)','(sigNOHmi)','(parakalo)','(pie-nih-tet)','Please provide the Greek word you would like me to pronounce.','(yoo stoohm)','(isios)','(hik)','(ivi)','(eedor)','(kerwisia)','(baline-um, balne-um)','(kibuss)','(hah loh)','(yah)','(nine)','(Dahn-kuh)','(ent-SHOOL-dee-goong)','(BIH-tuh)','(es toot meer lyt)','(leenks)','(rehts)','(geh-rah-deh)','(heer)','(dort)','(vasa)','(beer)','(bah duh tsimmer)','(ESS en)','(knee how)','(sure)','(Boo)','(xiexie)','(buhaoyisi)','(qing)','(dweeboochi) or (boo how yee suh)','(kao zuobian)','(yoobian)','(jer)','(zhe li) or (zher)','(naar)','(shui)','(pi jiu)','(xi shou jian)','(shih woo)','Namaste','ha','nahin','Dhanyawad','Maaf Keejiyay','kri-pya','maaf karaNaa','baa-een or','dahinee or','Seedha','yahan','vahaan','Paanee','biyar','snaan-ghar','bhojan','(hai)','(haen)','(na)','(Dhonnobaad)','(Dukkhito)','(onurodh)','(soree)','(baam dike)','daandike','(shoja)','(Ekhāne)','(sekahne)','(jol)','(biar)','(snan-ghor, kol-ghor)','(khaddo)','(annyeong) or (hi)','(ne)','(aniyo)','(gamsahamnida)','(sillyehamnida)','(jebalyo)','(mianhamnida)','(oenjjogeuro)','(oreunjjogeuro)','(godeun)','(yogi)','(mueongaga)','(mul)','(maekju)','(hwajangshil)','(eumshik)','(Kohn-nee-chee-wah)','(hi)','(iie)','(Arigatou)','(Sumimasen)','(Onegaishimasu)','go-men','(hidari ni)','(migi e)','(massugu)','(koko)','(soko)','(mizu)','(biiru)','(Basurūmu)','(Tabemono)','(pree-vyet)','(da)','(nyet)','(Spasiba)','iz-vi-NYEE-tye','(Pozhaluysta)','(Prostite)','(nalevo)','(sprava)','(pryamóy)','(zdes)','(tam)','(voda)','(PEE-vah)','(vánnaya)','(yeda)','(hoo-jahm-boh)','(ndee-yoh)','(hah-pah-nah)','(ah-sah-nteh)','(sah-mah-hah-nee)','(tah-fah-dah-lee)','(po-leh)','(koo-SHOH-toh)','(kweh-soh-kood-lah)','(sah-wah)','(hah-pah)','(hoo-koh)','(MAA-jee)','(bee-ah)','(bah-foo)','(chah-koo-lah)','(hai)','(ken)','(lo)','(toh-DAH)','(S`lakh Lee)','(bevakashah)','(slee-CHAH)','(l`smo`l)','(yeminah)','(yashar)','(Kan)','(sham)','(Mayim)','(bira)','(sherutim)','(ma`achal)','(Ahlan Wa Sahlan)','(na`am)','(la)','(Shook-raan)','(`afwan)','(min fadlik)','(ʾāsef) or (ʾanā ʾāsef) for a male, and (ʾāsefa) or (ʾanā ʾāsefa) for a female.','(aysar)','(a`la al-yameen)','(mustaqīm)','(huna)','(hunak)','(ma`)','(ji`a)','(Hammaam)','(ta`am)'];
+    var sounds15Languages = ['spanish_hello.wav','spanish_yes.wav','spanish_no.wav','spanish_thank you.wav','spanish_excuse me.wav','spanish_please.wav','spanish_sorry.wav','spanish_to the left.wav','spanish_to the right.wav','spanish_straight.wav','spanish_here.wav','spanish_there.wav','spanish_water.wav','spanish_beer.wav','spanish_bathroom.wav','spanish_food.wav','french_hi.wav','french_yes.wav','french_no.wav','french_thank you.wav','french_excuse me.wav','french_please.wav','french_sorry.wav','french_to the left.wav','french_to the right.wav','french_straight.wav','french_here.wav','french_there.wav','french_water.wav','french_beer.wav','french_bathroom.wav','french_food.wav','italian_hi.wav','italian_yes.wav','italian_no.wav','italian_thank you.wav','italian_excuse me.wav','italian_please.wav','italian_sorry.wav','italian_to the left.wav','italian_to the right.wav','italian_straight.wav','italian_here.wav','italian_there.wav','italian_water.wav','italian_beer.wav','italian_bathroom.wav','italian_food.wav','portugues_hi.wav','portugues_yes.wav','portugues_no.wav','portugues_thank you.wav','portugues_excuse me.wav','portugues_please.wav','portugues_sorry.wav','portugues_to the left.wav','portugues_to the right.wav','portugues_straight.wav','portugues_here.wav','portugues_there.wav','portugues_water.wav','portugues_beer.wav','portugues_bathroom.wav','portugues_food.wav','greek_hi.wav','greek_yes.wav','greek_no.wav','greek_thank you.wav','greek_excuse me.wav','greek_please.wav','greek_sorry.wav','greek_to the left.wav','greek_to the right.wav','greek_straight.wav','greek_here.wav','greek_there.wav','greek_water.wav','greek_beer.wav','greek_bathroom.wav','greek_food.wav','german_hi.wav','german_yes.wav','german_no.wav','german_thank you.wav','german_excuse me.wav','german_please.wav','german_sorry.wav','german_to the left.wav','german_to the right.wav','german_straight.wav','german_here.wav','german_there.wav','german_water.wav','german_beer.wav','german_bathroom.wav','german_food.wav','mandarin_hi.wav','mandarin_yes.wav','mandarin_no.wav','mandarin_thank you.wav','mandarin_excuse me.wav','mandarin_please.wav','mandarin_sorry.wav','mandarin_to the left.wav','mandarin_to the right.wav','mandarin_straight.wav','mandarin_here.wav','mandarin_there.wav','mandarin_water.wav','mandarin_beer.wav','mandarin_bathroom.wav','mandarin_food.wav','hindi_hi.wav','hindi_yes.wav','hindi_no.wav','hindi_thank you.wav','hindi_excuse me.wav','hindi_please.wav','hindi_sorry.wav','hindi_to the left.wav','hindi_to the right.wav','hindi_straight.wav','hindi_here.wav','hindi_there.wav','hindi_water.wav','hindi_beer.wav','hindi_bathroom.wav','hindi_food.wav','bengali_hi.wav','bengali_yes.wav','bengali_no.wav','bengali_thank you.wav','bengali_excuse me.wav','bengali_please.wav','bengali_sorry.wav','bengali_to the left.wav','bengali_to the right.wav','bengali_straight.wav','bengali_here.wav','bengali_there.wav','bengali_water.wav','bengali_beer.wav','bengali_bathroom.wav','bengali_food.wav','korean_hi.wav','korean_yes.wav','korean_no.wav','korean_thank you.wav','korean_excuse me.wav','korean_please.wav','korean_sorry.wav','korean_to the left.wav','korean_to the right.wav','korean_straight.wav','korean_here.wav','korean_there.wav','korean_water.wav','korean_beer.wav','korean_bathroom.wav','korean_food.wav','japanese_hi.wav','japanese_yes.wav','japanese_no.wav','japanese_thank you.wav','japanese_excuse me.wav','japanese_please.wav','japanese_sorry.wav','japanese_to the left.wav','japanese_to the right.wav','japanese_straight.wav','japanese_here.wav','japanese_there.wav','japanese_water.wav','japanese_beer.wav','japanese_bathroom.wav','japanese_food.wav','russian_hi.wav','russian_yes.wav','russian_no.wav','russian_thank you.wav','russian_excuse me.wav','russian_please.wav','russian_sorry.wav','russian_to the left.wav','russian_to the right.wav','russian_straight.wav','russian_here.wav','russian_there.wav','russian_water.wav','russian_beer.wav','russian_bathroom.wav','russian_food.wav','swahili_hi.wav','swahili_yes.wav','swahili_no.wav','swahili_thank you.wav','swahili_excuse me.wav','swahili_please.wav','swahili_sorry.wav','swahili_to the left.wav','swahili_to the right.wav','swahili_straight.wav','swahili_here.wav','swahili_there.wav','swahili_water.wav','swahili_beer.wav','swahili_bathroom.wav','swahili_food.wav','hebrew_hi.wav','hebrew_yes.wav','hebrew_no.wav','hebrew_thank you.wav','hebrew_excuse me.wav','hebrew_please.wav','hebrew_sorry.wav','hebrew_to the left.wav','hebrew_to the right.wav','hebrew_straight.wav','hebrew_here.wav','hebrew_there.wav','hebrew_water.wav','hebrew_beer.wav','hebrew_bathroom.wav','hebrew_food.wav','arabic_hi.wav','arabic_yes.wav','arabic_no.wav','arabic_thank you.wav','arabic_excuse me.wav','arabic_please.wav','arabic_sorry.wav','arabic_to the left.wav','arabic_to the right.wav','arabic_straight.wav','arabic_here.wav','arabic_there.wav','arabic_water.wav','arabic_beer.wav','arabic_bathroom.wav','arabic_food.wav']
     // creates dropdown options
     for (var i = 0; i < 9; i++) {
         var stackOptions = [3, 4, 5, 6, 7, 8, 9, 10, "all"];
@@ -30,8 +30,10 @@ $(document).ready(function () {
     var foreignDictionary = [];
     var foreignWords = [];
     var englishWords = [];
+    var soundWords = [];
     var spanishStack = [];
     var englishStack = [];
+    var soundStack = [];
     var stackSize = "all";
     var stackStart = 0;
     var selectedCategories = [];
@@ -46,6 +48,8 @@ $(document).ready(function () {
     var quick_math_number2 = 0;
     var formattedNumber = "";
     var correctAnswer = "";
+    var audio_path = '';
+    
     // Function to determine the current .html page being viewed
     var path = window.location.pathname;
     var page = path.split("/").pop();
@@ -69,9 +73,10 @@ $(document).ready(function () {
     function selectCategories() {
         //creates array of categories based on user submit button from categories selected
         getSelectedCategories();
-        // console.log('selectCategories ran');
+        console.log('selectCategories ran');
         foreignWords = [];
         englishWords = [];
+        soundWords = [];
 
         // set the dictionary based on the page used
         if (page == "spanish.html") {
@@ -94,6 +99,7 @@ $(document).ready(function () {
                 if (selectedCategories[y] == dictionaryCat[z]) {
                     foreignWords.push(foreignDictionary[z]);
                     englishWords.push(englishDictionary[z]);
+                    soundWords.push(sounds15Languages[z]);
                 }
             }
         }
@@ -102,6 +108,7 @@ $(document).ready(function () {
         x = 0;
         console.log("foreign words = " + foreignWords);
         console.log("english words= " + englishWords);
+        console.log("soundWords = " + soundWords);
         if (englishToSpanish == "english") {
             $('h5').text(englishWords[x]);
             cardSide = "back";
@@ -113,12 +120,14 @@ $(document).ready(function () {
         $('#wordsLoaded').html('Your vocab card box has ' + numberOfWords + ' words in it');
         $('#nextSection').show();
         $('#checkSection').hide();
+        $('#soundArea').hide();
+
         score = 0;
         outOf = 0;
         cardSide = "front";
         $('#scorecard').html('# correct: Not started');
         quickMathCurrentCategory();
-        return changeWord();
+        // return changeWord();
     }
 
     function nextFunction() {
@@ -132,6 +141,7 @@ $(document).ready(function () {
             $('#spanishBoxText').text('');
         } else {
             $('#checkSection').show();
+            $('#soundArea').show();
             changeWord();
         }
         $('#spanishBox').css('background', 'rgb(220, 230, 242)');
@@ -218,7 +228,8 @@ $(document).ready(function () {
         } else {    
             if (cardSide == "front" && englishToSpanish == "english") {
                 $('#spanishBoxText').text(spanishStack[x]);
-                // console.log(spanishStack[x]);
+                audio_path = '../../sounds/' + soundStack[x];
+                console.log('audio_path = ' + audio_path);
                 cardSide = "back";
                 if (x < stackSize - 1) {
                     x = x + 1;
@@ -249,6 +260,7 @@ $(document).ready(function () {
         event.preventDefault();
         $('#nextSection').show();
         $('#checkSection').hide();
+        $('#soundArea').hide();
         $('#numberInputForm').hide();
         $('#spanishBox').css('background-color', 'white');
         $('#userNumber').val('');
@@ -309,6 +321,7 @@ $(document).ready(function () {
         stackStart = 0;
         spanishStack = [];
         englishStack = [];
+        soundStack = [];
         stackSize = $("#btn-stackSize").val();
         // console.log(stackSize);
         if (stackSize == 'all'|| stackSize == "Stack Size") {
@@ -319,6 +332,7 @@ $(document).ready(function () {
     }
     function loadStack() {
         // takes first x number of words from spanishwords and loads to spanish stack...do this for english stack as well
+        console.log('soundStack = ' + soundStack);
         if (stackStart >= numberOfWords) {
             stackStart = 0;
         } else if (stackStart >= numberOfWords - stackSize) {
@@ -327,10 +341,13 @@ $(document).ready(function () {
         for (i = 0; i < stackSize; i++) {
             spanishStack[i] = foreignWords[stackStart];
             englishStack[i] = englishWords[stackStart];
+            soundStack[i] = soundWords[stackStart];
             stackStart = stackStart + 1;
         }
-        // console.log('Load Stack Finished');
-        // console.log(spanishStack);
+        console.log('Load Stack Finished');
+        console.log(englishStack);
+        console.log(spanishStack);
+        console.log(soundStack);
         // console.log('stackSize = ' + stackSize);
         // console.log('stackStart = ' + stackStart);
         // console.log('numberOfWords= ' + numberOfWords);
@@ -356,6 +373,25 @@ $(document).ready(function () {
         }
     }
 
+    function playSound() {
+        console.log('playSound ran');
+        console.log('audio_path = ' + audio_path);
+        
+        // Check if the file at audio_path exists; if not, set audio_path to "sorry.wav"
+        var xhr = new XMLHttpRequest();
+        xhr.open('HEAD', audio_path, false);
+        try {
+            xhr.send();
+            if (xhr.status !== 200) {
+                audio_path = "../../sounds/sorry.wav";
+            }
+        } catch (e) {
+            audio_path = "../../sounds/sorry.wav";
+        }
+        
+        var audio = new Audio(audio_path);
+        audio.play();
+    }
 
     // Buttons that call functions
     $('#next').click(nextFunction);
@@ -366,6 +402,7 @@ $(document).ready(function () {
     $('#categories').change(selectCategories);
     $('#btn-stackSize').change(getStackSize);
     $('#nextStack').click(loadStack);
+    $('#playSound').click(playSound);
 
 })
 

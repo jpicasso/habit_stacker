@@ -1,0 +1,136 @@
+---
+title: 'Private'
+course: 'Courses'
+aboutNav: true
+---
+
+{{> navbar}}
+
+<main class="main main--interior">
+  <div class="i-section mb-4">
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        </nav>
+        <section class="col-md-9 ml-sm-auto col-lg-10 content">
+          <!-- Protected content (hidden by default) -->
+          <div id="private-content" style="display: none;">
+            <h1 class="display-3 mb-3">Private page</h1>
+            <h2>Only John can see this page when he is logged  in! </h2>
+          </div>
+          
+          <!-- Login required message (shown by default) -->
+          <div id="login-required-message" style="display: none;">
+            <h1 class="display-3 mb-3">Access Restricted</h1>
+            <div class="alert alert-warning" role="alert">
+              <h4 class="alert-heading">You must log in to see this page</h4>
+              <p>This page is only accessible to authenticated users. Please log in to continue.</p>
+              <hr>
+              <p class="mb-0">
+                <button class="btn btn-primary" onclick="handleLogin(); return false;">Log In</button>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Check authentication and show/hide content accordingly
+  async function checkAuthAndDisplayContent() {
+    try {
+      let auth0 = null;
+      
+      // First, try to use window.auth0 directly if it's already available
+      if (window.auth0) {
+        auth0 = window.auth0;
+      } else if (window.auth0Promise) {
+        // Otherwise, wait for the promise to resolve
+        auth0 = await window.auth0Promise;
+      } else {
+        // If neither exists, wait a bit and try again
+        console.log('Auth0 not initialized yet, waiting...');
+        setTimeout(checkAuthAndDisplayContent, 200);
+        return;
+      }
+      
+      // Wait for redirect handling to complete if it's in progress
+      if (window.redirectHandledPromise) {
+        await window.redirectHandledPromise;
+      }
+      
+      // Now check authentication
+      if (auth0 && typeof auth0.isAuthenticated === 'function') {
+        const isAuthenticated = await auth0.isAuthenticated();
+        updateContentVisibility(isAuthenticated);
+      } else {
+        console.error('Auth0 client is not properly initialized');
+        updateContentVisibility(false);
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      // On error, show login required message
+      updateContentVisibility(false);
+    }
+  }
+  
+  // Update content visibility based on auth state
+  function updateContentVisibility(isAuthenticated) {
+    const privateContent = document.getElementById('private-content');
+    const loginRequiredMessage = document.getElementById('login-required-message');
+    
+    if (isAuthenticated) {
+      // User is logged in - show protected content
+      if (privateContent) privateContent.style.display = 'block';
+      if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+    } else {
+      // User is not logged in - show login required message
+      if (privateContent) privateContent.style.display = 'none';
+      if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+    }
+  }
+  
+  // Wait for Auth0 to be ready with retries
+  function waitForAuth0AndCheck(maxRetries = 10, retryDelay = 200) {
+    let retries = 0;
+    
+    const check = () => {
+      if (window.auth0 || (window.auth0Promise && retries < maxRetries)) {
+        checkAuthAndDisplayContent();
+      } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(check, retryDelay);
+      } else {
+        console.warn('Auth0 initialization timeout - showing login required');
+        updateContentVisibility(false);
+      }
+    };
+    
+    check();
+  }
+  
+  // Run check when page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      waitForAuth0AndCheck();
+    });
+  } else {
+    // DOM is already loaded
+    waitForAuth0AndCheck();
+  }
+  
+  // Re-check auth state when user returns from login (handles redirect callback)
+  window.addEventListener('focus', () => {
+    setTimeout(checkAuthAndDisplayContent, 100);
+  });
+  
+  // Also check after redirect callback (in case we just logged in)
+  if (window.location.search.includes('code=') && window.location.search.includes('state=')) {
+    // Wait a bit longer for redirect handling
+    setTimeout(checkAuthAndDisplayContent, 500);
+  }
+</script>
+
+{{> main-site-footer }}
