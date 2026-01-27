@@ -1108,7 +1108,8 @@ div.code-toolbar>.toolbar a:hover, div.code-toolbar>.toolbar a:focus, div.code-t
 
 .textWindow {
   margin: 1em;
-  height: 10em;
+  min-height: 10em;
+  padding: 1em;
   border: 0.25em solid black;
   border-radius: 1em;
   display: flex;

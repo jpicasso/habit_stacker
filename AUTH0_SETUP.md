@@ -26,6 +26,9 @@ This guide will help you set up Auth0 authentication for your UpriseU applicatio
    http://localhost:3000/*
    ```
    (Replace with your production URLs when deploying)
+   ```
+   https://uprise-u-dot-com-718662ca0e08.herokuapp.com/, https://upriseu.com, https://upriseu.com/*, https://www.upriseu.com, https://www.upriseu.com/*, http://upriseu.com, http://upriseu.com/*, http://www.upriseu.com, http://www.upriseu.com/*
+   ```
 
 3. Scroll down to **Allowed Logout URLs** and add:
    ```

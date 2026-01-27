@@ -32,19 +32,19 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 ### Debugging
 Note: if gulp watch function is not working, follow these steps
 - go to root directory by pressing `cd` on CLI 
-$ cd
-$ brew install nvm
-$ mkdir ~/.nvm
-$ export NVM_DIR=~/.nvm
-$ source $(brew --prefix nvm)/nvm.sh
-$ brew install nvm
-$ nvm install 14.4.0
-$ nvm use 14
-$ cd Dropbox/2_UpriseUniversity/7UpriseU_codebase/1upriseu_production_code
-$ rm -r node_modules
-$ rm -r dist
-$ npm install
-$ gulp watch
+cd
+brew install nvm
+mkdir ~/.nvm
+export NVM_DIR=~/.nvm
+source $(brew --prefix nvm)/nvm.sh
+brew install nvm
+nvm install 14.4.0
+nvm use 14
+cd Dropbox/2_UpriseUniversity/7UpriseU_codebase/1upriseu_production_code
+rm -r node_modules
+rm -r dist
+npm install
+gulp watch
 
 ### Notes
 - Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character
