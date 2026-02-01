@@ -44,7 +44,5 @@ cd Dropbox/2_UpriseUniversity/7UpriseU_codebase/1upriseu_production_code
 rm -r node_modules
 rm -r dist
 npm install
-gulp watch
-
-### Notes
-- Replace "<" with "&lt;": when writing "</script>" in html; this is an exit character
+npm run build
+npm run dev

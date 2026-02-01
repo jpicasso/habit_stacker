@@ -57,10 +57,10 @@ function startup() { // Run all the tasks (occurs once when gulp watch starts up
 function watch() { // Run startup tasks, init browserSync and watch for changes to all project files
   startup();
   browserSync.init({
-    server: {
-      baseDir: "./dist",
-      index: "index.html"
-    }
+    proxy: "http://localhost:3000", // Proxy to Express server
+    port: 3001, // Browser-sync will run on port 3001
+    open: false, // Don't auto-open browser
+    notify: false // Disable browser-sync notifications
   });
   gulp.watch('./src/scss/**/*.scss', style);
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
