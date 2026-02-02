@@ -51,14 +51,14 @@ app.post('/api/tasks', async (req, res) => {
     if (!db) {
       return res.status(500).json({ error: 'Database not initialized' });
     }
-    const { task, event_date } = req.body;
+    const { task, event_date, user_id } = req.body;
     if (!task || task.trim() === '') {
       return res.status(400).json({ error: 'Event is required' });
     }
     if (!event_date) {
       return res.status(400).json({ error: 'Event date is required' });
     }
-    const newTask = await addTask(db, task.trim(), event_date);
+    const newTask = await addTask(db, task.trim(), event_date, user_id || null);
     res.status(201).json(newTask);
   } catch (error) {
     console.error('Error adding event:', error);
@@ -73,14 +73,14 @@ app.put('/api/tasks/:id', async (req, res) => {
       return res.status(500).json({ error: 'Database not initialized' });
     }
     const { id } = req.params;
-    const { task, event_date } = req.body;
+    const { task, event_date, user_id } = req.body;
     if (!task || task.trim() === '') {
       return res.status(400).json({ error: 'Event is required' });
     }
     if (!event_date) {
       return res.status(400).json({ error: 'Event date is required' });
     }
-    const updatedTask = await updateTask(db, id, task.trim(), event_date);
+    const updatedTask = await updateTask(db, id, task.trim(), event_date, user_id || null);
     res.json(updatedTask);
   } catch (error) {
     console.error('Error updating event:', error);

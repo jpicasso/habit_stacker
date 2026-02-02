@@ -15,9 +15,6 @@ aboutNav: true
         <section class="col-md-9 ml-sm-auto col-lg-10 content">
           <!-- Protected content (hidden by default) -->
           <div id="private-content" style="display: none;">
-            <h1 class="display-3 mb-3">Private page</h1>
-            <h2>Only John can see this page when he is logged in! </h2>
-            
             <!-- Event Management Section -->
             <div class="mt-5">
               <h3 class="mb-4">Event Manager</h3>
@@ -61,6 +58,7 @@ aboutNav: true
                         <tr>
                           <th>Event</th>
                           <th style="width: 150px;">Event Date</th>
+                          <th style="width: 200px;">User</th>
                           <th style="width: 180px;">Actions</th>
                         </tr>
                       </thead>
@@ -232,15 +230,45 @@ aboutNav: true
       emptyEl.style.display = 'none';
       tableEl.style.display = 'none';
       
+      // Get the current logged-in user's email
+      let currentUserEmail = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            currentUserEmail = user?.email || null;
+            console.log('Current user email:', currentUserEmail);
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting current user:', authError);
+      }
+      
+      // If user is not authenticated, don't show any events
+      if (!currentUserEmail) {
+        loadingEl.style.display = 'none';
+        emptyEl.textContent = 'Please log in to view your events.';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      
       const response = await fetch('/api/tasks');
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
       
-      const tasks = await response.json();
+      const allTasks = await response.json();
+      
+      // Filter tasks to only show events where user_id matches current user's email
+      const tasks = allTasks.filter(task => {
+        return task.user_id === currentUserEmail;
+      });
+      
       loadingEl.style.display = 'none';
       
       if (tasks.length === 0) {
+        emptyEl.textContent = 'No events yet. Add one above!';
         emptyEl.style.display = 'block';
         return;
       }
@@ -250,10 +278,12 @@ aboutNav: true
       
       tasks.forEach(task => {
         const eventDate = task.event_date ? formatDateOnly(task.event_date) : 'Not set';
+        const userId = task.user_id ? escapeHtml(task.user_id) : '—';
         const row = document.createElement('tr');
         row.innerHTML = `
           <td><strong>${escapeHtml(task.task)}</strong></td>
           <td><small>${eventDate}</small></td>
+          <td><small>${userId}</small></td>
           <td>
             <button class="btn btn-sm btn-primary mr-1" onclick="editTask(${task.id})" title="Edit event">
               Edit
@@ -297,12 +327,29 @@ aboutNav: true
       submitButton.disabled = true;
       submitButton.textContent = 'Adding...';
       
+      // Get the Auth0 user
+      let userId = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            // Use email as user_id, fallback to nickname or sub if email is not available
+            userId = user?.email || user?.nickname || user?.sub || null;
+            console.log('User ID for new event:', userId);
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting Auth0 user:', authError);
+        // Continue without user_id if there's an error
+      }
+      
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ task, event_date: eventDate })
+        body: JSON.stringify({ task, event_date: eventDate, user_id: userId })
       });
       
       if (!response.ok) {
@@ -423,6 +470,22 @@ aboutNav: true
       saveButton.disabled = true;
       saveButton.textContent = 'Saving...';
       
+      // Get the Auth0 user to preserve user_id
+      let userId = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            // Use email as user_id, fallback to nickname or sub if email is not available
+            userId = user?.email || user?.nickname || user?.sub || null;
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting Auth0 user:', authError);
+        // Continue without user_id if there's an error
+      }
+      
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
         headers: {
@@ -430,7 +493,8 @@ aboutNav: true
         },
         body: JSON.stringify({ 
           task, 
-          event_date: eventDate
+          event_date: eventDate,
+          user_id: userId
         })
       });
       

@@ -21,7 +21,8 @@ function initDatabase() {
       CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         task TEXT NOT NULL,
-        event_date DATE
+        event_date DATE,
+        user_id TEXT
       )
     `, (err) => {
       if (err) {
@@ -30,72 +31,23 @@ function initDatabase() {
       } else {
         console.log('Tasks table ready');
         
-        // Migration: Convert completed to event_date
+        // Migration: Add user_id column if it doesn't exist
         db.all("PRAGMA table_info(tasks)", (pragmaErr, rows) => {
           if (!pragmaErr && rows && Array.isArray(rows)) {
             const columnNames = rows.map(row => row.name);
-            const hasCompletedColumn = columnNames.includes('completed');
-            const hasEventDateColumn = columnNames.includes('event_date');
-            const needsMigration = hasCompletedColumn && !hasEventDateColumn;
+            const hasUserIdColumn = columnNames.includes('user_id');
             
-            if (needsMigration) {
-              console.log('Migrating database: converting completed to event_date...');
-              // Add event_date column
+            if (!hasUserIdColumn) {
+              console.log('Migrating database: adding user_id column...');
               db.run(`
-                ALTER TABLE tasks ADD COLUMN event_date DATE
+                ALTER TABLE tasks ADD COLUMN user_id TEXT
               `, (alterErr) => {
                 if (alterErr) {
-                  console.error('Error adding event_date column:', alterErr);
-                  resolve(db);
+                  console.error('Error adding user_id column:', alterErr);
                 } else {
-                  // Copy completed datetime to event_date (if completed exists, use it as event_date)
-                  db.run(`
-                    UPDATE tasks SET event_date = DATE(completed) WHERE completed IS NOT NULL
-                  `, (updateErr) => {
-                    if (updateErr) {
-                      console.error('Error updating event_date:', updateErr);
-                    }
-                    // Drop completed column (SQLite doesn't support DROP COLUMN, so we need to recreate table)
-                    db.run(`
-                      CREATE TABLE tasks_new (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        task TEXT NOT NULL,
-                        event_date DATE
-                      )
-                    `, (createErr) => {
-                      if (createErr) {
-                        console.error('Error creating new table:', createErr);
-                        resolve(db);
-                      } else {
-                        db.run(`
-                          INSERT INTO tasks_new (id, task, event_date)
-                          SELECT id, task, event_date FROM tasks
-                        `, (copyErr) => {
-                          if (copyErr) {
-                            console.error('Error copying data:', copyErr);
-                            resolve(db);
-                          } else {
-                            db.run(`DROP TABLE tasks`, (dropErr) => {
-                              if (dropErr) {
-                                console.error('Error dropping old table:', dropErr);
-                                resolve(db);
-                              } else {
-                                db.run(`ALTER TABLE tasks_new RENAME TO tasks`, (renameErr) => {
-                                  if (renameErr) {
-                                    console.error('Error renaming table:', renameErr);
-                                  } else {
-                                    console.log('Migration complete: converted completed to event_date');
-                                  }
-                                  resolve(db);
-                                });
-                              }
-                            });
-                          }
-                        });
-                      }
-                    });
-                  });
+                  console.log('Migration complete: added user_id column');
                 }
+                resolve(db);
               });
             } else {
               resolve(db);
@@ -123,16 +75,16 @@ function getAllTasks(db) {
 }
 
 // Add a new task
-function addTask(db, task, eventDate = null) {
+function addTask(db, task, eventDate = null, userId = null) {
   return new Promise((resolve, reject) => {
     db.run(
-      'INSERT INTO tasks (task, event_date) VALUES (?, ?)',
-      [task, eventDate],
+      'INSERT INTO tasks (task, event_date, user_id) VALUES (?, ?, ?)',
+      [task, eventDate, userId],
       function(err) {
         if (err) {
           reject(err);
         } else {
-          resolve({ id: this.lastID, task, event_date: eventDate });
+          resolve({ id: this.lastID, task, event_date: eventDate, user_id: userId });
         }
       }
     );
@@ -140,16 +92,16 @@ function addTask(db, task, eventDate = null) {
 }
 
 // Update a task
-function updateTask(db, id, task, eventDate) {
+function updateTask(db, id, task, eventDate, userId = null) {
   return new Promise((resolve, reject) => {
     db.run(
-      'UPDATE tasks SET task = ?, event_date = ? WHERE id = ?',
-      [task, eventDate, id],
+      'UPDATE tasks SET task = ?, event_date = ?, user_id = ? WHERE id = ?',
+      [task, eventDate, userId, id],
       function(err) {
         if (err) {
           reject(err);
         } else {
-          resolve({ id, task, event_date: eventDate });
+          resolve({ id, task, event_date: eventDate, user_id: userId });
         }
       }
     );
