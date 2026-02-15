@@ -1340,3 +1340,79 @@ tr:hover {
   }
 
 }
+
+/**
+** PM101 Images
+**/
+img[src*="pm101/"] {
+  max-width: 600px;
+  width: 100%;
+  height: auto;
+}
+
+/**
+** Chessboard
+**/
+.chessboard {
+  border: none;
+  border-collapse: collapse;
+  margin: 20px auto;
+  
+  tr {
+    border-bottom: none;
+  }
+  
+  td {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: none;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    
+    &.light {
+      background-color: #f0d9b5; // Light beige/cream
+    }
+    &.highlight_light {
+      background-color: #fff9cc; // Light beige with a yellow highlight
+    }
+    
+    &.dark {
+      background-color: #b58863; // Dark brown/olive
+    }
+
+    &.highlight_dark {
+      background-color: #e87313; // Dark brown/olive with a yellow highlight
+    }
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+  }
+  
+  #letters_above_board td {
+    vertical-align: bottom;
+  }
+  
+  #letters_below_board td {
+    vertical-align: top;
+  }
+  
+  .chess_number_right_side {
+    text-align: left;
+  }
+  
+  .chess_number_left_side {
+    text-align: right;
+  }
+  #2rank_left_side {
+    border: none;
+   }
+}

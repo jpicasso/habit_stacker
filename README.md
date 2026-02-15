@@ -31,7 +31,6 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 
 ### Debugging
 Note: if gulp watch function is not working, follow these steps
-- go to root directory by pressing `cd` on CLI 
 cd
 brew install nvm
 mkdir ~/.nvm
