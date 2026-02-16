@@ -41,38 +41,16 @@ course: 'Chess'
                   <div class="form-group">
                     <label for="chess-annotation-input">Enter Chess Annotation:</label>
                     <input type="text" class="form-control" id="chess-annotation-input" placeholder="Enter your chess notation here">
-                    <label for="chess-setup-input-white">White Setup:</label>
-                    <input type="text" class="form-control" id="chess-setup-input-white" placeholder="Enter A Starting Position for white">
-                    <label for="chess-setup-input-black">Black Setup:</label>
-                    <input type="text" class="form-control" id="chess-setup-input-black" placeholder="Enter A Starting Position for black">
-                  
-                  
-                  <div class="form-group mt-2">
-                    <label for="chess-annotation-select">Select Opening:</label>
-                    <select class="form-control" id="chess-annotation-select">
-                      <option value="">-- Choose an opening --</option>
-                      <option value="Double Danish Copenhagen Defense">Double Danish Copenhagen Defense</option>
-                      <option value="Double Danish Accepted">Double Danish Accepted</option>
-                      <option value="Double Danish Gambit">Double Danish Gambit</option>
-                      <option value="Danish Gambit Accepted">Danish Gambit Accepted</option>
-                      <option value="Danish Gambit">Danish Gambit</option>
-                      <option value="Center Game Accepted">Center Game Accepted</option>
-                      <option value="Center Game">Center Game</option>
-                      <option value="Kings Pawn">Kings Pawn</option>
-                      <option value="Sicilian defense">Sicilian defense</option>
-                      <option value="Four knights">Four knights</option>
-                   </select>
-                  </div>
-                  
+
                   </div>
                   <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
              <br>
                 <button type="button" class="btn btn-primary" onclick="setBoard()">Set Board</button>
                 <button type="button" class="btn btn-primary" onclick="clearBoard()">Clear Board</button>
+                <!-- <button type="button" class="btn btn-primary" onclick="undo()">Go back</button> -->
+                <!-- <button type="button" class="btn btn-primary" onclick="redo()">Go forward</button> -->
              
-            <br>
-                <br>
                 <!-- insert table here -->
                 <table class="chessboard">
                   <tr id="letters_above_board">
@@ -197,6 +175,41 @@ course: 'Chess'
                   </tr>
                 </table>
                 <br>
+                <form id="chess-setup-form">
+                  <div class="form-group">    
+                   <div class="form-group mt-2">
+                    <label for="chess-annotation-select">Select Grandmaster Game:</label>
+                    <select class="form-control" id="chess-gm-game-select">
+                      <option value="">-- Choose a GM game --</option>
+                      <option value="Botvinnik-Capablanca (AVRO, Rotterdam 1938)">Botvinnik-Capablanca (AVRO, Rotterdam 1938)</option>
+                      <option value="Kavalek-Uhlmann (Manila Interzonal 1976)">Kavalek-Uhlmann (Manila Interzonal 1976)</option>
+                   </select>
+                  </div>
+                  <label for="chess-setup-input-white">White Setup:</label>
+                  <input type="text" class="form-control" id="chess-setup-input-white" placeholder="Enter A Starting Position for white">
+                  <label for="chess-setup-input-black">Black Setup:</label>
+                  <input type="text" class="form-control" id="chess-setup-input-black" placeholder="Enter A Starting Position for black">
+                
+                
+                <div class="form-group mt-2">
+                  <label for="chess-annotation-select">Select Opening:</label>
+                  <select class="form-control" id="chess-annotation-select">
+                    <option value="">-- Choose an opening --</option>
+                    <option value="Double Danish Copenhagen Defense">Double Danish Copenhagen Defense</option>
+                    <option value="Double Danish Accepted">Double Danish Accepted</option>
+                    <option value="Double Danish Gambit">Double Danish Gambit</option>
+                    <option value="Danish Gambit Accepted">Danish Gambit Accepted</option>
+                    <option value="Danish Gambit">Danish Gambit</option>
+                    <option value="Center Game Accepted">Center Game Accepted</option>
+                    <option value="Center Game">Center Game</option>
+                    <option value="Kings Pawn">Kings Pawn</option>
+                    <option value="Sicilian defense">Sicilian defense</option>
+                    <option value="Four knights">Four knights</option>
+                 </select>
+                
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                  </div>
+                  </form>
                 <br>
                
               </div>
@@ -225,6 +238,14 @@ course: 'Chess'
   // ************************************************************************************************* 
  
   var whos_move_is_it = 'white';
+  var gm_games = {
+    'Botvinnik-Capablanca (AVRO, Rotterdam 1938)':'d4,nf6,c4,e6,nc3,Bb4,e3,d5,a3,Bxc3,bxc3,c5,cxd5,exd5,Bd3,00,ne2,b6,00,Ba6,Ba6,Na6,Bb2,Qd7,a4,rfe8,qd3,c4,qc2,nb8,rae1,nc6,ng3,na5,f3,nb3,e4,qxa4,e5,nd7,qf2,g6,f4,f5,exf6,nf6,f5,re1,re1,re8,re6,re6,fxe6,kg7,qf4,qe8,qe5,qe7,Ba3,qa3,nh5,gxh5,qg5,kf8,qf6,kg8,e7,qc1,kf2,qc2,kg3,qd3,kh4,qe4,kh5,qe2,kh4,qe4,g4,qe1,kh5',
+    'Kavalek-Uhlmann (Manila Interzonal 1976)':'e4,e6,d4,d5,nc3,Bb4,e5,Ne7,a3,Bxc3,bxc3,c5,a4,nbc6,nf3,qa5,Bd2,Bd7,Be2,c4,ng5,h6,nh3,000,nf4,kb8,00,nc8,nh5,rhg8,Bg4,Nb6,re1,na4,re3,b5,rf3,Be8,rg3,ne7,Bc1,ng6,Ba3,ka8,qd2,qc7,Bh3,Bd7,Bd6,qc6,rf1,Bc8,f4,f5,exf6,gxf6,f5,exf5,Bb4,qb6,Bxf5,a5,Bxa5,qa5,Bxg6,f5,nf4,rg7',
+  }
+  var game_annotations = {
+    'Botvinnik-Capablanca (AVRO, Rotterdam 1938)':{'26':'Pawn a4 is interesting move because it will be difficult for white to defend it with its Queen and Rook. With some maneuvering, black will be able to win it eventually. As you will see later though, this move will allow white to make its bishop active on a3 instead of being blocked. As a general rule, it is often better to lose a pawn to activate an important piece, then to remain in a passive position','39':'black takes the bait and slowly repositions the knight to be able to take the pawn','59':'eventually the position ends up here, where white is preparred to make a brilliant sacrifice. Can you spot it?!','81':'After a series of more moves, white eventually wins with blacks forfeit. The 30. Ba3!! move highlights the importance of the original pawn to a4 move and eventual sacrifice to make the dark squared bishop more active.'},
+  }
+  var game_annotation_selection = {};
   var opening_dictionary = {
       'Double Danish Copenhagen Defense': [['e2','e4'],['e7','e5'],['d2','d4'],['e5','d4'],['c2','c3'],['d4','c3'],['f1','c4'],['c3','b2'],['c1','b2'],['f8','b4']],
       'Double Danish Accepted': [['e2','e4'],['e7','e5'],['d2','d4'],['e5','d4'],['c2','c3'],['d4','c3'],['f1','c4'],['c3','b2']],
@@ -242,7 +263,6 @@ course: 'Chess'
     var chess_setup_input_black = '';
     var opening = '';
     
-    var raw_chess_annotation_moves = [];
     var converted_chess_move_commands = [];
     
     
@@ -252,34 +272,44 @@ course: 'Chess'
     var file = '';
     var rank = 0;
     var checking_square = '';
-
+    var move_counter = 1;
     
 
   // ************************************************************************************************* 
   // *************************************                       ************************************* 
   // *************************************                       ************************************* 
-  // *************************************    Submit Listener    ************************************* 
+  // *************************************    Submit Listeners    ************************************* 
   // *************************************                       ************************************* 
   // *************************************                       ************************************* 
   // ************************************************************************************************* 
   
   document.getElementById('chess-annotation-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    
     user_input = document.getElementById('chess-annotation-input').value;
+    runChessSequence(user_input);
+  });
+
+  document.getElementById('chess-setup-form').addEventListener('submit', async function(event) {
+    event.preventDefault(); 
     chess_setup_input_white = document.getElementById('chess-setup-input-white').value;
     chess_setup_input_black = document.getElementById('chess-setup-input-black').value;
     opening = document.getElementById('chess-annotation-select').value;
-
-
+    var gm_game_selected = document.getElementById('chess-gm-game-select').value;
     /// Determine which input to use
     if (chess_setup_input_white != '') {
       setBoard();
-    } else if (user_input == '') {
+    } else if (opening != '') {
+      setBoard();
       converted_chess_move_commands = opening_dictionary[opening];
-      runChessSequence();
-    } else {
-      runChessSequence(user_input);
+      for (var i = 0; i < converted_chess_move_commands.length; i++) {
+        await moveChessPiece(converted_chess_move_commands[i]);
+      }
+    } else if (gm_game_selected != '') {
+      setBoard();
+      console.log('gm_games[gm_game_selected]: ', gm_games[gm_game_selected]);
+      game_annotation_selection = game_annotations[gm_game_selected];
+      console.log('game_annotation_selection: ', game_annotation_selection);
+      await runChessSequence(gm_games[gm_game_selected]);
     }
   });
 
@@ -420,11 +450,11 @@ course: 'Chess'
   // ************************************************************************************************* 
   
   // run a chess sequence
-  async function runChessSequence() {
+  async function runChessSequence(raw_input) {
     var chess_piece_html_element ='';
     new_square = '';
     old_square = '';
-    var raw_move_list = user_input.split(',');
+    var raw_move_list = raw_input.split(',');
     raw_move_list = raw_move_list.map(move => move.trim().replace(/\+/g, "").replace(/\s/g, ""));
     raw_move_list = raw_move_list.map(move => 
       move.replace(/K/g, "k")
@@ -432,21 +462,24 @@ course: 'Chess'
           .replace(/N/g, "n")
           .replace(/R/g, "r")
     );
-    
     for (var i = 0; i < raw_move_list.length; i++) {
-      document.querySelectorAll('td[id]').forEach(td => {
-        td.classList.remove('highlight_light');
-        td.classList.remove('highlight_dark');  
-      }); 
-      console.log('raw move list: ', raw_move_list[i]);
-      moveChessPiece(convertAnnotationToMoveSequence(raw_move_list[i])); 
-      // wait for 500 milliseconds until next move
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await moveChessPiece(convertAnnotationToMoveSequence(raw_move_list[i])); 
     }
   };
 
-  function moveChessPiece(converted_move) {
-     console.log('converted_move: ', converted_move);
+
+  // ************************************************************************************************* 
+  // *************************************    Move Chess Piece   ************************************* 
+  // ************************************************************************************************* 
+
+  async function moveChessPiece(converted_move) {
+    console.log('moveChessPiece - converted_move: ', converted_move);
+    // wait for X milliseconds until next move
+    await new Promise(resolve => setTimeout(resolve, 300));
+      document.querySelectorAll('td[id]').forEach(td => {
+          td.classList.remove('highlight_light');
+          td.classList.remove('highlight_dark');  
+        });   
       old_square = converted_move[0];
       chess_piece_html_element = document.getElementById(old_square).innerHTML;
       if (document.getElementById(old_square).classList.contains('light')) {
@@ -464,7 +497,14 @@ course: 'Chess'
         document.getElementById(new_square).classList.add('highlight_dark');
       }
       whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
-      
+      // check for game annotations
+      // game_annotations[gm_game_selected][move_counter]
+      console.log('move_counter: ', move_counter);
+      console.log('game_annotation_selection[move_counter]: ', game_annotation_selection[move_counter]);
+      if (game_annotation_selection[move_counter] != undefined) {
+        alert(game_annotation_selection[move_counter]);
+      }
+      move_counter++;
   }
 
 
@@ -473,15 +513,16 @@ course: 'Chess'
   // ************************************************************************************************* 
 
   function convertAnnotationToMoveSequence(raw_move) {
+    console.log('convertAnnotationToMoveSequence - raw_move: ', raw_move);
     file = '';
     rank = 0;
     checking_square = '';
     old_square = '';
     chess_piece = '';
     new_square = '';
+    var which_piece_is_moving = '';
     var converted_move_in_convertAnnotationToMoveSequence = [];
 
-    console.log('raw_move: ', raw_move);
     // check for castling
     if (raw_move == "O-O" || raw_move == "0-0" || raw_move == "00" || raw_move == "OO") {
       if (whos_move_is_it == 'white') {
@@ -494,6 +535,7 @@ course: 'Chess'
         moveChessPiece(['h8','f8']);
       }
       whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
+      move_counter--;
       return converted_move_in_convertAnnotationToMoveSequence;
     } else if (raw_move == "O-O-O" || raw_move == "0-0-0" || raw_move == "000" || raw_move == "OOO") {
       if (whos_move_is_it == 'white') {
@@ -504,62 +546,78 @@ course: 'Chess'
         converted_move_in_convertAnnotationToMoveSequence.push('e8');
         converted_move_in_convertAnnotationToMoveSequence.push('c8');
         moveChessPiece(['a8','d8']);
-        whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
-        return converted_move_in_convertAnnotationToMoveSequence;
       } 
+      whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
+      move_counter--;
+      return converted_move_in_convertAnnotationToMoveSequence;
     }
-
     // convert raw move annotation to a piece and new square location
-    if (raw_move.length >= 4) {
-      if (raw_move[0] === "B") {
-        chess_piece = 'b';
-      } else {
-        if (raw_move.includes('bxa') || raw_move.includes('bxc') || (raw_move[1] == 'x' && (raw_move[0] != "n" && raw_move[0] != "q" && raw_move[0] != "k" && raw_move[0] != "r" && raw_move[0] != "q"))) {
-          chess_piece = 'p';     
-        } else { 
-          chess_piece = raw_move.charAt(0).toLowerCase();
+    which_piece_is_moving = raw_move.charAt(1);
+    console.log('which piece is moving: ', which_piece_is_moving);
+    if ((raw_move.length >= 4) && (which_piece_is_moving == 'x')) {
+        if (raw_move[0] === "B") {
+          chess_piece = 'b';
+        } else {
+          if (raw_move[1] == 'x' && raw_move[0] != "n" && raw_move[0] != "q" && raw_move[0] != "k" && raw_move[0] != "r" && raw_move[0] != "q") {
+            chess_piece = 'p';     
+          } else { 
+            chess_piece = raw_move.charAt(0).toLowerCase();
+          }
         }
-      }
+        file = raw_move.charAt(2);
+        rank = parseInt(raw_move.charAt(3));
+        new_square = file + rank;
+        if (which_piece_is_moving == 'x'){which_piece_is_moving ='';}
+      } else if (raw_move.length >= 4) {
+      chess_piece = raw_move.charAt(0).toLowerCase();
       file = raw_move.charAt(2);
       rank = parseInt(raw_move.charAt(3));
       new_square = file + rank;
+      if (which_piece_is_moving == 'x'){which_piece_is_moving ='';}
+      console.log('chess_piece: ', chess_piece);
+      console.log('new square: ', new_square);
+      console.log('which piece is moving: ', which_piece_is_moving);
     } else if (raw_move.length == 3) {
       chess_piece = raw_move.charAt(0).toLowerCase();
       file = raw_move.charAt(1);
       rank = parseInt(raw_move.charAt(2));
       new_square = file + rank;
+      which_piece_is_moving = '';
     } else { 
       chess_piece = 'p';
       file = raw_move.charAt(0);
       rank = parseInt(raw_move.charAt(1));
       new_square = file + rank;
+      which_piece_is_moving = '';
     }
     console.log('chess_piece: ', chess_piece);
-    console.log('new_square: ', new_square);
-    console.log('whos_move_is_it: ', whos_move_is_it);
-
+    console.log('new square: ', new_square);
+    console.log('which piece is moving: ', which_piece_is_moving);
     // check for legal rook moves
     if (chess_piece == 'r') {
-          // need to check for rook in +/- 7 changes in 4 directions
-          for (var i = 0; i < 7; i++) {
-            for (var j = 0; j < 4; j++) {
-              var options_to_check = [[1,0],[-1,0],[0,-1],[0,1]];
-              var x = fileToNumber(file);
-              if ((x + options_to_check[j][0]*(i+1) > 0 && x + options_to_check[j][0]*(i+1) < 9) && (rank + options_to_check[j][1]*(i+1) > 0 && rank + options_to_check[j][1]*(i+1) < 9)) {
-                var file_checking = numberToFile(x + options_to_check[j][0]*(i+1));
-                var rank_checking = rank + options_to_check[j][1]*(i+1);
-                checking_square = file_checking + rank_checking;
-                check_for_chess_piece = document.getElementById(checking_square).innerHTML;
-                if ((check_for_chess_piece.includes('black_rook') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_rook') && whos_move_is_it == 'white')) {
-                  converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-                  converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-                  return converted_move_in_convertAnnotationToMoveSequence;
-                }    
+      // need to check for rook in +/- 7 changes in 4 directions
+      for (var i = 0; i < 7; i++) {
+        for (var j = 0; j < 4; j++) {
+          var options_to_check = [[1,0],[-1,0],[0,-1],[0,1]];
+          var x = fileToNumber(file);
+          var rank_checking = rank + options_to_check[j][1]*(i+1);
+          if ((x + options_to_check[j][0]*(i+1) > 0) && (x + options_to_check[j][0]*(i+1) < 9) && (rank + options_to_check[j][1]*(i+1) > 0) && (rank + options_to_check[j][1]*(i+1) < 9)) {
+            var file_checking = numberToFile(x + options_to_check[j][0]*(i+1));
+            var rank_checking = rank + options_to_check[j][1]*(i+1);
+            checking_square = file_checking + rank_checking;
+            check_for_chess_piece = document.getElementById(checking_square).innerHTML;
+            if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
+              if ((check_for_chess_piece.includes('black_rook') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_rook') && whos_move_is_it == 'white')) {
+                converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
+                converted_move_in_convertAnnotationToMoveSequence.push(new_square);
+                return converted_move_in_convertAnnotationToMoveSequence;
               }
-            }
+            }    
           }
         }
-    
+      }
+    }
+
     // check for legal bishop moves
     if (chess_piece == 'b') {
       // need to check for bishops in +/- 7 changes in 4 diagnol direction
@@ -571,8 +629,54 @@ course: 'Chess'
             var file_checking = numberToFile(x + options_to_check[j][0]*(i+1));
             var rank_checking = rank + options_to_check[j][1]*(i+1);
             checking_square = file_checking + rank_checking;
+            console.log('checking square: ', checking_square);
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
-            if ((check_for_chess_piece.includes('black_bishop') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_bishop') && whos_move_is_it == 'white')) {
+            if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
+              if ((check_for_chess_piece.includes('black_bishop') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_bishop') && whos_move_is_it == 'white')) {
+                converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
+                converted_move_in_convertAnnotationToMoveSequence.push(new_square);
+                return converted_move_in_convertAnnotationToMoveSequence;
+              }    
+            }  
+          }
+        }
+      }
+    }
+     // check for legal knight moves
+     if (chess_piece == 'n') {
+      // need to check for nights if 8 different locations rank +/- 1,2 and file +/- 1,2
+      for (var i = 0; i < 8; i++) {
+        var options_to_check = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
+        var x = fileToNumber(file);
+        if ((x + options_to_check[i][0] > 0) && (x + options_to_check[i][0] < 9) && (rank + options_to_check[i][1] > 0) && (rank + options_to_check[i][1] < 9)) {
+          var file_checking = numberToFile(x+options_to_check[i][0]);
+          var rank_checking = rank + options_to_check[i][1];
+          checking_square = file_checking + rank_checking;
+          check_for_chess_piece = document.getElementById(checking_square).innerHTML;
+          if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
+            if ((check_for_chess_piece.includes('black_knight') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_knight') && whos_move_is_it == 'white')) {
+              converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
+              converted_move_in_convertAnnotationToMoveSequence.push(new_square);
+              return converted_move_in_convertAnnotationToMoveSequence;
+            }    
+          }        
+        }
+      }
+    }
+  
+    // check for legal queen moves
+    if (chess_piece == 'q') {
+      // need to check for queen in +/- 7 changes in 8 directions (i.e. rook and bishop)
+      for (var i = 0; i < 7; i++) {
+        for (var j = 0; j < 8; j++) {
+          var options_to_check = [[1,0],[-1,0],[0,-1],[0,1],[1,1],[-1,1],[1,-1],[-1,-1]];
+          var x = fileToNumber(file);
+          if ((x + options_to_check[j][0]*(i+1) > 0 && x + options_to_check[j][0]*(i+1) < 9) && (rank + options_to_check[j][1]*(i+1) > 0 && rank + options_to_check[j][1]*(i+1) < 9)) {
+            var file_checking = numberToFile(x + options_to_check[j][0]*(i+1));
+            var rank_checking = rank + options_to_check[j][1]*(i+1);
+            checking_square = file_checking + rank_checking;
+            check_for_chess_piece = document.getElementById(checking_square).innerHTML;
+            if ((check_for_chess_piece.includes('black_queen') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_queen') && whos_move_is_it == 'white')) {
               converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
               converted_move_in_convertAnnotationToMoveSequence.push(new_square);
               return converted_move_in_convertAnnotationToMoveSequence;
@@ -581,53 +685,47 @@ course: 'Chess'
         }
       }
     }
-        // check for legal queen moves
-        if (chess_piece == 'q') {
-          // need to check for queen in +/- 7 changes in 8 directions (i.e. rook and bishop)
-          for (var i = 0; i < 7; i++) {
-            for (var j = 0; j < 8; j++) {
-              var options_to_check = [[1,0],[-1,0],[0,-1],[0,1],[1,1],[-1,1],[1,-1],[-1,-1]];
-              var x = fileToNumber(file);
-              if ((x + options_to_check[j][0]*(i+1) > 0 && x + options_to_check[j][0]*(i+1) < 9) && (rank + options_to_check[j][1]*(i+1) > 0 && rank + options_to_check[j][1]*(i+1) < 9)) {
-                var file_checking = numberToFile(x + options_to_check[j][0]*(i+1));
-                var rank_checking = rank + options_to_check[j][1]*(i+1);
-                checking_square = file_checking + rank_checking;
-                check_for_chess_piece = document.getElementById(checking_square).innerHTML;
-                if ((check_for_chess_piece.includes('black_queen') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_queen') && whos_move_is_it == 'white')) {
-                  converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-                  converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-                  return converted_move_in_convertAnnotationToMoveSequence;
-                }    
-              }
-            }
-          }
-        }
 
-    // check for legal knight moves
-    if (chess_piece == 'n') {
-      // need to check for nights if 8 different locations rank +/- 1,2 and file +/- 1,2
+    // check for legal king moves
+    if (chess_piece == 'k') {
+      // need to check for king in  in 8 directions (i.e. rook and bishop)
       for (var i = 0; i < 8; i++) {
-        var options_to_check = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
-        var x = fileToNumber(file) + options_to_check[i][0];
-        var file_checking = numberToFile(x);
+        var options_to_check = [[1,0],[-1,0],[0,-1],[0,1],[1,1],[-1,1],[1,-1],[-1,-1]];
+        var x = fileToNumber(file);
+        var file_checking = numberToFile(x + options_to_check[i][0]);
         var rank_checking = rank + options_to_check[i][1];
         checking_square = file_checking + rank_checking;
-        check_for_chess_piece = document.getElementById(checking_square).innerHTML;
-        if ((check_for_chess_piece.includes('black_knight') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_knight') && whos_move_is_it == 'white')) {
-          converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-          converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-          return converted_move_in_convertAnnotationToMoveSequence;
-        }    
+        if (x + options_to_check[i][0] > 0 && x + options_to_check[i][0] < 9 && rank + options_to_check[i][1] > 0 && rank + options_to_check[i][1] < 9) {
+          check_for_chess_piece = document.getElementById(checking_square).innerHTML;
+          if ((check_for_chess_piece.includes('black_king') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_king') && whos_move_is_it == 'white')) {
+            converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
+            converted_move_in_convertAnnotationToMoveSequence.push(new_square);
+            return converted_move_in_convertAnnotationToMoveSequence;
+          }    
+        }
       }
     }
+
     // check for legal pawn movements
     // check for pawn captures
     if (chess_piece == 'p') {
       if (raw_move.charAt(1) == 'x') {
         if (whos_move_is_it == 'white') {
           checking_square = raw_move.charAt(0) + (rank - 1);
+          // check for en passant
+          check_for_chess_piece = document.getElementById(new_square).innerHTML;
+          if (check_for_chess_piece == '') {
+            var lost_pawn = new_square.charAt(0) + (parseInt(new_square.charAt(1)) - 1);  
+            document.getElementById(lost_pawn).innerHTML = '';
+          }
         } else {
           checking_square = raw_move.charAt(0) + (rank + 1);
+          // check for en passant
+          check_for_chess_piece = document.getElementById(new_square).innerHTML;
+          if (check_for_chess_piece == '') {
+            var lost_pawn = new_square.charAt(0) + (parseInt(new_square.charAt(1)) + 1);  
+            document.getElementById(lost_pawn).innerHTML = '';
+          }
         }
         converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
         converted_move_in_convertAnnotationToMoveSequence.push(new_square);
@@ -671,6 +769,22 @@ course: 'Chess'
       }
     }
   }
+
+  async function undo() {
+    // undo the last move
+    var undo_move = converted_chess_move_commands[converted_chess_move_commands.length-undo_move_counter-1];
+    var reversed_undo_move = [undo_move[1], undo_move[0]];  
+    await moveChessPiece(reversed_undo_move); 
+
+    // need a function to keep track of captured pieces and then add them back to the board
+
+    undo_move_counter++;
+  }
+
+  function redo() {
+    // redo the last move
+  } 
+
   
   function fileToNumber(file_input) {
     return file_input.charCodeAt(0) - 'a'.charCodeAt(0) + 1;
