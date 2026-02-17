@@ -48,8 +48,8 @@ course: 'Chess'
              <br>
                 <button type="button" class="btn btn-primary" onclick="setBoard()">Set Board</button>
                 <button type="button" class="btn btn-primary" onclick="clearBoard()">Clear Board</button>
-                <!-- <button type="button" class="btn btn-primary" onclick="undo()">Go back</button> -->
-                <!-- <button type="button" class="btn btn-primary" onclick="redo()">Go forward</button> -->
+                <button type="button" class="btn btn-primary" onclick="back()">Back</button>
+                <button type="button" class="btn btn-primary" onclick="forward()">Forward</button>
              
                 <!-- insert table here -->
                 <table class="chessboard">
@@ -207,6 +207,15 @@ course: 'Chess'
                     <option value="Four knights">Four knights</option>
                  </select>
                 
+                 <div class="form-group mt-2">
+                  <label for="chess-speed-select">Select Autoplay Speed:</label>
+                  <select class="form-control" id="chess-speed-select">
+                    <option value="manual">Manual</option>
+                    <option value="regular">Regular</option>
+                    <option value="fast">Fast</option>
+                    <option value="slow">Slow</option>
+                 </select>
+
                   <button type="submit" class="btn btn-primary">Submit</button>
                   </div>
                   </form>
@@ -262,9 +271,9 @@ course: 'Chess'
     var chess_setup_input_white = '';
     var chess_setup_input_black = '';
     var opening = '';
-    
+    var game_speed = 100000;
     var converted_chess_move_commands = [];
-    
+    var captured_pieces = {};
     
     var chess_piece ='';
     var new_square = '';
@@ -272,7 +281,7 @@ course: 'Chess'
     var file = '';
     var rank = 0;
     var checking_square = '';
-    var move_counter = 1;
+    var move_counter = 0;
     
 
   // ************************************************************************************************* 
@@ -295,6 +304,17 @@ course: 'Chess'
     chess_setup_input_black = document.getElementById('chess-setup-input-black').value;
     opening = document.getElementById('chess-annotation-select').value;
     var gm_game_selected = document.getElementById('chess-gm-game-select').value;
+    game_speed = document.getElementById('chess-speed-select').value;
+    if (game_speed == 'regular') {
+      game_speed = 600;
+    } else if (game_speed == 'fast') {
+      game_speed = 300;
+    } else if (game_speed == 'slow') {
+      game_speed = 1200;
+    } else if (game_speed == 'manual') {
+      game_speed = 100000;
+    }
+    console.log('game_speed: ', game_speed);
     /// Determine which input to use
     if (chess_setup_input_white != '') {
       setBoard();
@@ -306,9 +326,7 @@ course: 'Chess'
       }
     } else if (gm_game_selected != '') {
       setBoard();
-      console.log('gm_games[gm_game_selected]: ', gm_games[gm_game_selected]);
       game_annotation_selection = game_annotations[gm_game_selected];
-      console.log('game_annotation_selection: ', game_annotation_selection);
       await runChessSequence(gm_games[gm_game_selected]);
     }
   });
@@ -472,10 +490,8 @@ course: 'Chess'
   // *************************************    Move Chess Piece   ************************************* 
   // ************************************************************************************************* 
 
-  async function moveChessPiece(converted_move) {
-    console.log('moveChessPiece - converted_move: ', converted_move);
-    // wait for X milliseconds until next move
-    await new Promise(resolve => setTimeout(resolve, 300));
+  async function moveChessPiece(converted_move,back_or_forward = 'forward') {
+      console.log('moveChessPiece - converted_move: ', converted_move);
       document.querySelectorAll('td[id]').forEach(td => {
           td.classList.remove('highlight_light');
           td.classList.remove('highlight_dark');  
@@ -487,9 +503,21 @@ course: 'Chess'
       } else {
         document.getElementById(old_square).classList.add('highlight_dark');
       }
-      document.getElementById(old_square).innerHTML = '';
       
       new_square = converted_move[1];
+      if (back_or_forward == 'forward') {
+        var captured_piece = document.getElementById(new_square).innerHTML;
+        captured_pieces[move_counter] = captured_piece;
+        document.getElementById(old_square).innerHTML = '';
+        move_counter++;
+      } else {
+        console.log('captured_pieces: ', captured_pieces);
+        console.log('captured_pieces[move_counter]', captured_pieces[move_counter-1]);
+        document.getElementById(old_square).innerHTML = captured_pieces[move_counter-1];
+        delete captured_pieces[move_counter-1];
+        move_counter--;
+      }
+      console.log(chess_piece_html_element);
       document.getElementById(new_square).innerHTML = chess_piece_html_element;
       if (document.getElementById(new_square).classList.contains('light')) {
         document.getElementById(new_square).classList.add('highlight_light');
@@ -500,11 +528,13 @@ course: 'Chess'
       // check for game annotations
       // game_annotations[gm_game_selected][move_counter]
       console.log('move_counter: ', move_counter);
-      console.log('game_annotation_selection[move_counter]: ', game_annotation_selection[move_counter]);
       if (game_annotation_selection[move_counter] != undefined) {
         alert(game_annotation_selection[move_counter]);
       }
-      move_counter++;
+
+      // wait for X milliseconds until next move
+      await new Promise(resolve => setTimeout(resolve, game_speed));
+  
   }
 
 
@@ -770,19 +800,38 @@ course: 'Chess'
     }
   }
 
-  async function undo() {
-    // undo the last move
-    var undo_move = converted_chess_move_commands[converted_chess_move_commands.length-undo_move_counter-1];
-    var reversed_undo_move = [undo_move[1], undo_move[0]];  
-    await moveChessPiece(reversed_undo_move); 
-
-    // need a function to keep track of captured pieces and then add them back to the board
-
-    undo_move_counter++;
+  // undo the last move
+  async function back() {
+    console.log('back function ran');
+    // Stop all pending async tasks with 'await' if any.
+    if (window.hasOwnProperty('chessAsyncCancel')) {
+      window.chessAsyncCancel = true;
+    } else {
+      window.chessAsyncCancel = true;
+    }
+    setTimeout(() => { window.chessAsyncCancel = false; }, 20);
+  
+  
+    var undo_move = converted_chess_move_commands[move_counter-1];
+    var reversed_undo_move = [undo_move[1], undo_move[0]];    
+    await moveChessPiece(reversed_undo_move, 'back');   
   }
 
-  function redo() {
-    // redo the last move
+  // redo the last move
+  function forward() {
+    // Stop all pending async tasks with 'await' if any.
+    if (window.hasOwnProperty('chessAsyncCancel')) {
+      window.chessAsyncCancel = true;
+    } else {
+      window.chessAsyncCancel = true;
+    }
+    setTimeout(() => { window.chessAsyncCancel = false; }, 20);
+   
+   
+    console.log('forward function ran');
+    console.log('move_counter: ', move_counter);
+    console.log('converted_chess_move_commands[move_counter]: ', converted_chess_move_commands[move_counter]);
+    moveChessPiece(converted_chess_move_commands[move_counter]);
   } 
 
   

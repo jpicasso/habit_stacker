@@ -1415,4 +1415,11 @@ img[src*="pm101/"] {
   #2rank_left_side {
     border: none;
    }
+
+  @media (max-width: 768px) {
+    td {
+      width: 10vw;
+      height: 10vw;
+    }
+  }
 }
