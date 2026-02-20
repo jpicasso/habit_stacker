@@ -235,7 +235,18 @@ course: 'Chess'
 </main>
 
 <script>
-   // ************************************************************************************************* 
+  // ************************************************************************************************* 
+  // *************************************                       ************************************* 
+  // *************************************                       ************************************* 
+  // *************************************     Bugs to fix       ************************************* 
+  // *************************************                       ************************************* 
+  // *************************************                       ************************************* 
+  // ************************************************************************************************* 
+
+  // hit the backwards button on a castle
+
+
+  // ************************************************************************************************* 
   // *************************************                       ************************************* 
   // *************************************                       ************************************* 
   // *************************************       Readme          ************************************* 
@@ -313,7 +324,7 @@ course: 'Chess'
     var chess_setup_input_white = '';
     var chess_setup_input_black = '';
     var opening = '';
-    var game_speed = 100000;
+    var game_speed = 10000000000;
     var converted_chess_move_commands = [];
     var captured_pieces = {};
     
@@ -329,32 +340,28 @@ course: 'Chess'
   // ************************************************************************************************* 
   // *************************************                       ************************************* 
   // *************************************                       ************************************* 
-  // *************************************    Submit Listeners    ************************************* 
+  // *************************************    Submit Listeners   ************************************* 
   // *************************************                       ************************************* 
   // *************************************                       ************************************* 
   // ************************************************************************************************* 
   
   document.getElementById('chess-annotation-form').addEventListener('submit', function(event) {
     event.preventDefault();
+    console.log('chess-annotation-form submit event ran with value: ', document.getElementById('chess-annotation-input').value);
     converted_chess_move_commands.slice(0, move_counter);
-    console.log('converted_chess_move_commands: ', converted_chess_move_commands);
-    console.log('converted_chess_move_commands[0]: ', converted_chess_move_commands[0]);
-    console.log('converted_chess_move_commands[1]: ', converted_chess_move_commands[1]);
-    console.log('converted_chess_move_commands[2]: ', converted_chess_move_commands[2]);
-    console.log('move_counter: ', move_counter);
-    console.log('converted_chess_move_commands [move counter - 1]: ', converted_chess_move_commands[move_counter-1]);
     runChessSequence(document.getElementById('chess-annotation-input').value);
   });
 
   document.getElementById('chess-setup-form').addEventListener('submit', async function(event) {
     event.preventDefault(); 
+    console.log('chess-setup-form submit event ran');
+    // get the values from the form
     chess_setup_input_white = document.getElementById('chess-setup-input-white').value;
     chess_setup_input_black = document.getElementById('chess-setup-input-black').value;
     opening = document.getElementById('chess-annotation-select').value;
     var gm_game_selected = document.getElementById('chess-gm-game-select').value;
     game_speed = document.getElementById('chess-speed-select').value;
-    if (game_speed == 'regular') {game_speed = 600; } else if (game_speed == 'fast') { game_speed = 300;} else if (game_speed == 'slow') {game_speed = 1200;    } else if (game_speed == 'manual') {game_speed = 100000;}
-    console.log('game_speed: ', game_speed);
+    if (game_speed == 'regular') {game_speed = 600; } else if (game_speed == 'fast') { game_speed = 300;} else if (game_speed == 'slow') {game_speed = 1200;    } else if (game_speed == 'manual') {game_speed = 10000000000;}
     
     /// Determine which input to use
     if (chess_setup_input_white != '') {
@@ -387,6 +394,7 @@ course: 'Chess'
   
   // run a chess sequence
   async function runChessSequence(raw_input) {
+    console.log('runChessSequence function ran with raw_input: ', raw_input);
     var chess_piece_html_element ='';
     new_square = '';
     old_square = '';
@@ -400,12 +408,8 @@ course: 'Chess'
     );
     // convert the raw move list to a move sequence
     for (var i = 0; i < raw_move_list.length; i++) {
-      console.log('run chess sequence - iteration: ', i);
-      console.log('raw_move_list[i]: ', raw_move_list[i]);
-      console.log('move_counter: ', move_counter);
       converted_chess_move_commands.push(convertAnnotationToMoveSequence(raw_move_list[i]));
       await moveChessPiece(converted_chess_move_commands[i]); 
-      console.log('converted_chess_move_commands: ', converted_chess_move_commands);
     }
   };
 
@@ -416,7 +420,7 @@ course: 'Chess'
 
   // undo the last move
   async function back() {
-    console.log('back function ran');
+    console.log('back function ran with move_counter: ', move_counter, 'and converted_chess_move_commands[move_counter-1]: ', converted_chess_move_commands[move_counter-1]);
     // Stop all pending async tasks with 'await' if any.
     if (window.hasOwnProperty('chessAsyncCancel')) {
       window.chessAsyncCancel = true;
@@ -432,6 +436,7 @@ course: 'Chess'
 
   // redo the last move
   async function forward() {
+    console.log('forward function ran with move_counter: ', move_counter, 'and converted_chess_move_commands[move_counter]: ', converted_chess_move_commands[move_counter], ' and raw_move_list[move_counter]: ', raw_move_list[move_counter]);
     // Stop all pending async tasks with 'await' if any.
     if (window.hasOwnProperty('chessAsyncCancel')) {
       window.chessAsyncCancel = true;
@@ -454,7 +459,7 @@ course: 'Chess'
   // ************************************************************************************************* 
 
   async function moveChessPiece(converted_move,back_or_forward = 'forward') {
-      console.log('moveChessPiece - converted_move: ', converted_move);
+      console.log('moveChessPiece - converted_move: ', converted_move, ' with move_counter: ', move_counter);
       document.querySelectorAll('td[id]').forEach(td => {
           td.classList.remove('highlight_light');
           td.classList.remove('highlight_dark');  
@@ -474,13 +479,10 @@ course: 'Chess'
         document.getElementById(old_square).innerHTML = '';
         move_counter++;
       } else {
-        console.log('captured_pieces: ', captured_pieces);
-        console.log('captured_pieces[move_counter]', captured_pieces[move_counter-1]);
         document.getElementById(old_square).innerHTML = captured_pieces[move_counter-1];
         delete captured_pieces[move_counter-1];
         move_counter--;
       }
-      console.log(chess_piece_html_element);
       document.getElementById(new_square).innerHTML = chess_piece_html_element;
       if (document.getElementById(new_square).classList.contains('light')) {
         document.getElementById(new_square).classList.add('highlight_light');
@@ -490,7 +492,6 @@ course: 'Chess'
       whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
       // check for game annotations
       // game_annotations[gm_game_selected][move_counter]
-      console.log('move_counter: ', move_counter);
       if (game_annotation_selection[move_counter] != undefined) {
         alert(game_annotation_selection[move_counter]);
       }
@@ -514,36 +515,37 @@ course: 'Chess'
     chess_piece = '';
     new_square = '';
     var which_piece_is_moving = '';
-    var converted_move_in_convertAnnotationToMoveSequence = [];
+    var converted_move_two_squares = [];
 
     // check for castling
     if (raw_move == "O-O" || raw_move == "0-0" || raw_move == "00" || raw_move == "OO") {
       if (whos_move_is_it == 'white') {
-        converted_move_in_convertAnnotationToMoveSequence.push('e1');
-        converted_move_in_convertAnnotationToMoveSequence.push('g1');
+        converted_move_two_squares.push('e1');
+        converted_move_two_squares.push('g1');
         moveChessPiece(['h1','f1']);
       } else {
-        converted_move_in_convertAnnotationToMoveSequence.push('e8');
-        converted_move_in_convertAnnotationToMoveSequence.push('g8');
+        converted_move_two_squares.push('e8');
+        converted_move_two_squares.push('g8');
         moveChessPiece(['h8','f8']);
       }
       whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
       move_counter--;
-      return converted_move_in_convertAnnotationToMoveSequence;
+      return converted_move_two_squares;
     } else if (raw_move == "O-O-O" || raw_move == "0-0-0" || raw_move == "000" || raw_move == "OOO") {
       if (whos_move_is_it == 'white') {
-        converted_move_in_convertAnnotationToMoveSequence.push('e1');
-        converted_move_in_convertAnnotationToMoveSequence.push('c1');
+        converted_move_two_squares.push('e1');
+        converted_move_two_squares.push('c1');
         moveChessPiece(['a1','d1']);
       } else {
-        converted_move_in_convertAnnotationToMoveSequence.push('e8');
-        converted_move_in_convertAnnotationToMoveSequence.push('c8');
+        converted_move_two_squares.push('e8');
+        converted_move_two_squares.push('c8');
         moveChessPiece(['a8','d8']);
       } 
       whos_move_is_it = whos_move_is_it == 'white' ? 'black' : 'white';
       move_counter--;
-      return converted_move_in_convertAnnotationToMoveSequence;
+      return converted_move_two_squares;
     }
+    
     // convert raw move annotation to a piece and new square location
     which_piece_is_moving = raw_move.charAt(1);
     if ((raw_move.length >= 4) && (which_piece_is_moving == 'x')) {
@@ -566,8 +568,6 @@ course: 'Chess'
       rank = parseInt(raw_move.charAt(3));
       new_square = file + rank;
       if (which_piece_is_moving == 'x'){which_piece_is_moving ='';}
-      console.log('chess_piece: ', chess_piece);
-      console.log('new square: ', new_square);
     } else if (raw_move.length == 3) {
       chess_piece = raw_move.charAt(0).toLowerCase();
       file = raw_move.charAt(1);
@@ -581,8 +581,7 @@ course: 'Chess'
       new_square = file + rank;
       which_piece_is_moving = '';
     }
-    console.log('chess_piece: ', chess_piece);
-    console.log('new square: ', new_square);
+
     // check for legal rook moves
     if (chess_piece == 'r') {
       // need to check for rook in +/- 7 changes in 4 directions
@@ -598,9 +597,9 @@ course: 'Chess'
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
             if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
               if ((check_for_chess_piece.includes('black_rook') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_rook') && whos_move_is_it == 'white')) {
-                converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-                converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-                return converted_move_in_convertAnnotationToMoveSequence;
+                converted_move_two_squares.push(checking_square);
+                converted_move_two_squares.push(new_square);
+                return converted_move_two_squares;
               }
             }    
           }
@@ -623,17 +622,18 @@ course: 'Chess'
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
             if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
               if ((check_for_chess_piece.includes('black_bishop') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_bishop') && whos_move_is_it == 'white')) {
-                converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-                converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-                return converted_move_in_convertAnnotationToMoveSequence;
+                converted_move_two_squares.push(checking_square);
+                converted_move_two_squares.push(new_square);
+                return converted_move_two_squares;
               }    
             }  
           }
         }
       }
     }
-     // check for legal knight moves
-     if (chess_piece == 'n') {
+
+    // check for legal knight moves
+    if (chess_piece == 'n') {
       // need to check for nights if 8 different locations rank +/- 1,2 and file +/- 1,2
       for (var i = 0; i < 8; i++) {
         var options_to_check = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
@@ -645,9 +645,9 @@ course: 'Chess'
           check_for_chess_piece = document.getElementById(checking_square).innerHTML;
           if (which_piece_is_moving == '' || which_piece_is_moving == file_checking || which_piece_is_moving == rank_checking) {
             if ((check_for_chess_piece.includes('black_knight') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_knight') && whos_move_is_it == 'white')) {
-              converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-              converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-              return converted_move_in_convertAnnotationToMoveSequence;
+              converted_move_two_squares.push(checking_square);
+              converted_move_two_squares.push(new_square);
+              return converted_move_two_squares;
             }    
           }        
         }
@@ -667,9 +667,9 @@ course: 'Chess'
             checking_square = file_checking + rank_checking;
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
             if ((check_for_chess_piece.includes('black_queen') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_queen') && whos_move_is_it == 'white')) {
-              converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-              converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-              return converted_move_in_convertAnnotationToMoveSequence;
+              converted_move_two_squares.push(checking_square);
+              converted_move_two_squares.push(new_square);
+              return converted_move_two_squares;
             }    
           }
         }
@@ -688,9 +688,9 @@ course: 'Chess'
         if (x + options_to_check[i][0] > 0 && x + options_to_check[i][0] < 9 && rank + options_to_check[i][1] > 0 && rank + options_to_check[i][1] < 9) {
           check_for_chess_piece = document.getElementById(checking_square).innerHTML;
           if ((check_for_chess_piece.includes('black_king') && whos_move_is_it == 'black') || (check_for_chess_piece.includes('white_king') && whos_move_is_it == 'white')) {
-            converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-            converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-            return converted_move_in_convertAnnotationToMoveSequence;
+            converted_move_two_squares.push(checking_square);
+            converted_move_two_squares.push(new_square);
+            return converted_move_two_squares;
           }    
         }
       }
@@ -717,9 +717,9 @@ course: 'Chess'
             document.getElementById(lost_pawn).innerHTML = '';
           }
         }
-        converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-        converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-        return converted_move_in_convertAnnotationToMoveSequence;
+        converted_move_two_squares.push(checking_square);
+        converted_move_two_squares.push(new_square);
+        return converted_move_two_squares;
       } else {
         // check for legal white moves
         if (whos_move_is_it == 'white') {
@@ -733,9 +733,9 @@ course: 'Chess'
             checking_square = file + (rank - j);
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
             if (check_for_chess_piece.includes('pawn')) {
-              converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-              converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-              return converted_move_in_convertAnnotationToMoveSequence;
+              converted_move_two_squares.push(checking_square);
+              converted_move_two_squares.push(new_square);
+              return converted_move_two_squares;
             }
             j--;
           }
@@ -749,9 +749,9 @@ course: 'Chess'
             checking_square = file + rank;
             check_for_chess_piece = document.getElementById(checking_square).innerHTML;
             if (check_for_chess_piece.includes('pawn')) {
-              converted_move_in_convertAnnotationToMoveSequence.push(checking_square);
-              converted_move_in_convertAnnotationToMoveSequence.push(new_square);
-              return converted_move_in_convertAnnotationToMoveSequence;
+              converted_move_two_squares.push(checking_square);
+              converted_move_two_squares.push(new_square);
+              return converted_move_two_squares;
             }
             j--;
           }
@@ -759,7 +759,6 @@ course: 'Chess'
       }
     }
   }
-  
 
   // ************************************************************************************************* 
   // *************************************       Set Board       ************************************* 
