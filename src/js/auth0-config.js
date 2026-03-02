@@ -90,7 +90,7 @@ async function updateUI() {
     // Update login/logout button visibility
     const loginButton = document.getElementById('login-button');
     const logoutButton = document.getElementById('logout-button');
-    const privateNavItem = document.getElementById('private-nav-item');
+    const privateNavItems = document.querySelectorAll('.private-nav-item');
     
     // Login button: visible only when NOT logged in (standard behavior)
     if (loginButton) {
@@ -100,10 +100,10 @@ async function updateUI() {
     if (logoutButton) {
       logoutButton.style.display = isAuthenticated ? 'block' : 'none';
     }
-    // Private link: visible only when logged in
-    if (privateNavItem) {
-      privateNavItem.style.display = isAuthenticated ? 'block' : 'none';
-    }
+    // Private links: visible only when logged in
+    privateNavItems.forEach(el => {
+      el.style.display = isAuthenticated ? 'block' : 'none';
+    });
     
     // If user is authenticated, you can get user info
     if (isAuthenticated) {

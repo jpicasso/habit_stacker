@@ -1,0 +1,676 @@
+---
+title: 'Private'
+course: 'Courses'
+aboutNav: true
+---
+
+{{> navbar}}
+
+<style>
+  #tasks-table,
+  #tasks-table thead th,
+  #tasks-table tbody td,
+  #tasks-table strong,
+  #tasks-table small {
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  #tasks-table thead th:nth-child(2),
+  #tasks-table thead th:nth-child(3),
+  #tasks-table td:nth-child(2),
+  #tasks-table td:nth-child(3) {
+    text-align: center;
+  }
+  #tasks-table tbody tr {
+    cursor: pointer;
+  }
+  #tasks-table,
+  #tasks-table thead th,
+  #tasks-table thead td {
+    border: none !important;
+  }
+  #tasks-table {
+    border-collapse: separate;
+    border-spacing: 0 6px;
+  }
+  #tasks-table tbody td {
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-left: none !important;
+    border-right: none !important;
+    background: inherit;
+  }
+  #tasks-table tbody td:first-child {
+    border-left: 1px solid #dee2e6 !important;
+  }
+  #tasks-table tbody td:last-child {
+    border-right: 1px solid #dee2e6 !important;
+  }
+  #tasks-table tbody td:first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+  }
+  #tasks-table tbody td:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+  .card .table-responsive:first-of-type {
+    border: none;
+  }
+  .card:has(.table-responsive) {
+    border: none !important;
+    box-shadow: none !important;
+  }
+</style>
+
+<main class="main main--interior">
+  <div class="i-section mb-4">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        </nav>
+        <section class="col-md-9 ml-sm-auto col-lg-10 content"> -->
+          <!-- Protected content (hidden by default) -->
+          <div id="private-content" style="display: none;">
+            <!-- Habit Management Section -->
+            <div class="mt-2">
+            
+          <!-- Row action modal (Edit / Delete choice) -->
+          <div class="modal fade" id="rowActionModal" tabindex="-1" role="dialog" aria-labelledby="rowActionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="rowActionModalLabel">Habit action</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  What would you like to do with this habit?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="row-action-edit-btn">Edit</button>
+                  <button type="button" class="btn btn-danger" id="row-action-delete-btn">Delete</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Habit Modal -->
+          <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editEventModalLabel">Edit Habit</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="edit-task-form">
+                    <input type="hidden" id="edit-task-id">
+                    <div class="form-group">
+                      <label for="edit-task-input">Habit *</label>
+                      <input type="text" class="form-control" id="edit-task-input" placeholder="Enter habit" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-event-date">Start Date *</label>
+                      <input type="date" class="form-control" id="edit-event-date" required>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  <button type="button" class="btn btn-primary" onclick="saveEditTask()">Save Changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+              <!-- Habits Table -->
+              <div class="card">
+                <div class="card-body">
+                  <div id="tasks-loading" class="text-center py-3">
+                    <div class="spinner-border" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  </div>
+                  <div id="tasks-error" class="alert alert-danger" style="display: none;"></div>
+                  <div id="tasks-empty" class="alert alert-info" style="display: none;">No Habits added yet. Add one below!</div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="tasks-table" style="display: none;">
+                      <thead>
+                        <tr>
+                          <th>Habit</th>
+                          <th style="width: 150px;">Days kept</th>
+                          <th style="width: 150px;">Start Date</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tasks-tbody">
+                        <!-- Habits will be inserted here -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add Habit Form -->
+              <div class="card mb-4 mt-2">
+                <div class="card-body">
+                  <form id="task-form">
+                    <div class="form-group">
+                      <input type="text" class="form-control" id="task-input" placeholder="Enter Habit" required>
+                    </div>
+                    <div class="form-group">
+                      <input type="date" class="form-control" id="event-date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add New Habit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Login required message (shown by default) -->
+          <div id="login-required-message" style="display: none;">
+            <h1 class="display-3 mb-3">Access Restricted</h1>
+            <div class="alert alert-warning" role="alert">
+              <h4 class="alert-heading">You must log in to see this page</h4>
+              <p>This page is only accessible to authenticated users. Please log in to continue.</p>
+              <p class="mb-0">
+                <button class="btn btn-primary" onclick="handleLogin(); return false;">Log In</button>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Check authentication and show/hide content accordingly
+  async function checkAuthAndDisplayContent() {
+    try {
+      let auth0 = null;
+      
+      // First, try to use window.auth0 directly if it's already available
+      if (window.auth0) {
+        auth0 = window.auth0;
+      } else if (window.auth0Promise) {
+        // Otherwise, wait for the promise to resolve
+        auth0 = await window.auth0Promise;
+      } else {
+        // If neither exists, wait a bit and try again
+        console.log('Auth0 not initialized yet, waiting...');
+        setTimeout(checkAuthAndDisplayContent, 200);
+        return;
+      }
+      
+      // Wait for redirect handling to complete if it's in progress
+      if (window.redirectHandledPromise) {
+        await window.redirectHandledPromise;
+      }
+      
+      // Now check authentication
+      if (auth0 && typeof auth0.isAuthenticated === 'function') {
+        const isAuthenticated = await auth0.isAuthenticated();
+        updateContentVisibility(isAuthenticated);
+      } else {
+        console.error('Auth0 client is not properly initialized');
+        updateContentVisibility(false);
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      // On error, show login required message
+      updateContentVisibility(false);
+    }
+  }
+  
+  // Update content visibility based on auth state
+  function updateContentVisibility(isAuthenticated) {
+    const privateContent = document.getElementById('private-content');
+    const loginRequiredMessage = document.getElementById('login-required-message');
+    
+    if (isAuthenticated) {
+      // User is logged in - show protected content
+      if (privateContent) privateContent.style.display = 'block';
+      if (loginRequiredMessage) loginRequiredMessage.style.display = 'none';
+    } else {
+      // User is not logged in - show login required message
+      if (privateContent) privateContent.style.display = 'none';
+      if (loginRequiredMessage) loginRequiredMessage.style.display = 'block';
+    }
+  }
+  
+  // Wait for Auth0 to be ready with retries
+  function waitForAuth0AndCheck(maxRetries = 10, retryDelay = 200) {
+    let retries = 0;
+    
+    const check = () => {
+      if (window.auth0 || (window.auth0Promise && retries < maxRetries)) {
+        checkAuthAndDisplayContent();
+      } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(check, retryDelay);
+      } else {
+        console.warn('Auth0 initialization timeout - showing login required');
+        updateContentVisibility(false);
+      }
+    };
+    
+    check();
+  }
+  
+  // Run check when page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      waitForAuth0AndCheck();
+    });
+  } else {
+    // DOM is already loaded
+    waitForAuth0AndCheck();
+  }
+  
+  // Re-check auth state when user returns from login (handles redirect callback)
+  window.addEventListener('focus', () => {
+    setTimeout(checkAuthAndDisplayContent, 100);
+  });
+  
+  // Also check after redirect callback (in case we just logged in)
+  if (window.location.search.includes('code=') && window.location.search.includes('state=')) {
+    // Wait a bit longer for redirect handling
+    setTimeout(checkAuthAndDisplayContent, 500);
+  }
+  
+  // Event Management Functions
+  async function loadTasks() {
+    const loadingEl = document.getElementById('tasks-loading');
+    const errorEl = document.getElementById('tasks-error');
+    const emptyEl = document.getElementById('tasks-empty');
+    const tableEl = document.getElementById('tasks-table');
+    const tbodyEl = document.getElementById('tasks-tbody');
+    
+    try {
+      loadingEl.style.display = 'block';
+      errorEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+      tableEl.style.display = 'none';
+      
+      // Get the current logged-in user's email
+      let currentUserEmail = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            currentUserEmail = user?.email || null;
+            console.log('Current user email:', currentUserEmail);
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting current user:', authError);
+      }
+      
+      // If user is not authenticated, don't show any habits
+      if (!currentUserEmail) {
+        loadingEl.style.display = 'none';
+        emptyEl.textContent = 'Please log in to view your habits.';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      
+      const response = await fetch('/api/habits');
+      if (!response.ok) {
+        throw new Error('Failed to fetch habits');
+      }
+      
+      const allTasks = await response.json();
+      
+      // Filter to only show habits where user_id matches current user's email
+      const tasks = allTasks.filter(task => {
+        return task.user_id === currentUserEmail;
+      });
+      // Sort by start date descending (newest first)
+      tasks.sort((a, b) => {
+        const dateA = a.event_date ? new Date(a.event_date + 'T00:00:00') : new Date(0);
+        const dateB = b.event_date ? new Date(b.event_date + 'T00:00:00') : new Date(0);
+        return dateB - dateA;
+      });
+      
+      loadingEl.style.display = 'none';
+      
+      if (tasks.length === 0) {
+        emptyEl.textContent = 'No habits yet. Add one above!';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      
+      tableEl.style.display = 'table';
+      tbodyEl.innerHTML = '';
+      
+      tasks.forEach(task => {
+        const startDateDisplay = formatDateShort(task.event_date);
+        const daysKeptNum = task.event_date ? daysSince(task.event_date) : 0;
+        const daysKeptDisplay = task.event_date ? daysKeptNum : '—';
+        const row = document.createElement('tr');
+        row.setAttribute('data-habit-id', task.id);
+        if (daysKeptNum >= 365) {
+          row.style.backgroundColor = '#000000';
+          row.style.color = 'white';
+        } else if (daysKeptNum >= 100) {
+          row.style.backgroundColor = '#006600';
+          row.style.color = 'white';
+        } else if (daysKeptNum >= 21) {
+          row.style.backgroundColor = '#00b300';
+          row.style.color = 'white';
+        } else if (daysKeptNum >= 1) {
+          row.style.backgroundColor = '#80ff80';
+          row.style.color = 'black';
+        } else {
+          row.style.backgroundColor = 'white';
+          row.style.color = 'black';
+        }
+        row.innerHTML = `
+          <td><strong>${escapeHtml(task.task)}</strong></td>
+          <td><small>${daysKeptDisplay}</small></td>
+          <td><small>${startDateDisplay}</small></td>
+        `;
+        tbodyEl.appendChild(row);
+      });
+    } catch (error) {
+      console.error('Error loading habits:', error);
+      loadingEl.style.display = 'none';
+      errorEl.textContent = 'Failed to load habits. Please refresh the page.';
+      errorEl.style.display = 'block';
+    }
+  }
+  
+  async function addTaskForm(event) {
+    event.preventDefault();
+    
+    const taskInput = document.getElementById('task-input');
+    const eventDateInput = document.getElementById('event-date');
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    
+    const task = taskInput.value.trim();
+    const eventDate = eventDateInput.value;
+    
+    if (!task) {
+      alert('Please enter a habit');
+      return;
+    }
+    
+    if (!eventDate) {
+      alert('Please select a start date');
+      return;
+    }
+    
+    try {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Adding...';
+      
+      // Get the Auth0 user
+      let userId = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            // Use email as user_id, fallback to nickname or sub if email is not available
+            userId = user?.email || user?.nickname || user?.sub || null;
+            console.log('User ID for new event:', userId);
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting Auth0 user:', authError);
+        // Continue without user_id if there's an error
+      }
+      
+      const response = await fetch('/api/habits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ task, event_date: eventDate, user_id: userId })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add habit');
+      }
+      
+      // Clear form
+      taskInput.value = '';
+      eventDateInput.value = '';
+      
+      // Reload habits
+      await loadTasks();
+    } catch (error) {
+      console.error('Error adding habit:', error);
+      alert('Failed to add habit. Please try again.');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Add New Habit';
+    }
+  }
+  
+  async function deleteTask(id) {
+    if (!confirm('Are you sure you want to delete this habit?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/habits/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete habit');
+      }
+      
+      await loadTasks();
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+      alert('Failed to delete habit. Please try again.');
+    }
+  }
+  
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  function formatDateOnly(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  /** Format as D-MMM-YY (e.g. 15-Feb-25) */
+  function formatDateShort(dateString) {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString + 'T00:00:00');
+    const d = date.getDate();
+    const mmm = date.toLocaleDateString('en-US', { month: 'short' });
+    const yy = String(date.getFullYear()).slice(-2);
+    return `${d}-${mmm}-${yy}`;
+  }
+
+  function daysSince(dateString) {
+    if (!dateString) return '—';
+    const start = new Date(dateString + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? diff : 0;
+  }
+  
+  
+  // Edit task function
+  async function editTask(id) {
+    try {
+      // Fetch the current task data
+      const response = await fetch(`/api/habits`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch tasks');
+      }
+      
+      const tasks = await response.json();
+      const task = tasks.find(t => t.id === id);
+      
+      if (!task) {
+        alert('Habit not found');
+        return;
+      }
+      
+      // Populate the edit form
+      document.getElementById('edit-task-id').value = task.id;
+      document.getElementById('edit-task-input').value = task.task;
+      
+      // Format date for input (YYYY-MM-DD)
+      if (task.event_date) {
+        const date = new Date(task.event_date + 'T00:00:00');
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        document.getElementById('edit-event-date').value = `${year}-${month}-${day}`;
+      } else {
+        document.getElementById('edit-event-date').value = '';
+      }
+      
+      // Show the modal using jQuery/Bootstrap 4
+      $('#editEventModal').modal('show');
+    } catch (error) {
+console.error('Error loading habit for editing:', error);
+    alert('Failed to load habit. Please try again.');
+    }
+  }
+  
+  // Save edited task
+  async function saveEditTask() {
+    const taskId = document.getElementById('edit-task-id').value;
+    const taskInput = document.getElementById('edit-task-input');
+    const eventDateInput = document.getElementById('edit-event-date');
+    const saveButton = document.querySelector('#editEventModal .btn-primary');
+    
+    const task = taskInput.value.trim();
+    const eventDate = eventDateInput.value;
+    
+    if (!task) {
+      alert('Please enter a habit');
+      return;
+    }
+    
+    if (!eventDate) {
+      alert('Please select a start date');
+      return;
+    }
+    
+    try {
+      saveButton.disabled = true;
+      saveButton.textContent = 'Saving...';
+      
+      // Get the Auth0 user to preserve user_id
+      let userId = null;
+      try {
+        if (window.auth0) {
+          const isAuthenticated = await window.auth0.isAuthenticated();
+          if (isAuthenticated) {
+            const user = await window.auth0.getUser();
+            // Use email as user_id, fallback to nickname or sub if email is not available
+            userId = user?.email || user?.nickname || user?.sub || null;
+          }
+        }
+      } catch (authError) {
+        console.error('Error getting Auth0 user:', authError);
+        // Continue without user_id if there's an error
+      }
+      
+      const response = await fetch(`/api/habits/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          task, 
+          event_date: eventDate,
+          user_id: userId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update habit');
+      }
+      
+      // Close modal
+      $('#editEventModal').modal('hide');
+      
+      // Reload habits
+      await loadTasks();
+    } catch (error) {
+      console.error('Error updating habit:', error);
+      alert('Failed to update habit. Please try again.');
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = 'Save Changes';
+    }
+  }
+  
+  // Make functions globally available
+  window.deleteTask = deleteTask;
+  window.editTask = editTask;
+  window.saveEditTask = saveEditTask;
+  
+  // Load habits when content is visible
+  const originalUpdateContentVisibility = updateContentVisibility;
+  updateContentVisibility = function(isAuthenticated) {
+    originalUpdateContentVisibility(isAuthenticated);
+    if (isAuthenticated) {
+      // Load habits when user is authenticated and content is shown
+      setTimeout(loadTasks, 100);
+    }
+  };
+  
+  // Row click: show Edit/Delete modal (unless user clicked Edit or Delete button)
+  let rowActionHabitId = null;
+  document.addEventListener('DOMContentLoaded', () => {
+    const taskForm = document.getElementById('task-form');
+    if (taskForm) {
+      taskForm.addEventListener('submit', addTaskForm);
+    }
+    const tbody = document.getElementById('tasks-tbody');
+    if (tbody) {
+      tbody.addEventListener('click', (e) => {
+        const row = e.target.closest('tr[data-habit-id]');
+        if (!row) return;
+        if (e.target.closest('button')) return;
+        rowActionHabitId = row.getAttribute('data-habit-id');
+        if (rowActionHabitId) {
+          $('#rowActionModal').modal('show');
+        }
+      });
+    }
+    document.getElementById('row-action-edit-btn').addEventListener('click', () => {
+      if (rowActionHabitId) {
+        $('#rowActionModal').modal('hide');
+        editTask(parseInt(rowActionHabitId, 10));
+        rowActionHabitId = null;
+      }
+    });
+    document.getElementById('row-action-delete-btn').addEventListener('click', () => {
+      if (rowActionHabitId) {
+        $('#rowActionModal').modal('hide');
+        const id = parseInt(rowActionHabitId, 10);
+        rowActionHabitId = null;
+        deleteTask(id);
+      }
+    });
+  });
+</script>
+
+{{> main-site-footer }}

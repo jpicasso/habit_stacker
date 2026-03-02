@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
-const { initDatabase, getAllTasks, addTask, updateTask, deleteTask } = require('./db');
+const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDatabase, getAllHabits, addHabit, updateHabit, deleteHabit } = require('./db');
 
 const app = express();
 
@@ -18,15 +18,24 @@ if (fs.existsSync(distPath)) {
   console.warn('WARNING: dist folder not found. Run "npm run build" first.');
 }
 
-// Initialize database
+// Initialize databases
 let db = null;
+let habitsDb = null;
 initDatabase()
   .then((database) => {
     db = database;
-    console.log('Database initialized successfully');
+    console.log('Tasks database initialized successfully');
   })
   .catch((err) => {
-    console.error('Failed to initialize database:', err);
+    console.error('Failed to initialize tasks database:', err);
+  });
+initHabitsDatabase()
+  .then((database) => {
+    habitsDb = database;
+    console.log('Habits database initialized successfully');
+  })
+  .catch((err) => {
+    console.error('Failed to initialize habits database:', err);
   });
 
 // API Routes
@@ -103,6 +112,75 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
+// --- Habits API (habits.db) ---
+
+app.get('/api/habits', async (req, res) => {
+  try {
+    if (!habitsDb) {
+      return res.status(500).json({ error: 'Habits database not initialized' });
+    }
+    const habits = await getAllHabits(habitsDb);
+    res.json(habits);
+  } catch (error) {
+    console.error('Error fetching habits:', error);
+    res.status(500).json({ error: 'Failed to fetch habits' });
+  }
+});
+
+app.post('/api/habits', async (req, res) => {
+  try {
+    if (!habitsDb) {
+      return res.status(500).json({ error: 'Habits database not initialized' });
+    }
+    const { task, event_date, user_id } = req.body;
+    if (!task || task.trim() === '') {
+      return res.status(400).json({ error: 'Habit is required' });
+    }
+    if (!event_date) {
+      return res.status(400).json({ error: 'Start date is required' });
+    }
+    const newHabit = await addHabit(habitsDb, task.trim(), event_date, user_id || null);
+    res.status(201).json(newHabit);
+  } catch (error) {
+    console.error('Error adding habit:', error);
+    res.status(500).json({ error: 'Failed to add habit' });
+  }
+});
+
+app.put('/api/habits/:id', async (req, res) => {
+  try {
+    if (!habitsDb) {
+      return res.status(500).json({ error: 'Habits database not initialized' });
+    }
+    const { id } = req.params;
+    const { task, event_date, user_id } = req.body;
+    if (!task || task.trim() === '') {
+      return res.status(400).json({ error: 'Habit is required' });
+    }
+    if (!event_date) {
+      return res.status(400).json({ error: 'Start date is required' });
+    }
+    const updated = await updateHabit(habitsDb, id, task.trim(), event_date, user_id || null);
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating habit:', error);
+    res.status(500).json({ error: 'Failed to update habit' });
+  }
+});
+
+app.delete('/api/habits/:id', async (req, res) => {
+  try {
+    if (!habitsDb) {
+      return res.status(500).json({ error: 'Habits database not initialized' });
+    }
+    const { id } = req.params;
+    await deleteHabit(habitsDb, id);
+    res.json({ message: 'Habit deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting habit:', error);
+    res.status(500).json({ error: 'Failed to delete habit' });
+  }
+});
 
 // Handle all other routes by serving index.html (for client-side routing if needed)
 app.get('*', (req, res) => {
