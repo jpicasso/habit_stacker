@@ -21,6 +21,16 @@ aboutNav: true
   #tasks-table td:nth-child(3) {
     text-align: center;
   }
+  #tasks-table thead th:nth-child(2),
+  #tasks-table td:nth-child(2) {
+    width: 6.5em;
+    white-space: nowrap;
+  }
+  #tasks-table thead th:nth-child(3),
+  #tasks-table td:nth-child(3) {
+    width: 7em;
+    white-space: nowrap;
+  }
   #tasks-table tbody tr {
     cursor: pointer;
   }
@@ -144,8 +154,8 @@ aboutNav: true
                       <thead>
                         <tr>
                           <th>Habit</th>
-                          <th style="width: 150px;">Days kept</th>
-                          <th style="width: 150px;">Start Date</th>
+                          <th>Days kept</th>
+                          <th>Start Date</th>
                         </tr>
                       </thead>
                       <tbody id="tasks-tbody">
