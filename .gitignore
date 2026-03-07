@@ -3,3 +3,9 @@ access.txt
 dist
 .DS_Store
 src/.DS_Store
+
+# SQLite database files (local only; use a hosted DB in production)
+*.db
+
+# Environment variables (Supabase keys, etc.)
+.env

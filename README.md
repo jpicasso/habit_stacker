@@ -28,6 +28,8 @@ You’ll need to run `npm update` and then `npm install panini` to download the 
 1. delete `dist` folder
 2. cd to folder directory in terminal and enter `gulp watch` (automatically pulls up local deployment)
 3. Copy / paste new `dist` folder onto your hosting site of choice
+4. Make new commit to https://github.com/jpicasso/UpriseU2026 
+5. Site is hosted on heroku; deployed through github; db is on supabase. For habits persistence in production, see **SUPABASE_SETUP.md**.
 
 ### Debugging
 Note: if gulp watch function is not working, follow these steps

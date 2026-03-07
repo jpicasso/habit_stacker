@@ -1,10 +1,18 @@
+require('dotenv').config();
+// Polyfill fetch/Headers for Node 14/16 (Supabase client needs them)
+const nodeFetch = require('node-fetch');
+if (typeof globalThis.fetch === 'undefined') globalThis.fetch = nodeFetch;
+if (typeof globalThis.Headers === 'undefined') globalThis.Headers = nodeFetch.Headers;
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDatabase, getAllHabits, addHabit, updateHabit, deleteHabit } = require('./db');
+const supabaseHabits = require('./supabase-habits');
 
 const app = express();
+const useSupabaseHabits = supabaseHabits.isConfigured();
 
 // Middleware
 app.use(bodyParser.json());
@@ -29,14 +37,19 @@ initDatabase()
   .catch((err) => {
     console.error('Failed to initialize tasks database:', err);
   });
-initHabitsDatabase()
-  .then((database) => {
-    habitsDb = database;
-    console.log('Habits database initialized successfully');
-  })
-  .catch((err) => {
-    console.error('Failed to initialize habits database:', err);
-  });
+if (useSupabaseHabits) {
+  habitsDb = 'supabase';
+  console.log('Habits using Supabase');
+} else {
+  initHabitsDatabase()
+    .then((database) => {
+      habitsDb = database;
+      console.log('Habits database (SQLite) initialized successfully');
+    })
+    .catch((err) => {
+      console.error('Failed to initialize habits database:', err);
+    });
+}
 
 // API Routes
 
@@ -119,11 +132,12 @@ app.get('/api/habits', async (req, res) => {
     if (!habitsDb) {
       return res.status(500).json({ error: 'Habits database not initialized' });
     }
-    const habits = await getAllHabits(habitsDb);
+    const habits = useSupabaseHabits ? await supabaseHabits.getAllHabits() : await getAllHabits(habitsDb);
     res.json(habits);
   } catch (error) {
     console.error('Error fetching habits:', error);
-    res.status(500).json({ error: 'Failed to fetch habits' });
+    const message = error?.message || error?.error_description || String(error);
+    res.status(500).json({ error: 'Failed to fetch habits', details: message });
   }
 });
 
@@ -139,7 +153,7 @@ app.post('/api/habits', async (req, res) => {
     if (!event_date) {
       return res.status(400).json({ error: 'Start date is required' });
     }
-    const newHabit = await addHabit(habitsDb, task.trim(), event_date, user_id || null);
+    const newHabit = useSupabaseHabits ? await supabaseHabits.addHabit(task.trim(), event_date, user_id || null) : await addHabit(habitsDb, task.trim(), event_date, user_id || null);
     res.status(201).json(newHabit);
   } catch (error) {
     console.error('Error adding habit:', error);
@@ -160,7 +174,7 @@ app.put('/api/habits/:id', async (req, res) => {
     if (!event_date) {
       return res.status(400).json({ error: 'Start date is required' });
     }
-    const updated = await updateHabit(habitsDb, id, task.trim(), event_date, user_id || null);
+    const updated = useSupabaseHabits ? await supabaseHabits.updateHabit(id, task.trim(), event_date, user_id || null) : await updateHabit(habitsDb, id, task.trim(), event_date, user_id || null);
     res.json(updated);
   } catch (error) {
     console.error('Error updating habit:', error);
@@ -174,7 +188,7 @@ app.delete('/api/habits/:id', async (req, res) => {
       return res.status(500).json({ error: 'Habits database not initialized' });
     }
     const { id } = req.params;
-    await deleteHabit(habitsDb, id);
+    if (useSupabaseHabits) await supabaseHabits.deleteHabit(id); else await deleteHabit(habitsDb, id);
     res.json({ message: 'Habit deleted successfully' });
   } catch (error) {
     console.error('Error deleting habit:', error);
