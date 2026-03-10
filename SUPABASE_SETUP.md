@@ -22,8 +22,37 @@ create table if not exists habits (
   user_id text
 );
 ```
-
 4. Click **Run**. You should see “Success. No rows returned.”
+
+create goals table
+
+```sql
+create table if not exists goals_list (
+  id bigserial primary key,
+  goal1 text,
+  goal2 text,
+  goal3 text,
+  goal4 text,
+  goal5 text,
+  goal6 text,
+  goal7 text,
+  goal8 text,
+  user_id text
+);
+```
+
+create goals_values table (for yellow-box cell submissions)
+
+```sql
+create table if not exists goals_values (
+  id bigserial primary key,
+  user_id text not null,
+  goal_name text not null,
+  value text,
+  date date
+);
+```
+
 
 ## 3. Get your API credentials
 

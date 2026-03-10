@@ -10,6 +10,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDatabase, getAllHabits, addHabit, updateHabit, deleteHabit } = require('./db');
 const supabaseHabits = require('./supabase-habits');
+const supabaseGoals = require('./supabase-goals');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -193,6 +194,103 @@ app.delete('/api/habits/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting habit:', error);
     res.status(500).json({ error: 'Failed to delete habit' });
+  }
+});
+
+// --- Goals API (Supabase goals_list only) ---
+
+app.get('/api/goals', async (req, res) => {
+  try {
+    if (!supabaseGoals.isConfigured()) {
+      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const row = await supabaseGoals.getGoalsRow(userId);
+    res.json(row || null);
+  } catch (error) {
+    console.error('Error fetching goals:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch goals' });
+  }
+});
+
+app.post('/api/goals', async (req, res) => {
+  try {
+    if (!supabaseGoals.isConfigured()) {
+      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const { user_id, goal } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const result = await supabaseGoals.addGoal(user_id.trim(), goal);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error adding goal:', error);
+    res.status(400).json({ error: error.message || 'Failed to add goal' });
+  }
+});
+
+app.patch('/api/goals', async (req, res) => {
+  try {
+    if (!supabaseGoals.isConfigured()) {
+      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const { user_id, goal_index, value } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const idx = goal_index != null ? Number(goal_index) : NaN;
+    if (!Number.isInteger(idx) || idx < 1 || idx > 8) {
+      return res.status(400).json({ error: 'goal_index must be 1..8' });
+    }
+    const result = await supabaseGoals.updateGoal(user_id.trim(), idx, value);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating goal:', error);
+    res.status(400).json({ error: error.message || 'Failed to update goal' });
+  }
+});
+
+app.get('/api/goals/values', async (req, res) => {
+  try {
+    if (!supabaseGoals.isConfigured()) {
+      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseGoals.getGoalValues(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching goal values:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch goal values' });
+  }
+});
+
+app.post('/api/goals/values', async (req, res) => {
+  try {
+    if (!supabaseGoals.isConfigured()) {
+      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const { user_id, goal_name, value, date } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const result = await supabaseGoals.upsertGoalValue(
+      user_id.trim(),
+      goal_name != null ? String(goal_name) : '',
+      value != null ? String(value).trim() : '',
+      date != null && String(date).trim() !== '' ? String(date).trim() : null
+    );
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error saving goal value:', error);
+    const message = error.message || 'Failed to save goal value';
+    res.status(500).json({ error: message });
   }
 });
 

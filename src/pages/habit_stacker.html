@@ -81,6 +81,78 @@ aboutNav: true
     padding-top: 0;
     justify-content: flex-start;
   }
+  #goals-table th:nth-child(n+2):nth-child(-n+9),
+  #goals-table td:nth-child(n+2):nth-child(-n+9) {
+    min-width: 3em;
+  }
+  #goals-table td:nth-child(12) {
+    text-align: center;
+  }
+  #goals-table td:has(.goals-cell-box),
+  #working-table td:has(.goals-cell-box),
+  #calories-today-table td:has(.goals-cell-box) {
+    position: relative;
+    min-height: 2.5em;
+  }
+  .goals-cell-box {
+    position: absolute;
+    top: 2.5%;
+    left: 2.5%;
+    width: 95%;
+    height: 95%;
+    min-width: 1.25em;
+    min-height: 1.25em;
+    background-color: #ffeb3b;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .goals-cell-box-target {
+    background-color: #2196f3;
+    
+  }
+  .goals-cell-box-plusminus {
+    background-color: #9e9e9e;
+  }
+  #calories-today-card .card-body,
+  #working-card .card-body {
+    text-align: left;
+  }
+  #calories-today-card .table-responsive,
+  #working-card .table-responsive {
+    width: auto;
+  }
+  #calories-today-card #submit-todays-calories-btn {
+    display: block;
+  }
+  #calories-today-table,
+  #working-table {
+    width: 15em;
+    table-layout: fixed;
+  }
+  #calories-today-table tbody tr:not(:last-child) {
+    cursor: pointer;
+  }
+  #calories-today-table tbody tr:last-child {
+    background-color: #8FCAFA;
+    font-weight: bold;
+  }
+  #calories-today-table th:nth-child(1),
+  #calories-today-table td:nth-child(1),
+  #working-table th:nth-child(1),
+  #working-table td:nth-child(1) {
+    width: 5em;
+  }
+  #calories-today-table th:nth-child(2),
+  #calories-today-table td:nth-child(2),
+  #working-table th:nth-child(2),
+  #working-table td:nth-child(2) {
+    text-align: center;
+    width: 3em;
+  }
 </style>
 
 <main class="main main--interior">
@@ -145,7 +217,358 @@ aboutNav: true
             </div>
           </div>
 
+          <!-- Goals table cell id dialog -->
+          <div class="modal fade" id="goalsCellModal" tabindex="-1" role="dialog" aria-labelledby="goalsCellModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="goalsCellModalLabel">Cell: <span id="goals-cell-id-display" class="font-monospace"></span></h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="goals-cell-value-form">
+                    <div class="form-group">
+                      <label for="goals-cell-value-input">Value</label>
+                      <input type="text" class="form-control" id="goals-cell-value-input" placeholder="Enter value">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- Edit goal name (first column) dialog -->
+          <div class="modal fade" id="goalEditModal" tabindex="-1" role="dialog" aria-labelledby="goalEditModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="goalEditModalLabel">Edit Goal</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p class="mb-2"><strong>Cell ID:</strong> <span id="goal-edit-cell-id" class="font-monospace"></span></p>
+                  <form id="goal-edit-form">
+                    <div class="form-group">
+                      <label for="goal-edit-value-input">Goal</label>
+                      <input type="text" class="form-control" id="goal-edit-value-input" placeholder="Goal name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" id="goal-edit-delete-btn">Delete this goal</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calories today row edit dialog -->
+          <div class="modal fade" id="caloriesRowEditModal" tabindex="-1" role="dialog" aria-labelledby="caloriesRowEditModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="caloriesRowEditModalLabel">Edit row</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="calories-row-edit-form">
+                    <div class="form-group">
+                      <label class="font-monospace" id="calories-edit-meal-id-label"></label>
+                      <input type="text" class="form-control" id="calories-edit-meal-input" placeholder="Meal name">
+                    </div>
+                    <div class="form-group">
+                      <label class="font-monospace" id="calories-edit-calories-id-label"></label>
+                      <input type="number" class="form-control" id="calories-edit-calories-input" placeholder="Calories" step="1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PlusMinus (><) grey box dialog -->
+          <div class="modal fade" id="plusMinusModal" tabindex="-1" role="dialog" aria-labelledby="plusMinusModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="plusMinusModalLabel">Select</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p class="mb-2"><strong>Cell ID:</strong> <span id="plusminus-cell-id" class="font-monospace"></span></p>
+                  <form id="plusminus-form">
+                    <div class="form-group">
+                      <label for="plusminus-select">Value</label>
+                      <select class="form-control" id="plusminus-select">
+                        <option value="<">&lt;</option>
+                        <option value=">">&gt;</option>
+                      </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="minutesWorkModal" tabindex="-1" role="dialog" aria-labelledby="minutesWorkModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="minutesWorkModalLabel">Minutes work</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="minutes-work-form">
+                    <div class="form-group">
+                      <label for="minutes-work-input">Minutes</label>
+                      <input type="number" class="form-control" id="minutes-work-input" min="0" step="1" value="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="dailyHoursModal" tabindex="-1" role="dialog" aria-labelledby="dailyHoursModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="dailyHoursModalLabel">Daily Hours</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="daily-hours-form">
+                    <div class="form-group">
+                      <label for="daily-hours-input">Hours (one decimal)</label>
+                      <input type="number" class="form-control" id="daily-hours-input" min="0" step="0.1" placeholder="12.0">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="workingStartModal" tabindex="-1" role="dialog" aria-labelledby="workingStartModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="workingStartModalLabel">Working Start</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="working-start-form">
+                    <div class="form-group">
+                      <label for="working-start-input">Start time (e.g. 6:30 AM)</label>
+                      <input type="text" class="form-control" id="working-start-input" placeholder="6:30 AM">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+              <!-- Stopwatch -->
+              <div class="card mb-4" id="stopwatch-card">
+                <div class="card-body">
+                  <h5 class="card-title">Stopwatch</h5>
+                  <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span id="stopwatch-display" class="font-monospace mr-2" style="font-size: 1.5rem; min-width: 6em;">0:00:00</span>
+                    <button type="button" class="btn btn-success" id="stopwatch-start">Start</button>
+                    <button type="button" class="btn btn-warning" id="stopwatch-pause">Pause</button>
+                    <button type="button" class="btn btn-secondary" id="stopwatch-reset">Reset</button>
+                    <button type="button" class="btn btn-primary" id="stopwatch-submit">Submit</button>
+                  </div>
+                </div>
+              </div>
+
+              
+              <!-- Working -->
+              <div class="card mb-4" id="working-card">
+                <div class="card-body">
+                  <h5 class="card-title">Working</h5>
+                  <div class="table-responsive d-inline-block">
+                    <table class="table table-striped table-hover" id="working-table">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Minutes</td>
+                          <td id="minutes_value"><span class="goals-cell-box" role="button" tabindex="0">0</span></td>
+                        </tr>
+                        <tr>
+                          <td>Daily Hours</td>
+                          <td id="daily-hours-value"><span class="goals-cell-box" role="button" tabindex="0">12.0</span></td>
+                        </tr>
+                        <tr>
+                          <td>Start</td>
+                          <td id="working_start"><span class="goals-cell-box" role="button" tabindex="0">6:30 AM</span></td>
+                        </tr>
+                        <tr>
+                          <td> Expected Done:</td>
+                          <td id="expected-done-value"> 6:30 PM</td>
+                        </tr>
+                        <tr>
+                          <td> Projected Done:</td>
+                          <td id="projected-done-value"> 6:30 PM</td>
+                        </tr>
+                        <tr>
+                          <td> Delta:</td>
+                          <td id="delta-to-expected-done-value"> 0</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="mt-2 text-start">
+                    <button type="button" class="btn btn-primary" id="submit-time-worked-btn">Submit time worked </button>
+                  </div>
+                
+                </div>
+              </div>
+
+              <!-- Calories today -->
+              <div class="card mb-4" id="calories-today-card">
+                <div class="card-body">
+                  <h5 class="card-title">Calories today</h5>
+                  <div class="table-responsive d-inline-block">
+                    <table class="table table-striped table-hover" id="calories-today-table">
+                      <thead>
+                        <tr>
+                          <th > Meal</th>
+                          <th>Calories</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td id="meal1">Breakfast</td>
+                          <td id="calories1"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td id="meal2">Enter meal name</td>
+                          <td id="calories2"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td id="meal3">Enter meal name</td>
+                          <td id="calories3"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td id="meal4">Enter meal name</td>
+                          <td id="calories4"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td id="meal5">Enter meal name</td>
+                          <td id="calories5"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td id="meal6">Enter meal name</td>
+                          <td id="calories6"><span class="goals-cell-box" role="button" tabindex="0">300</span></td>
+                        </tr>
+                        <tr>
+                          <td >Total</td>
+                          <td id="total-calories"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="mt-2 text-start">
+                    <button type="button" class="btn btn-primary" id="submit-todays-calories-btn">Submit today's calories</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Goals Table -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <h5 class="card-title">Goals Table</h5>
+                  <p class="mb-2">
+                    <input type="date" id="goals-table-date-input" class="form-control form-control-sm d-inline-block" style="display: none; width: auto;">
+                    << Sunday's date
+                  </p>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="goals-table">
+                      <thead>
+                        <tr>
+                          <th>Goal</th>
+                          <th>Sun</th>
+                          <th>Mon</th>
+                          <th>Tue</th>
+                          <th>Wed</th>
+                          <th>Thu</th>
+                          <th>Fri</th>
+                          <th>Sat</th>
+                          <th>Total</th>
+                          <th>><</th>
+                          <th>Target</th>
+                          <th>Delta</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Add your first goal</td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td>Add your second goal</td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <form id="goal-form" class="mt-3">
+                    <div class="form-group">
+                      <input type="text" class="form-control" id="goal-input" placeholder="Add the name of your goal" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+
+
+
+              
               <!-- Habits Table -->
               <div class="card">
                 <div class="card-body">
@@ -301,7 +724,243 @@ aboutNav: true
     // Wait a bit longer for redirect handling
     setTimeout(checkAuthAndDisplayContent, 500);
   }
+
+  function getDeltaValue() {
+    var tbody = document.querySelector('#goals-table tbody');
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr[data-goal-index]');
+    var lightGreen = '#90ee90';
+    var red = '#dc3545';
+    for (var r = 0; r < rows.length; r++) {
+      var cells = rows[r].querySelectorAll('td');
+      if (cells.length < 12) continue;
+      var totalCell = cells[8];
+      var plusMinusCell = cells[9];
+      var targetCell = cells[10];
+      var deltaCell = cells[11];
+      var plusMinusBox = plusMinusCell ? plusMinusCell.querySelector('.goals-cell-box-plusminus') : null;
+      var targetBox = targetCell ? targetCell.querySelector('.goals-cell-box') : null;
+      var totalVal = parseFloat((totalCell.textContent || '').trim());
+      var targetVal = parseFloat((targetBox ? targetBox.textContent : targetCell.textContent || '').trim());
+      if (isNaN(totalVal)) totalVal = 0;
+      if (isNaN(targetVal)) targetVal = 0;
+      var pmVal = (plusMinusBox ? plusMinusBox.textContent : '').trim();
+      var deltaNum;
+      if (pmVal === '>') {
+        deltaNum = totalVal - targetVal;
+      } else if (pmVal === '<') {
+        deltaNum = targetVal - totalVal;
+      } else {
+        deltaNum = null;
+      }
+      if (deltaNum !== null) {
+        var rounded = Math.round(deltaNum * 10) / 10;
+        deltaCell.textContent = rounded;
+        var good = (pmVal === '>' && rounded > 0) || (pmVal === '<' && rounded > 0);
+        deltaCell.style.setProperty('background-color', good ? lightGreen : red, 'important');
+        deltaCell.style.setProperty('color', good ? 'black' : 'white', 'important');
+      } else {
+        deltaCell.textContent = '';
+        deltaCell.style.removeProperty('background-color');
+        deltaCell.style.removeProperty('color');
+      }
+    }
+  }
   
+  // Load goals from goals_list for the logged-in user and fill the goals table
+  async function loadGoals() {
+    const tbody = document.querySelector('#goals-table tbody');
+    if (!tbody) return;
+    let userEmail = null;
+    try {
+      if (window.auth0) {
+        const isAuthenticated = await window.auth0.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await window.auth0.getUser();
+          userEmail = user?.email || user?.nickname || user?.sub || null;
+        }
+      }
+    } catch (err) {
+      console.error('Error getting user for goals:', err);
+      return;
+    }
+    if (!userEmail) {
+      return;
+    }
+    try {
+      const response = await fetch('/api/goals?user_id=' + encodeURIComponent(userEmail));
+      if (!response.ok) return;
+      const row = await response.json();
+      if (!row) return;
+      // Build list of non-empty goal values with column index (goal1 .. goal8)
+      const goals = [];
+      for (let i = 1; i <= 8; i++) {
+        const val = row['goal' + i];
+        if (val !== null && val !== undefined && String(val).trim() !== '') {
+          goals.push({ value: String(val).trim(), columnIndex: i });
+        }
+      }
+      // Header keys in table order (Goal, Sun, Mon, Tue, Wed, Thu, Fri, Sat, Total, ><, Target, Delta)
+      var headerKeys = ['goal', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'total', 'plusMinus', 'target', 'delta'];
+      function goalToIdPrefix(goalText) {
+        var s = goalText.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        return s || 'goal';
+      }
+      // Build date strings for Sun..Sat from goals-table-date-input (Sun = base, Mon = +1, ..., Sat = +6)
+      var dateInputEl = document.getElementById('goals-table-date-input');
+      var baseDateVal = dateInputEl && dateInputEl.value ? dateInputEl.value.trim() : '2026-03-08';
+      var dayDateStrs = [];
+      for (var d = 0; d < 7; d++) {
+        var dObj = new Date(baseDateVal + 'T12:00:00');
+        if (isNaN(dObj.getTime())) {
+          dObj = new Date('2026-03-08T12:00:00');
+          dObj.setDate(dObj.getDate() + d);
+        } else {
+          dObj.setDate(dObj.getDate() + d);
+        }
+        dayDateStrs.push(dObj.getFullYear() + '-' + String(dObj.getMonth() + 1).padStart(2, '0') + '-' + String(dObj.getDate()).padStart(2, '0'));
+      }
+      // Remove existing rows and add one row per goal
+      tbody.innerHTML = '';
+      if (goals.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>Add your first goal</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+        tbody.appendChild(tr);
+      } else {
+        var slugCount = {};
+        goals.forEach(function (goal) {
+          var goalText = goal.value;
+          var base = goalToIdPrefix(goalText);
+          if (slugCount[base] !== undefined) {
+            slugCount[base]++;
+            base = base + '-' + slugCount[base];
+          } else {
+            slugCount[base] = 0;
+          }
+          var tr = document.createElement('tr');
+          tr.dataset.goalIndex = String(goal.columnIndex);
+          var dayOrTargetKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'target'];
+          function idSuffixForHeader(headerKey, colIndex) {
+            if (headerKey === 'sun') return dayDateStrs[0];
+            if (headerKey === 'mon') return dayDateStrs[1];
+            if (headerKey === 'tue') return dayDateStrs[2];
+            if (headerKey === 'wed') return dayDateStrs[3];
+            if (headerKey === 'thu') return dayDateStrs[4];
+            if (headerKey === 'fri') return dayDateStrs[5];
+            if (headerKey === 'sat') return dayDateStrs[6];
+            return headerKey;
+          }
+          headerKeys.forEach(function (headerKey, colIndex) {
+            var td = document.createElement('td');
+            if (headerKey === 'plusMinus') {
+              td.id = base + '><';
+            } else {
+              td.id = base + '-' + idSuffixForHeader(headerKey, colIndex);
+            }
+            if (colIndex === 0) {
+              td.textContent = goalText;
+              td.classList.add('goals-goal-cell');
+              td.setAttribute('role', 'button');
+              td.setAttribute('tabindex', '0');
+              td.style.cursor = 'pointer';
+            } else if (dayOrTargetKeys.indexOf(headerKey) !== -1) {
+              var box = document.createElement('span');
+              box.className = 'goals-cell-box' + (headerKey === 'target' ? ' goals-cell-box-target' : '');
+              box.setAttribute('role', 'button');
+              box.setAttribute('tabindex', '0');
+              td.appendChild(box);
+            } else if (headerKey === 'plusMinus') {
+              var box = document.createElement('span');
+              box.className = 'goals-cell-box goals-cell-box-plusminus';
+              box.setAttribute('role', 'button');
+              box.setAttribute('tabindex', '0');
+              td.appendChild(box);
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        // Populate day cells from goals_values (user_id + goal_name + date match)
+        try {
+          const gvRes = await fetch('/api/goals/values?user_id=' + encodeURIComponent(userEmail));
+          if (gvRes.ok) {
+            const goalValues = await gvRes.json();
+            var allTds = tbody.querySelectorAll('td[id]');
+            for (var i = 0; i < allTds.length; i++) {
+              var td = allTds[i];
+              var id = td.id;
+              var dateMatch = id.match(/-(\d{4}-\d{2}-\d{2})$/);
+              if (!dateMatch) continue;
+              var goalName = id.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+              var dateStr = dateMatch[1];
+              var r = goalValues.find(function (row) {
+                var rDate = row.date;
+                if (rDate == null) return false;
+                if (typeof rDate === 'string' && rDate.indexOf('T') !== -1) rDate = rDate.slice(0, 10);
+                else if (typeof rDate === 'string') rDate = rDate.trim();
+                return row.goal_name === goalName && String(rDate).slice(0, 10) === dateStr;
+              });
+              if (r && r.value != null) {
+                var box = td.querySelector('.goals-cell-box');
+                if (box) box.textContent = r.value;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error populating goal values:', e);
+        }
+        // Populate target cells (blue boxes) from local_goal_targets
+        try {
+          var localTargetsJson = localStorage.getItem('local_goal_targets');
+          var localTargets = localTargetsJson ? JSON.parse(localTargetsJson) : {};
+          console.log('local_goal_targets (on load)', localTargets);
+          var allTdsTarget = tbody.querySelectorAll('td[id$="-target"]');
+          for (var i = 0; i < allTdsTarget.length; i++) {
+            var td = allTdsTarget[i];
+            if (localTargets[td.id] != null) {
+              var targetBox = td.querySelector('.goals-cell-box');
+              if (targetBox) targetBox.textContent = localTargets[td.id];
+            }
+          }
+        } catch (e) {
+          console.error('Error populating local goal targets:', e);
+        }
+        // Populate plusMinus (grey) boxes from goals_targets_plusMinus
+        try {
+          var plusMinusJson = localStorage.getItem('goals_targets_plusMinus');
+          var plusMinusData = plusMinusJson ? JSON.parse(plusMinusJson) : {};
+          var allTdsPlusMinus = tbody.querySelectorAll('td[id$="><"]');
+          for (var i = 0; i < allTdsPlusMinus.length; i++) {
+            var td = allTdsPlusMinus[i];
+            if (plusMinusData[td.id] != null) {
+              var pmBox = td.querySelector('.goals-cell-box-plusminus');
+              if (pmBox) pmBox.textContent = plusMinusData[td.id];
+            }
+          }
+        } catch (e) {
+          console.error('Error populating goals_targets_plusMinus:', e);
+        }
+        // Set total cell for each row: sum of parseInt() of each day cell (same goal, date in id)
+        var rows = tbody.querySelectorAll('tr[data-goal-index]');
+        for (var r = 0; r < rows.length; r++) {
+          var cells = rows[r].querySelectorAll('td');
+          if (cells.length < 9) continue;
+          var sum = 0;
+          for (var c = 1; c <= 7; c++) {
+            var box = cells[c].querySelector('.goals-cell-box');
+            var text = box ? box.textContent.trim() : (cells[c].textContent || '').trim();
+            var n = parseFloat(text);
+            if (!isNaN(n)) sum += n;
+          }
+          cells[8].textContent = sum;
+        }
+        getDeltaValue();
+      }
+    } catch (err) {
+      console.error('Error loading goals:', err);
+    }
+  }
+
   // Event Management Functions
   async function loadTasks() {
     const loadingEl = document.getElementById('tasks-loading');
@@ -476,6 +1135,56 @@ aboutNav: true
     }
   }
   
+  async function addGoalForm(e) {
+    e.preventDefault();
+    const goalInput = document.getElementById('goal-input');
+    const form = document.getElementById('goal-form');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    const new_goal = goalInput ? goalInput.value.trim() : '';
+    if (!new_goal) return;
+    let userEmail = null;
+    try {
+      if (window.auth0) {
+        const isAuthenticated = await window.auth0.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await window.auth0.getUser();
+          userEmail = user?.email || user?.nickname || user?.sub || null;
+        }
+      }
+    } catch (err) {
+      console.error('Error getting user:', err);
+    }
+    if (!userEmail) {
+      alert('Please log in to add a goal.');
+      return;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+    }
+    try {
+      const response = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userEmail, goal: new_goal })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add goal');
+      }
+      if (goalInput) goalInput.value = '';
+      await loadGoals();
+    } catch (error) {
+      console.error('Error adding goal:', error);
+      alert(error.message || 'Failed to add goal. Please try again.');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
+  }
+  
   async function deleteTask(id) {
     if (!confirm('Are you sure you want to delete this habit?')) {
       return;
@@ -646,23 +1355,783 @@ console.error('Error loading habit for editing:', error);
   window.editTask = editTask;
   window.saveEditTask = saveEditTask;
   
-  // Load habits when content is visible
+  // Load habits and goals when content is visible
   const originalUpdateContentVisibility = updateContentVisibility;
   updateContentVisibility = function(isAuthenticated) {
     originalUpdateContentVisibility(isAuthenticated);
     if (isAuthenticated) {
-      // Load habits when user is authenticated and content is shown
       setTimeout(loadTasks, 100);
+      setTimeout(loadGoals, 100);
     }
   };
   
+  function formatCaloriesNumber(n) {
+    var num = typeof n === 'number' ? n : parseFloat(String(n).replace(/,/g, ''));
+    if (isNaN(num)) return '';
+    return num.toLocaleString('en-US', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
+  }
+
+  function normalizeWorkingTime(str) {
+    if (!str) return null;
+    var s = String(str).trim();
+    var m = s.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i);
+    if (!m) return null;
+    var h = parseInt(m[1], 10);
+    if (h < 1 || h > 12) return null;
+    return h + ':' + m[2] + ' ' + (m[3].toUpperCase() === 'AM' ? 'AM' : 'PM');
+  }
+
+  function timeStringToMinutes(str) {
+    var normalized = normalizeWorkingTime(str);
+    if (!normalized) return null;
+    var m = normalized.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/);
+    var h = parseInt(m[1], 10);
+    var min = parseInt(m[2], 10);
+    var isAm = m[3].toUpperCase() === 'AM';
+    if (isAm && h === 12) return min;
+    if (isAm) return h * 60 + min;
+    if (h === 12) return 12 * 60 + min;
+    return (h + 12) * 60 + min;
+  }
+
+  function minutesToTimeString(totalMinutes) {
+    var m = Math.round(totalMinutes) % (24 * 60);
+    if (m < 0) m += 24 * 60;
+    var h = Math.floor(m / 60);
+    var min = m % 60;
+    var ampm = 'AM';
+    if (h === 0) { h = 12; ampm = 'AM'; }
+    else if (h < 12) ampm = 'AM';
+    else if (h === 12) ampm = 'PM';
+    else { h -= 12; ampm = 'PM'; }
+    return h + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+  }
+
+  function updateExpectedDoneValue() {
+    var startTd = document.getElementById('working_start');
+    var hoursTd = document.getElementById('daily-hours-value');
+    var expectedTd = document.getElementById('expected-done-value');
+    if (!startTd || !hoursTd || !expectedTd) return;
+    var startBox = startTd.querySelector('.goals-cell-box');
+    var hoursBox = hoursTd.querySelector('.goals-cell-box');
+    var startStr = (startBox ? startBox.textContent : startTd.textContent || '').trim();
+    var hoursStr = (hoursBox ? hoursBox.textContent : hoursTd.textContent || '').trim().replace(/,/g, '');
+    var startMins = timeStringToMinutes(startStr);
+    var hoursNum = parseFloat(hoursStr);
+    if (startMins == null || isNaN(hoursNum)) return;
+    var totalMins = startMins + hoursNum * 60;
+    var resultStr = minutesToTimeString(totalMins);
+    var expectedBox = expectedTd.querySelector('.goals-cell-box');
+    if (expectedBox) expectedBox.textContent = resultStr; else expectedTd.textContent = resultStr;
+  }
+
+  function updateProjectedDoneValue() {
+    var startTd = document.getElementById('working_start');
+    var minutesTd = document.getElementById('minutes_value');
+    var projectedTd = document.getElementById('projected-done-value');
+    if (!startTd || !minutesTd || !projectedTd) return;
+    var startBox = startTd.querySelector('.goals-cell-box');
+    var minutesBox = minutesTd.querySelector('.goals-cell-box');
+    var startStr = (startBox ? startBox.textContent : startTd.textContent || '').trim();
+    var minutesStr = (minutesBox ? minutesBox.textContent : minutesTd.textContent || '').trim().replace(/,/g, '');
+    var startMins = timeStringToMinutes(startStr);
+    var minutesNum = parseFloat(minutesStr);
+    if (startMins == null || isNaN(minutesNum)) return;
+    var addMins = minutesNum * 1.3;
+    var totalMins = startMins + addMins;
+    var resultStr = minutesToTimeString(totalMins);
+    var projectedBox = projectedTd.querySelector('.goals-cell-box');
+    if (projectedBox) projectedBox.textContent = resultStr; else projectedTd.textContent = resultStr;
+  }
+
+  function updateCaloriesTotal() {
+    var total = 0;
+    for (var i = 1; i <= 6; i++) {
+      var el = document.getElementById('calories' + i);
+      if (el) {
+        var box = el.querySelector('.goals-cell-box');
+        var raw = ((box ? box.textContent : el.textContent) || '').trim().replace(/,/g, '');
+        var n = parseFloat(raw);
+        if (!isNaN(n)) total += n;
+      }
+    }
+    var totalEl = document.getElementById('total-calories');
+    if (totalEl) totalEl.textContent = formatCaloriesNumber(total);
+  }
+
+  function updateCaloriesTableFromLocal() {
+    var table = document.getElementById('calories-today-table');
+    if (!table) return;
+    var json = localStorage.getItem('calories_today_local');
+    var data = json ? JSON.parse(json) : {};
+    var cells = table.querySelectorAll('td[id]');
+    for (var i = 0; i < cells.length; i++) {
+      var td = cells[i];
+      if (data[td.id] == null) continue;
+      var val = data[td.id];
+      if (/^calories[1-6]$/.test(td.id)) {
+        var n = parseFloat(String(val).replace(/,/g, ''));
+        var displayVal = isNaN(n) ? val : formatCaloriesNumber(n);
+        var box = td.querySelector('.goals-cell-box');
+        if (box) box.textContent = displayVal; else td.textContent = displayVal;
+      } else {
+        td.textContent = val;
+      }
+    }
+    updateCaloriesTotal();
+  }
+
   // Row click: show Edit/Delete modal (unless user clicked Edit or Delete button)
   let rowActionHabitId = null;
+  let currentCaloriesEdit = { mealId: null, caloriesId: null };
   document.addEventListener('DOMContentLoaded', () => {
+    updateCaloriesTableFromLocal();
+    if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
+    if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+    (function initStopwatch() {
+      var stopwatchElapsed = 0;
+      var stopwatchIntervalId = null;
+      var displayEl = document.getElementById('stopwatch-display');
+      function formatStopwatch(seconds) {
+        var h = Math.floor(seconds / 3600);
+        var m = Math.floor((seconds % 3600) / 60);
+        var s = Math.floor(seconds % 60);
+        return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }
+      function stopwatchTick() {
+        stopwatchElapsed += 1;
+        if (displayEl) displayEl.textContent = formatStopwatch(stopwatchElapsed);
+      }
+      document.getElementById('stopwatch-start') && document.getElementById('stopwatch-start').addEventListener('click', function () {
+        if (stopwatchIntervalId !== null) return;
+        stopwatchIntervalId = setInterval(stopwatchTick, 1000);
+      });
+      document.getElementById('stopwatch-pause') && document.getElementById('stopwatch-pause').addEventListener('click', function () {
+        if (stopwatchIntervalId !== null) {
+          clearInterval(stopwatchIntervalId);
+          stopwatchIntervalId = null;
+        }
+      });
+      document.getElementById('stopwatch-reset') && document.getElementById('stopwatch-reset').addEventListener('click', function () {
+        if (stopwatchIntervalId !== null) {
+          clearInterval(stopwatchIntervalId);
+          stopwatchIntervalId = null;
+        }
+        stopwatchElapsed = 0;
+        if (displayEl) displayEl.textContent = formatStopwatch(0);
+      });
+      document.getElementById('stopwatch-submit') && document.getElementById('stopwatch-submit').addEventListener('click', function () {
+        var minutesToAdd = stopwatchElapsed / 60;
+        var minutesTd = document.getElementById('minutes_value');
+        if (!minutesTd) return;
+        var box = minutesTd.querySelector('.goals-cell-box');
+        var currentStr = (box ? box.textContent : minutesTd.textContent || '').trim().replace(/,/g, '');
+        var current = parseFloat(currentStr);
+        if (isNaN(current)) current = 0;
+        var newVal = Math.round(current + minutesToAdd);
+        var newValStr = String(newVal);
+        if (box) box.textContent = newValStr; else minutesTd.textContent = newValStr;
+        if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+      });
+    })();
+    var caloriesTbody = document.querySelector('#calories-today-table tbody');
+    if (caloriesTbody) {
+      caloriesTbody.addEventListener('click', function (e) {
+        var tr = e.target.closest('tr');
+        if (!tr || tr.parentNode !== caloriesTbody) return;
+        if (tr === caloriesTbody.lastElementChild) return;
+        var tds = tr.querySelectorAll('td');
+        if (tds.length < 2) return;
+        var mealCell = tds[0];
+        var caloriesCell = tds[1];
+        if (!mealCell.id || !caloriesCell.id) return;
+        currentCaloriesEdit = { mealId: mealCell.id, caloriesId: caloriesCell.id };
+        document.getElementById('calories-edit-meal-id-label').textContent = mealCell.id;
+        document.getElementById('calories-edit-calories-id-label').textContent = caloriesCell.id;
+        document.getElementById('calories-edit-meal-input').value = (mealCell.textContent || '').trim();
+        document.getElementById('calories-edit-calories-input').value = (caloriesCell.textContent || '').trim();
+        $('#caloriesRowEditModal').modal('show');
+      });
+    }
+    var caloriesRowEditForm = document.getElementById('calories-row-edit-form');
+    if (caloriesRowEditForm) {
+      caloriesRowEditForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var mealVal = (document.getElementById('calories-edit-meal-input').value || '').trim();
+        var caloriesVal = (document.getElementById('calories-edit-calories-input').value || '').trim();
+        var json = localStorage.getItem('calories_today_local');
+        var data = json ? JSON.parse(json) : {};
+        data[currentCaloriesEdit.mealId] = mealVal;
+        data[currentCaloriesEdit.caloriesId] = caloriesVal;
+        try {
+          localStorage.setItem('calories_today_local', JSON.stringify(data));
+        } catch (err) {
+          console.error('Error saving calories_today_local:', err);
+        }
+        updateCaloriesTableFromLocal();
+        currentCaloriesEdit = { mealId: null, caloriesId: null };
+        $('#caloriesRowEditModal').modal('hide');
+      });
+    }
+    var workingTable = document.getElementById('working-table');
+    if (workingTable) {
+      workingTable.addEventListener('click', function (e) {
+        var box = e.target.closest('.goals-cell-box');
+        if (!box) return;
+        var td = box.closest('td');
+        if (!td || !td.id) return;
+        if (td.id === 'minutes_value') {
+          var minutesInput = document.getElementById('minutes-work-input');
+          if (minutesInput) minutesInput.value = (box.textContent || '').trim() || '0';
+          $('#minutesWorkModal').modal('show');
+        } else if (td.id === 'daily-hours-value') {
+          var dailyHoursInput = document.getElementById('daily-hours-input');
+          if (dailyHoursInput) dailyHoursInput.value = (box.textContent || '').trim() || '';
+          $('#dailyHoursModal').modal('show');
+        } else if (td.id === 'working_start') {
+          var startInput = document.getElementById('working-start-input');
+          if (startInput) startInput.value = (box.textContent || '').trim() || '';
+          $('#workingStartModal').modal('show');
+        }
+      });
+    }
+    var minutesWorkForm = document.getElementById('minutes-work-form');
+    if (minutesWorkForm) {
+      minutesWorkForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var inputEl = document.getElementById('minutes-work-input');
+        var minutesTd = document.getElementById('minutes_value');
+        if (inputEl && minutesTd) {
+          var box = minutesTd.querySelector('.goals-cell-box');
+          var val = (inputEl.value || '').trim();
+          if (box) box.textContent = val !== '' ? val : '0'; else minutesTd.textContent = val !== '' ? val : '0';
+        }
+        if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        $('#minutesWorkModal').modal('hide');
+      });
+    }
+    var dailyHoursForm = document.getElementById('daily-hours-form');
+    if (dailyHoursForm) {
+      dailyHoursForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var inputEl = document.getElementById('daily-hours-input');
+        var td = document.getElementById('daily-hours-value');
+        if (!inputEl || !td) {
+          $('#dailyHoursModal').modal('hide');
+          return;
+        }
+        var raw = (inputEl.value || '').trim();
+        var num = parseFloat(raw);
+        if (raw === '' || isNaN(num) || num < 0) {
+          alert('Please enter a number with up to one decimal (e.g. 12.0).');
+          inputEl.focus();
+          return;
+        }
+        var val = Math.round(num * 10) / 10;
+        var displayVal = String(val);
+        if (displayVal.indexOf('.') === -1) displayVal += '.0';
+        var box = td.querySelector('.goals-cell-box');
+        if (box) box.textContent = displayVal; else td.textContent = displayVal;
+        if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
+        $('#dailyHoursModal').modal('hide');
+      });
+    }
+    var workingStartForm = document.getElementById('working-start-form');
+    if (workingStartForm) {
+      workingStartForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var inputEl = document.getElementById('working-start-input');
+        var td = document.getElementById('working_start');
+        if (!inputEl || !td) {
+          $('#workingStartModal').modal('hide');
+          return;
+        }
+        var normalized = normalizeWorkingTime(inputEl.value);
+        if (!normalized) {
+          alert('Please enter a time in the format H:MM AM or H:MM PM (e.g. 6:30 AM).');
+          inputEl.focus();
+          return;
+        }
+        var box = td.querySelector('.goals-cell-box');
+        if (box) box.textContent = normalized; else td.textContent = normalized;
+        if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
+        if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        $('#workingStartModal').modal('hide');
+      });
+    }
+    var submitTimeWorkedBtn = document.getElementById('submit-time-worked-btn');
+    if (submitTimeWorkedBtn) {
+      submitTimeWorkedBtn.addEventListener('click', async function () {
+        var minutesTd = document.getElementById('minutes_value');
+        var minutesBox = minutesTd ? minutesTd.querySelector('.goals-cell-box') : null;
+        var minutesStr = (minutesBox ? minutesBox.textContent : (minutesTd && minutesTd.textContent) || '').trim().replace(/,/g, '');
+        var minutesNum = parseFloat(minutesStr);
+        if (isNaN(minutesNum)) minutesNum = 0;
+        var value = (minutesNum * 1.3) / 60;
+        var today = new Date();
+        var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        var tbody = document.querySelector('#goals-table tbody');
+        if (!tbody) return;
+        var cells = tbody.querySelectorAll('td[id]');
+        var targetCell = null;
+        for (var i = 0; i < cells.length; i++) {
+          var id = cells[i].id;
+          if (id.toLowerCase().indexOf('hours') !== -1 && id.endsWith('-' + todayStr)) {
+            targetCell = cells[i];
+            break;
+          }
+        }
+        if (!targetCell) {
+          alert('No goal cell found for "Hours" and today\'s date (' + todayStr + '). Add a goal whose name contains "Hours" and ensure the goals table shows this week.');
+          return;
+        }
+        var goalName = targetCell.id.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+        var box = targetCell.querySelector('.goals-cell-box');
+        var displayVal = value % 1 === 0 ? String(value) : value.toFixed(2);
+        if (box) box.textContent = displayVal; else targetCell.textContent = displayVal;
+        var userEmail = null;
+        try {
+          if (window.auth0) {
+            var isAuth = await window.auth0.isAuthenticated();
+            if (isAuth) {
+              var user = await window.auth0.getUser();
+              userEmail = user && (user.email || user.nickname || user.sub) || null;
+            }
+          }
+        } catch (err) {
+          console.error('Error getting user for submit time worked:', err);
+        }
+        if (userEmail) {
+          try {
+            var res = await fetch('/api/goals/values', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: userEmail, goal_name: goalName, value: value, date: todayStr })
+            });
+            if (!res.ok) {
+              var errBody = await res.json().catch(function () { return {}; });
+              var msg = (errBody && errBody.error) || res.statusText || 'Failed to save';
+              alert('Could not save: ' + msg);
+            }
+          } catch (err) {
+            console.error('Error saving goal value:', err);
+            alert('Could not save. Check console.');
+          }
+        }
+      });
+    }
+    var submitTodaysCaloriesBtn = document.getElementById('submit-todays-calories-btn');
+    if (submitTodaysCaloriesBtn) {
+      submitTodaysCaloriesBtn.addEventListener('click', async function () {
+        var totalEl = document.getElementById('total-calories');
+        var raw = (totalEl && totalEl.textContent ? totalEl.textContent : '').trim().replace(/,/g, '');
+        var value = parseFloat(raw);
+        if (isNaN(value)) value = 0;
+        var today = new Date();
+        var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        var tbody = document.querySelector('#goals-table tbody');
+        if (!tbody) return;
+        var cells = tbody.querySelectorAll('td[id]');
+        var targetCell = null;
+        for (var i = 0; i < cells.length; i++) {
+          var id = cells[i].id;
+          if (id.toLowerCase().indexOf('calories') !== -1 && id.endsWith('-' + todayStr)) {
+            targetCell = cells[i];
+            break;
+          }
+        }
+        if (!targetCell) {
+          alert('No goal cell found for "Calories" and today\'s date (' + todayStr + '). Add a goal whose name contains "Calories" and ensure the goals table shows this week.');
+          return;
+        }
+        var goalName = targetCell.id.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+        var box = targetCell.querySelector('.goals-cell-box');
+        if (box) box.textContent = value;
+        var userEmail = null;
+        try {
+          if (window.auth0) {
+            var isAuth = await window.auth0.isAuthenticated();
+            if (isAuth) {
+              var user = await window.auth0.getUser();
+              userEmail = user && (user.email || user.nickname || user.sub) || null;
+            }
+          }
+        } catch (err) {
+          console.error('Error getting user for submit calories:', err);
+        }
+        if (userEmail) {
+          try {
+            var res = await fetch('/api/goals/values', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: userEmail, goal_name: goalName, value: value, date: todayStr })
+            });
+            if (!res.ok) {
+              var errBody = await res.json().catch(function () { return {}; });
+              var msg = (errBody && errBody.error) || res.statusText || 'Failed to save';
+              alert('Could not save: ' + msg);
+            }
+          } catch (err) {
+            console.error('Error saving goal value:', err);
+            alert('Could not save. Check console.');
+          }
+        }
+        if (typeof getDeltaValue === 'function') getDeltaValue();
+      });
+    }
     const taskForm = document.getElementById('task-form');
     if (taskForm) {
       taskForm.addEventListener('submit', addTaskForm);
     }
+    const goalForm = document.getElementById('goal-form');
+    if (goalForm) {
+      goalForm.addEventListener('submit', addGoalForm);
+    }
+    const goalsTableDateInput = document.getElementById('goals-table-date-input');
+    if (goalsTableDateInput) {
+      (function setGoalsDateToRecentSunday() {
+        var d = new Date();
+        d.setDate(d.getDate() - d.getDay());
+        var yyyy = d.getFullYear();
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        goalsTableDateInput.value = yyyy + '-' + mm + '-' + dd;
+      })();
+      goalsTableDateInput.addEventListener('change', function () {
+        var val = this.value;
+        if (val) {
+          var d = new Date(val + 'T12:00:00');
+          if (d.getDay() !== 0) {
+            alert('The date should be a Sunday.');
+            return;
+          }
+        }
+        loadGoals();
+      });
+    }
+    // Goals table: yellow box click shows cell id in dialog; form submits value into the box
+    let currentGoalsCellId = null;
+    // Goals table: plusMinus (grey) box
+    let currentPlusMinusCellId = null;
+    // Goals table: first column (goal name) click opens edit dialog
+    let currentGoalEdit = { cellId: null, goalIndex: null, oldValue: null };
+    const goalsTable = document.getElementById('goals-table');
+    if (goalsTable) {
+      function showPlusMinusModal(cell) {
+        if (!cell || !cell.id) return;
+        currentPlusMinusCellId = cell.id;
+        var idEl = document.getElementById('plusminus-cell-id');
+        if (idEl) idEl.textContent = cell.id;
+        var box = cell.querySelector('.goals-cell-box-plusminus');
+        var selectEl = document.getElementById('plusminus-select');
+        if (selectEl) selectEl.value = (box && box.textContent.trim() === '>') ? '>' : '<';
+        $('#plusMinusModal').modal('show');
+      }
+      function showGoalsCellModal(cell) {
+        if (!cell || !cell.id) return;
+        currentGoalsCellId = cell.id;
+        const displayEl = document.getElementById('goals-cell-id-display');
+        if (displayEl) displayEl.textContent = cell.id;
+        const box = cell.querySelector('.goals-cell-box');
+        const inputEl = document.getElementById('goals-cell-value-input');
+        if (inputEl) inputEl.value = box && box.textContent.trim() !== '' ? box.textContent.trim() : '';
+        $('#goalsCellModal').modal('show');
+        if (inputEl) inputEl.focus();
+      }
+      function showGoalEditModal(cell) {
+        if (!cell || !cell.id) return;
+        const row = cell.closest('tr');
+        const goalIndex = row ? row.dataset.goalIndex : null;
+        if (!goalIndex) return;
+        currentGoalEdit = { cellId: cell.id, goalIndex: goalIndex, oldValue: (cell.textContent || '').trim() };
+        const idEl = document.getElementById('goal-edit-cell-id');
+        if (idEl) idEl.textContent = cell.id;
+        const inputEl = document.getElementById('goal-edit-value-input');
+        if (inputEl) inputEl.value = currentGoalEdit.oldValue;
+        $('#goalEditModal').modal('show');
+        if (inputEl) inputEl.focus();
+      }
+      goalsTable.addEventListener('click', function (e) {
+        const goalCell = e.target.closest('.goals-goal-cell');
+        if (goalCell) {
+          showGoalEditModal(goalCell);
+          return;
+        }
+        const box = e.target.closest('.goals-cell-box');
+        if (!box) return;
+        if (box.classList.contains('goals-cell-box-plusminus')) {
+          showPlusMinusModal(box.closest('td'));
+          return;
+        }
+        showGoalsCellModal(box.closest('td'));
+      });
+      goalsTable.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const goalCell = e.target.closest('.goals-goal-cell');
+        if (goalCell) {
+          e.preventDefault();
+          showGoalEditModal(goalCell);
+          return;
+        }
+        const box = e.target.closest('.goals-cell-box');
+        if (!box) return;
+        e.preventDefault();
+        if (box.classList.contains('goals-cell-box-plusminus')) {
+          showPlusMinusModal(box.closest('td'));
+          return;
+        }
+        showGoalsCellModal(box.closest('td'));
+      });
+    }
+    const plusminusForm = document.getElementById('plusminus-form');
+    if (plusminusForm) {
+      plusminusForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (currentPlusMinusCellId == null) return;
+        var selectEl = document.getElementById('plusminus-select');
+        var value = selectEl ? selectEl.value : '<';
+        var cell = document.getElementById(currentPlusMinusCellId);
+        if (cell) {
+          var box = cell.querySelector('.goals-cell-box-plusminus');
+          if (box) box.textContent = value;
+        }
+        var dataJson = localStorage.getItem('goals_targets_plusMinus');
+        var data = dataJson ? JSON.parse(dataJson) : {};
+        data[currentPlusMinusCellId] = value;
+        try {
+          localStorage.setItem('goals_targets_plusMinus', JSON.stringify(data));
+        } catch (err) {
+          console.error('Error saving goals_targets_plusMinus:', err);
+        }
+        currentPlusMinusCellId = null;
+        $('#plusMinusModal').modal('hide');
+      });
+    }
+    const goalsCellValueForm = document.getElementById('goals-cell-value-form');
+    if (goalsCellValueForm) {
+      goalsCellValueForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (currentGoalsCellId == null) return;
+        const inputEl = document.getElementById('goals-cell-value-input');
+        const value = inputEl ? inputEl.value.trim() : '';
+        const cell = document.getElementById(currentGoalsCellId);
+        if (currentGoalsCellId.indexOf('-target') !== -1) {
+          var localTargetsJson = localStorage.getItem('local_goal_targets');
+          var localTargets = localTargetsJson ? JSON.parse(localTargetsJson) : {};
+          console.log('local_goal_targets (before change)', localTargets);
+          localTargets[currentGoalsCellId] = value;
+          console.log('local_goal_targets (after change)', localTargets);
+          try {
+            localStorage.setItem('local_goal_targets', JSON.stringify(localTargets));
+          } catch (err) {
+            console.error('Error saving local_goal_targets:', err);
+          }
+          if (cell) {
+            var box = cell.querySelector('.goals-cell-box');
+            if (box) box.textContent = value;
+          }
+          currentGoalsCellId = null;
+          $('#goalsCellModal').modal('hide');
+          return;
+        }
+        if (cell) {
+          const box = cell.querySelector('.goals-cell-box');
+          if (box) box.textContent = value;
+          var row = cell.closest('tr');
+          if (row) {
+            var cells = row.querySelectorAll('td');
+            if (cells.length >= 9) {
+              var sum = 0;
+              for (var c = 1; c <= 7; c++) {
+                var b = cells[c].querySelector('.goals-cell-box');
+                var t = b ? b.textContent.trim() : (cells[c].textContent || '').trim();
+                var n = parseFloat(t);
+                if (!isNaN(n)) sum += n;
+              }
+              cells[8].textContent = sum;
+            }
+          }
+        }
+        const goalName = /-\d{4}-\d{2}-\d{2}$/.test(currentGoalsCellId)
+          ? currentGoalsCellId.replace(/-\d{4}-\d{2}-\d{2}$/, '')
+          : currentGoalsCellId.replace(/-[^-]+$/, '');
+        const dateInput = document.getElementById('goals-table-date-input');
+        let dateVal = dateInput ? dateInput.value.trim() : '';
+        var dateFromId = currentGoalsCellId.match(/-(\d{4}-\d{2}-\d{2})$/);
+        if (dateFromId) {
+          dateVal = dateFromId[1];
+        } else if (dateVal) {
+          var cellIdLower = currentGoalsCellId.toLowerCase();
+          var daysToAdd = 0;
+          if (cellIdLower.includes('mon')) daysToAdd = 1;
+          else if (cellIdLower.includes('tue')) daysToAdd = 2;
+          else if (cellIdLower.includes('wed')) daysToAdd = 3;
+          else if (cellIdLower.includes('thu')) daysToAdd = 4;
+          else if (cellIdLower.includes('fri')) daysToAdd = 5;
+          else if (cellIdLower.includes('sat')) daysToAdd = 6;
+          if (daysToAdd > 0) {
+            var d = new Date(dateVal + 'T12:00:00');
+            if (!isNaN(d.getTime())) {
+              d.setDate(d.getDate() + daysToAdd);
+              dateVal = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+          }
+        }
+        let userEmail = null;
+        try {
+          if (window.auth0) {
+            const isAuth = await window.auth0.isAuthenticated();
+            if (isAuth) {
+              const user = await window.auth0.getUser();
+              userEmail = user?.email || user?.nickname || user?.sub || null;
+            }
+          }
+        } catch (err) {
+          console.error('Error getting user for goal value:', err);
+        }
+        if (userEmail) {
+          try {
+            const res = await fetch('/api/goals/values', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: userEmail, goal_name: goalName, value: value, date: dateVal || null })
+            });
+            if (!res.ok) {
+              const errBody = await res.json().catch(() => ({}));
+              const msg = errBody.error || res.statusText || 'Failed to save goal value';
+              console.error('Goal value save failed:', res.status, msg);
+              alert('Could not save: ' + msg);
+            }
+          } catch (err) {
+            console.error('Error saving goal value:', err);
+            alert('Could not save goal value. Check console.');
+          }
+        }
+        getDeltaValue();
+        currentGoalsCellId = null;
+        $('#goalsCellModal').modal('hide');
+      });
+    }
+    const goalEditForm = document.getElementById('goal-edit-form');
+    if (goalEditForm) {
+      goalEditForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!currentGoalEdit.goalIndex) return;
+        const inputEl = document.getElementById('goal-edit-value-input');
+        const newValue = inputEl ? inputEl.value.trim() : '';
+        let userEmail = null;
+        try {
+          if (window.auth0) {
+            const isAuth = await window.auth0.isAuthenticated();
+            if (isAuth) {
+              const user = await window.auth0.getUser();
+              userEmail = user?.email || user?.nickname || user?.sub || null;
+            }
+          }
+        } catch (err) {
+          console.error('Error getting user for goal update:', err);
+          return;
+        }
+        if (!userEmail) return;
+        try {
+          const response = await fetch('/api/goals', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userEmail, goal_index: parseInt(currentGoalEdit.goalIndex, 10), value: newValue })
+          });
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to update goal');
+          }
+          currentGoalEdit = { cellId: null, goalIndex: null, oldValue: null };
+          $('#goalEditModal').modal('hide');
+          await loadGoals();
+        } catch (err) {
+          console.error('Error updating goal:', err);
+          alert(err.message || 'Failed to update goal');
+        }
+      });
+    }
+    const goalEditDeleteBtn = document.getElementById('goal-edit-delete-btn');
+    if (goalEditDeleteBtn) {
+      goalEditDeleteBtn.addEventListener('click', async function () {
+        if (!currentGoalEdit.goalIndex) return;
+        let userEmail = null;
+        try {
+          if (window.auth0) {
+            const isAuth = await window.auth0.isAuthenticated();
+            if (isAuth) {
+              const user = await window.auth0.getUser();
+              userEmail = user?.email || user?.nickname || user?.sub || null;
+            }
+          }
+        } catch (err) {
+          console.error('Error getting user for goal delete:', err);
+          return;
+        }
+        if (!userEmail) return;
+        try {
+          const response = await fetch('/api/goals', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userEmail, goal_index: parseInt(currentGoalEdit.goalIndex, 10), value: null })
+          });
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to delete goal');
+          }
+          currentGoalEdit = { cellId: null, goalIndex: null, oldValue: null };
+          $('#goalEditModal').modal('hide');
+          await loadGoals();
+        } catch (err) {
+          console.error('Error deleting goal:', err);
+          alert(err.message || 'Failed to delete goal');
+        }
+      });
+    }
+    // Goals table date: click to edit
+    (function () {
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      let goalsTableDate = new Date(2026, 2, 8); // 8-Mar-2026
+      const displayEl = document.getElementById('goals-table-date-display');
+      const inputEl = document.getElementById('goals-table-date-input');
+      function formatGoalsDate(d) {
+        const day = d.getDate();
+        const month = MONTHS[d.getMonth()];
+        const year = d.getFullYear();
+        return day + '-' + month + '-' + year;
+      }
+      function showDisplay() {
+        if (!displayEl || !inputEl) return;
+        displayEl.textContent = formatGoalsDate(goalsTableDate);
+        displayEl.style.display = '';
+        inputEl.style.display = 'none';
+      }
+      function showInput() {
+        if (!displayEl || !inputEl) return;
+        displayEl.style.display = 'none';
+        inputEl.style.display = 'inline-block';
+        inputEl.value = goalsTableDate.getFullYear() + '-' + String(goalsTableDate.getMonth() + 1).padStart(2, '0') + '-' + String(goalsTableDate.getDate()).padStart(2, '0');
+        inputEl.focus();
+      }
+      function commitDate() {
+        const val = inputEl.value;
+        if (val) {
+          goalsTableDate = new Date(val);
+          if (!isNaN(goalsTableDate.getTime())) showDisplay();
+        } else {
+          showDisplay();
+        }
+      }
+      if (displayEl) {
+        displayEl.addEventListener('click', showInput);
+        displayEl.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showInput(); } });
+      }
+      if (inputEl) {
+        inputEl.addEventListener('change', commitDate);
+        inputEl.addEventListener('blur', commitDate);
+      }
+    })();
     const tbody = document.getElementById('tasks-tbody');
     if (tbody) {
       tbody.addEventListener('click', (e) => {
