@@ -257,6 +257,14 @@ aboutNav: true
                       <label for="goal-edit-value-input">Goal</label>
                       <input type="text" class="form-control" id="goal-edit-value-input" placeholder="Goal name" required>
                     </div>
+                    <div class="form-group">
+                      <label for="goals-cell-format-select">Goal format</label>
+                      <select class="form-control" id="goals-cell-format-select">
+                        <option value="text">text</option>
+                        <option value="#,###">#,###</option>
+                        <option value="#.#">#.#</option>
+                      </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                   </form>
                 </div>
@@ -955,6 +963,7 @@ aboutNav: true
           cells[8].textContent = sum;
         }
         getDeltaValue();
+        if (typeof setGoalsFormat === 'function') setGoalsFormat();
       }
     } catch (err) {
       console.error('Error loading goals:', err);
@@ -1444,6 +1453,35 @@ console.error('Error loading habit for editing:', error);
     if (projectedBox) projectedBox.textContent = resultStr; else projectedTd.textContent = resultStr;
   }
 
+  function setGoalsFormat() {
+    var goalsFormatJson = localStorage.getItem('goals_format');
+    var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
+    var tbody = document.querySelector('#goals-table tbody');
+    if (!tbody) return;
+    var cells = tbody.querySelectorAll('td[id]');
+    for (var i = 0; i < cells.length; i++) {
+      var td = cells[i];
+      var id = td.id;
+      var box = td.querySelector('.goals-cell-box');
+      var isTotalCell = id.indexOf('total') !== -1;
+      if (!box && !isTotalCell) continue;
+      var goal = /-\d{4}-\d{2}-\d{2}$/.test(id) ? id.replace(/-\d{4}-\d{2}-\d{2}$/, '') : id.replace(/-[^-]+$/, '');
+      var format = goalsFormat[goal];
+      if (!format || format === 'text') continue;
+      var raw = (box ? box.textContent : td.textContent || '').trim().replace(/,/g, '');
+      var num = parseFloat(raw);
+      var formatted = '';
+      if (format === '#,###' && !isNaN(num)) {
+        formatted = num.toLocaleString('en-US', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
+      } else if (format === '#.#' && !isNaN(num)) {
+        formatted = (Math.round(num * 10) / 10).toFixed(1);
+      }
+      if (formatted !== '') {
+        if (box) box.textContent = formatted; else td.textContent = formatted;
+      }
+    }
+  }
+
   function updateCaloriesTotal() {
     var total = 0;
     for (var i = 1; i <= 6; i++) {
@@ -1487,6 +1525,7 @@ console.error('Error loading habit for editing:', error);
   document.addEventListener('DOMContentLoaded', () => {
     updateCaloriesTableFromLocal();
     if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
+    if (typeof setGoalsFormat === 'function') setGoalsFormat();
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
     (function initStopwatch() {
       var stopwatchElapsed = 0;
@@ -1848,6 +1887,11 @@ console.error('Error loading habit for editing:', error);
         if (idEl) idEl.textContent = cell.id;
         const inputEl = document.getElementById('goal-edit-value-input');
         if (inputEl) inputEl.value = currentGoalEdit.oldValue;
+        var slugFromName = function (name) { var s = String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return s || 'goal'; };
+        var goalsFormatJson = localStorage.getItem('goals_format');
+        var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
+        var formatSelect = document.getElementById('goals-cell-format-select');
+        if (formatSelect) formatSelect.value = goalsFormat[slugFromName(currentGoalEdit.oldValue)] || 'text';
         $('#goalEditModal').modal('show');
         if (inputEl) inputEl.focus();
       }
@@ -1914,6 +1958,9 @@ console.error('Error loading habit for editing:', error);
         if (currentGoalsCellId == null) return;
         const inputEl = document.getElementById('goals-cell-value-input');
         const value = inputEl ? inputEl.value.trim() : '';
+        const goalName = /-\d{4}-\d{2}-\d{2}$/.test(currentGoalsCellId)
+          ? currentGoalsCellId.replace(/-\d{4}-\d{2}-\d{2}$/, '')
+          : currentGoalsCellId.replace(/-[^-]+$/, '');
         const cell = document.getElementById(currentGoalsCellId);
         if (currentGoalsCellId.indexOf('-target') !== -1) {
           var localTargetsJson = localStorage.getItem('local_goal_targets');
@@ -1930,6 +1977,7 @@ console.error('Error loading habit for editing:', error);
             var box = cell.querySelector('.goals-cell-box');
             if (box) box.textContent = value;
           }
+          if (typeof setGoalsFormat === 'function') setGoalsFormat();
           currentGoalsCellId = null;
           $('#goalsCellModal').modal('hide');
           return;
@@ -1952,9 +2000,6 @@ console.error('Error loading habit for editing:', error);
             }
           }
         }
-        const goalName = /-\d{4}-\d{2}-\d{2}$/.test(currentGoalsCellId)
-          ? currentGoalsCellId.replace(/-\d{4}-\d{2}-\d{2}$/, '')
-          : currentGoalsCellId.replace(/-[^-]+$/, '');
         const dateInput = document.getElementById('goals-table-date-input');
         let dateVal = dateInput ? dateInput.value.trim() : '';
         var dateFromId = currentGoalsCellId.match(/-(\d{4}-\d{2}-\d{2})$/);
@@ -2008,6 +2053,7 @@ console.error('Error loading habit for editing:', error);
           }
         }
         getDeltaValue();
+        if (typeof setGoalsFormat === 'function') setGoalsFormat();
         currentGoalsCellId = null;
         $('#goalsCellModal').modal('hide');
       });
@@ -2019,6 +2065,17 @@ console.error('Error loading habit for editing:', error);
         if (!currentGoalEdit.goalIndex) return;
         const inputEl = document.getElementById('goal-edit-value-input');
         const newValue = inputEl ? inputEl.value.trim() : '';
+        var slugFromName = function (name) { var s = String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return s || 'goal'; };
+        var formatSelect = document.getElementById('goals-cell-format-select');
+        var formatValue = formatSelect ? formatSelect.value : 'text';
+        try {
+          var goalsFormatJson = localStorage.getItem('goals_format');
+          var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
+          goalsFormat[slugFromName(newValue)] = formatValue;
+          localStorage.setItem('goals_format', JSON.stringify(goalsFormat));
+        } catch (err) {
+          console.error('Error saving goals_format:', err);
+        }
         let userEmail = null;
         try {
           if (window.auth0) {
@@ -2046,6 +2103,7 @@ console.error('Error loading habit for editing:', error);
           currentGoalEdit = { cellId: null, goalIndex: null, oldValue: null };
           $('#goalEditModal').modal('hide');
           await loadGoals();
+          if (typeof setGoalsFormat === 'function') setGoalsFormat();
         } catch (err) {
           console.error('Error updating goal:', err);
           alert(err.message || 'Failed to update goal');
