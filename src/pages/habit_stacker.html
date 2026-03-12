@@ -64,12 +64,18 @@ aboutNav: true
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
   }
-  .card .table-responsive:first-of-type {
-    border: none;
+  .mb-4 {
+    margin-bottom: 0.5rem !important;
   }
-  .card:has(.table-responsive) {
+  .card-title {
+    margin-bottom: 0.1em;
+  }
+  .card {
     border: none !important;
     box-shadow: none !important;
+  }
+  .card .table-responsive:first-of-type {
+    border: none;
   }
   #rowActionModal .modal-header {
     border-bottom: none;
@@ -127,6 +133,37 @@ aboutNav: true
   }
   #calories-today-card #submit-todays-calories-btn {
     display: block;
+  }
+  .table-responsive {
+    margin-bottom: 0;
+  }
+   .table-responsive .table {
+    margin-bottom: 0;
+  }
+   .table-responsive + .mt-2 {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  #stopwatch-start,
+  #stopwatch-pause,
+  #stopwatch-reset,
+  #stopwatch-submit {
+    margin-bottom: 0.3em;
+  }
+  .flex-modules-container {
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 800px) {
+    .flex-modules-container {
+      flex-direction: row;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .flex-modules-container {
+      flex: 1;
+      margin-bottom: 0;
+    }
   }
   #calories-today-table,
   #working-table {
@@ -333,7 +370,7 @@ aboutNav: true
             <div class="modal-dialog modal-dialog-centered" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="minutesWorkModalLabel">Minutes work</h5>
+                  <h5 class="modal-title" id="minutesWorkModalLabel">Minutes worked</h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -395,11 +432,12 @@ aboutNav: true
             </div>
           </div>
 
+          <div class="flex-modules-container">
               <!-- Stopwatch -->
               <div class="card mb-4" id="stopwatch-card">
                 <div class="card-body">
-                  <h5 class="card-title">Stopwatch</h5>
-                  <div class="d-flex align-items-center flex-wrap gap-2">
+                  <!-- <h5 class="card-title">Stopwatch</h5> -->
+                  <div class="d-flex flex-column">
                     <span id="stopwatch-display" class="font-monospace mr-2" style="font-size: 1.5rem; min-width: 6em;">0:00:00</span>
                     <button type="button" class="btn btn-success" id="stopwatch-start">Start</button>
                     <button type="button" class="btn btn-warning" id="stopwatch-pause">Pause</button>
@@ -408,8 +446,6 @@ aboutNav: true
                   </div>
                 </div>
               </div>
-
-              
               <!-- Working -->
               <div class="card mb-4" id="working-card">
                 <div class="card-body">
@@ -506,6 +542,7 @@ aboutNav: true
                   </div>
                 </div>
               </div>
+              </div><!--flex-modules-container -->
 
               <!-- Goals Table -->
               <div class="card mb-4">
@@ -1435,22 +1472,67 @@ console.error('Error loading habit for editing:', error);
   }
 
   function updateProjectedDoneValue() {
-    var startTd = document.getElementById('working_start');
+    // Current time from local device in minutes since midnight
+    var now = new Date();
+    var currentMins = now.getHours() * 60 + now.getMinutes();
+
+    // Grab daily hours and minutes worked
+    var hoursTd = document.getElementById('daily-hours-value');
     var minutesTd = document.getElementById('minutes_value');
     var projectedTd = document.getElementById('projected-done-value');
-    if (!startTd || !minutesTd || !projectedTd) return;
-    var startBox = startTd.querySelector('.goals-cell-box');
+    if (!hoursTd || !minutesTd || !projectedTd) return;
+
+    var hoursBox = hoursTd.querySelector('.goals-cell-box');
     var minutesBox = minutesTd.querySelector('.goals-cell-box');
-    var startStr = (startBox ? startBox.textContent : startTd.textContent || '').trim();
+
+    var hoursStr = (hoursBox ? hoursBox.textContent : hoursTd.textContent || '').trim().replace(/,/g, '');
     var minutesStr = (minutesBox ? minutesBox.textContent : minutesTd.textContent || '').trim().replace(/,/g, '');
-    var startMins = timeStringToMinutes(startStr);
+
+    var hoursNum = parseFloat(hoursStr);
     var minutesNum = parseFloat(minutesStr);
-    if (startMins == null || isNaN(minutesNum)) return;
-    var addMins = minutesNum * 1.3;
-    var totalMins = startMins + addMins;
+    if (isNaN(hoursNum)) hoursNum = 0;
+    if (isNaN(minutesNum)) minutesNum = 0;
+
+    // total = now + hours (in minutes) – 1.3 * minutes_value
+    var totalMins = currentMins + (hoursNum * 60) - (1.3 * minutesNum);
     var resultStr = minutesToTimeString(totalMins);
+
     var projectedBox = projectedTd.querySelector('.goals-cell-box');
-    if (projectedBox) projectedBox.textContent = resultStr; else projectedTd.textContent = resultStr;
+    if (projectedBox) projectedBox.textContent = resultStr;
+    else projectedTd.textContent = resultStr;
+  }
+
+  function updateDeltaToExpectedDone() {
+    var expectedTd = document.getElementById('expected-done-value');
+    var projectedTd = document.getElementById('projected-done-value');
+    var deltaTd = document.getElementById('delta-to-expected-done-value');
+    if (!expectedTd || !projectedTd || !deltaTd) return;
+
+    var expectedStr = (expectedTd.textContent || '').trim();
+    var projectedStr = (projectedTd.textContent || '').trim();
+    var expectedMins = timeStringToMinutes(expectedStr);
+    var projectedMins = timeStringToMinutes(projectedStr);
+    if (expectedMins == null || projectedMins == null) return;
+
+    // difference in hours: expected - projected
+    var diffMins = expectedMins - projectedMins;
+    var diffHours = diffMins / 60;
+    // show with one decimal
+    var display = (Math.round(diffHours * 10) / 10).toFixed(1);
+    deltaTd.textContent = display;
+
+    // color by sign
+    if (diffHours > 0) {
+      deltaTd.style.backgroundColor = 'green';
+      deltaTd.style.color = 'white';
+    } else if (diffHours < 0) {
+      deltaTd.style.backgroundColor = 'red';
+      deltaTd.style.color = 'white';
+    } else {
+      // zero / no difference
+      deltaTd.style.backgroundColor = '';
+      deltaTd.style.color = '';
+    }
   }
 
   function setGoalsFormat() {
@@ -1527,6 +1609,7 @@ console.error('Error loading habit for editing:', error);
     if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
     if (typeof setGoalsFormat === 'function') setGoalsFormat();
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+    if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
     (function initStopwatch() {
       var stopwatchElapsed = 0;
       var stopwatchIntervalId = null;
@@ -1571,6 +1654,7 @@ console.error('Error loading habit for editing:', error);
         var newValStr = String(newVal);
         if (box) box.textContent = newValStr; else minutesTd.textContent = newValStr;
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
       });
     })();
     var caloriesTbody = document.querySelector('#calories-today-table tbody');
@@ -1643,9 +1727,19 @@ console.error('Error loading habit for editing:', error);
         if (inputEl && minutesTd) {
           var box = minutesTd.querySelector('.goals-cell-box');
           var val = (inputEl.value || '').trim();
-          if (box) box.textContent = val !== '' ? val : '0'; else minutesTd.textContent = val !== '' ? val : '0';
+          var finalVal = val !== '' ? val : '0';
+          if (box) box.textContent = finalVal; else minutesTd.textContent = finalVal;
+          try {
+            var workingJson = localStorage.getItem('working_values');
+            var working = workingJson ? JSON.parse(workingJson) : {};
+            working['minutes_value'] = finalVal;
+            localStorage.setItem('working_values', JSON.stringify(working));
+          } catch (err) {
+            console.error('Error saving working_values:', err);
+          }
         }
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
         $('#minutesWorkModal').modal('hide');
       });
     }
@@ -1671,7 +1765,17 @@ console.error('Error loading habit for editing:', error);
         if (displayVal.indexOf('.') === -1) displayVal += '.0';
         var box = td.querySelector('.goals-cell-box');
         if (box) box.textContent = displayVal; else td.textContent = displayVal;
+        try {
+          var workingJson = localStorage.getItem('working_values');
+          var working = workingJson ? JSON.parse(workingJson) : {};
+          working['daily_hours_value'] = displayVal;
+          localStorage.setItem('working_values', JSON.stringify(working));
+        } catch (err) {
+          console.error('Error saving working_values:', err);
+        }
         if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
+        if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
         $('#dailyHoursModal').modal('hide');
       });
     }
@@ -1693,8 +1797,17 @@ console.error('Error loading habit for editing:', error);
         }
         var box = td.querySelector('.goals-cell-box');
         if (box) box.textContent = normalized; else td.textContent = normalized;
+        try {
+          var workingJson = localStorage.getItem('working_values');
+          var working = workingJson ? JSON.parse(workingJson) : {};
+          working['working_start'] = normalized;
+          localStorage.setItem('working_values', JSON.stringify(working));
+        } catch (err) {
+          console.error('Error saving working_values:', err);
+        }
         if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+        if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
         $('#workingStartModal').modal('hide');
       });
     }
