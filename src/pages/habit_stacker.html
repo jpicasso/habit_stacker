@@ -1014,7 +1014,8 @@ aboutNav: true
         }
         // Populate target cells (blue boxes) from local_goal_targets
         try {
-          var localTargetsJson = localStorage.getItem('local_goal_targets');
+          var localTargetsJson = await getTemporaryFromSupabase('local_goal_targets');
+          if (localTargetsJson == null) localTargetsJson = localStorage.getItem('local_goal_targets');
           var localTargets = localTargetsJson ? JSON.parse(localTargetsJson) : {};
           console.log('local_goal_targets (on load)', localTargets);
           var allTdsTarget = tbody.querySelectorAll('td[id$="-target"]');
@@ -1030,7 +1031,8 @@ aboutNav: true
         }
         // Populate plusMinus (grey) boxes from goals_targets_plusMinus
         try {
-          var plusMinusJson = localStorage.getItem('goals_targets_plusMinus');
+          var plusMinusJson = await getTemporaryFromSupabase('goals_targets_plusMinus');
+          if (plusMinusJson == null) plusMinusJson = localStorage.getItem('goals_targets_plusMinus');
           var plusMinusData = plusMinusJson ? JSON.parse(plusMinusJson) : {};
           var allTdsPlusMinus = tbody.querySelectorAll('td[id$="><"]');
           for (var i = 0; i < allTdsPlusMinus.length; i++) {
@@ -1461,11 +1463,16 @@ console.error('Error loading habit for editing:', error);
   
   // Load habits and goals when content is visible
   const originalUpdateContentVisibility = updateContentVisibility;
+  async function loadMinutesValueFromSupabase() {
+    var minutesVal = await getTemporaryFromSupabase('minutes_value');
+    if (minutesVal != null) setMinutesValueCell(minutesVal);
+  }
   updateContentVisibility = function(isAuthenticated) {
     originalUpdateContentVisibility(isAuthenticated);
     if (isAuthenticated) {
       setTimeout(loadTasks, 100);
       setTimeout(loadGoals, 100);
+      loadMinutesValueFromSupabase();
     }
   };
   
@@ -1593,8 +1600,9 @@ console.error('Error loading habit for editing:', error);
     }
   }
 
-  function setGoalsFormat() {
-    var goalsFormatJson = localStorage.getItem('goals_format');
+  async function setGoalsFormat() {
+    var goalsFormatJson = await getTemporaryFromSupabase('goals_format');
+    if (goalsFormatJson == null) goalsFormatJson = localStorage.getItem('goals_format');
     var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
     var tbody = document.querySelector('#goals-table tbody');
     if (!tbody) return;
@@ -1637,10 +1645,56 @@ console.error('Error loading habit for editing:', error);
     if (totalEl) totalEl.textContent = formatCaloriesNumber(total);
   }
 
-  function updateCaloriesTableFromLocal() {
+  // Generic helpers for Supabase temporary_variables (must be in scope for updateCaloriesTableFromLocal, setGoalsFormat, loadGoals, etc.)
+  async function saveTemporaryToSupabase(tempKey, tempValue) {
+    try {
+      if (!window.auth0) return;
+      const isAuthenticated = await window.auth0.isAuthenticated();
+      if (!isAuthenticated) return;
+      const user = await window.auth0.getUser();
+      const userId = user && (user.email || user.nickname || user.sub);
+      if (!userId) return;
+      await fetch('/api/temporary_variables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          key: tempKey,
+          value: tempValue
+        })
+      });
+    } catch (err) {
+      console.error('Error saving temporary variable to Supabase:', err);
+    }
+  }
+  async function getTemporaryFromSupabase(tempKey) {
+    try {
+      if (!window.auth0) return null;
+      const isAuthenticated = await window.auth0.isAuthenticated();
+      if (!isAuthenticated) return null;
+      const user = await window.auth0.getUser();
+      const userId = user && (user.email || user.nickname || user.sub);
+      if (!userId) return null;
+      const res = await fetch('/api/temporary_variables?user_id=' + encodeURIComponent(userId) + '&key=' + encodeURIComponent(tempKey), { cache: 'no-store' });
+      if (!res.ok) return null;
+      const text = await res.text();
+      if (!text || (text.trim().length > 0 && text.trim().charAt(0) === '<')) return null;
+      try {
+        var data = JSON.parse(text);
+      } catch (e) { return null; }
+      if (data == null) return null;
+      return data.temporary_table_value != null ? data.temporary_table_value : null;
+    } catch (err) {
+      console.error('Error getting temporary variable from Supabase:', err);
+      return null;
+    }
+  }
+
+  async function updateCaloriesTableFromLocal() {
     var table = document.getElementById('calories-today-table');
     if (!table) return;
-    var json = localStorage.getItem('calories_today_local');
+    var json = await getTemporaryFromSupabase('calories_today_local');
+    if (json == null) json = localStorage.getItem('calories_today_local');
     var data = json ? JSON.parse(json) : {};
     var cells = table.querySelectorAll('td[id]');
     for (var i = 0; i < cells.length; i++) {
@@ -1662,8 +1716,28 @@ console.error('Error loading habit for editing:', error);
   // Row click: show Edit/Delete modal (unless user clicked Edit or Delete button)
   let rowActionHabitId = null;
   let currentCaloriesEdit = { mealId: null, caloriesId: null };
-  document.addEventListener('DOMContentLoaded', () => {
-    updateCaloriesTableFromLocal();
+  function setMinutesValueCell(val) {
+    if (val == null) return;
+    var minutesTd = document.getElementById('minutes_value');
+    if (!minutesTd) return;
+    var box = minutesTd.querySelector('.goals-cell-box');
+    var str = String(val);
+    if (box) box.textContent = str; else minutesTd.textContent = str;
+    if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
+    if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
+  }
+  document.addEventListener('DOMContentLoaded', async () => {
+    await updateCaloriesTableFromLocal();
+    var minutesVal = await getTemporaryFromSupabase('minutes_value');
+    if (minutesVal == null) {
+      var fromLocal = localStorage.getItem('minutes_value');
+      if (fromLocal !== null && fromLocal !== '') minutesVal = fromLocal;
+      if (minutesVal == null) {
+        var workingJson = localStorage.getItem('working_values');
+        if (workingJson) try { var w = JSON.parse(workingJson); if (w && w.minutes_value != null) minutesVal = w.minutes_value; } catch (e) {} 
+      }
+    }
+    setMinutesValueCell(minutesVal);
     if (typeof updateExpectedDoneValue === 'function') updateExpectedDoneValue();
     if (typeof setGoalsFormat === 'function') setGoalsFormat();
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
@@ -1721,6 +1795,8 @@ console.error('Error loading habit for editing:', error);
         var newVal = Math.round(current + minutesToAdd);
         var newValStr = String(newVal);
         if (box) box.textContent = newValStr; else minutesTd.textContent = newValStr;
+        // Persist minutes_value any time it changes
+        saveMinutesValueToSupabase();
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
         if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
       });
@@ -1746,20 +1822,24 @@ console.error('Error loading habit for editing:', error);
     }
     var caloriesRowEditForm = document.getElementById('calories-row-edit-form');
     if (caloriesRowEditForm) {
-      caloriesRowEditForm.addEventListener('submit', function (e) {
+      caloriesRowEditForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         var mealVal = (document.getElementById('calories-edit-meal-input').value || '').trim();
         var caloriesVal = (document.getElementById('calories-edit-calories-input').value || '').trim();
-        var json = localStorage.getItem('calories_today_local');
+        var json = await getTemporaryFromSupabase('calories_today_local');
+        if (json == null) json = localStorage.getItem('calories_today_local');
         var data = json ? JSON.parse(json) : {};
         data[currentCaloriesEdit.mealId] = mealVal;
         data[currentCaloriesEdit.caloriesId] = caloriesVal;
         try {
-          localStorage.setItem('calories_today_local', JSON.stringify(data));
+          var caloriesJson = JSON.stringify(data);
+          localStorage.setItem('calories_today_local', caloriesJson);
+          // Mirror to Supabase temporary_variables
+          saveTemporaryToSupabase('calories_today_local', caloriesJson);
         } catch (err) {
           console.error('Error saving calories_today_local:', err);
         }
-        updateCaloriesTableFromLocal();
+        await updateCaloriesTableFromLocal();
         currentCaloriesEdit = { mealId: null, caloriesId: null };
         $('#caloriesRowEditModal').modal('hide');
       });
@@ -1786,6 +1866,14 @@ console.error('Error loading habit for editing:', error);
         }
       });
     }
+    // Persist minutes_value to Supabase temporary_variables whenever it changes
+    async function saveMinutesValueToSupabase() {
+      var minutesTd = document.getElementById('minutes_value');
+      if (!minutesTd) return;
+      var box = minutesTd.querySelector('.goals-cell-box');
+      var value = (box ? box.textContent : minutesTd.textContent || '').trim();
+      saveTemporaryToSupabase('minutes_value', value);
+    }
     var minutesWorkForm = document.getElementById('minutes-work-form');
     if (minutesWorkForm) {
       minutesWorkForm.addEventListener('submit', function (e) {
@@ -1797,14 +1885,8 @@ console.error('Error loading habit for editing:', error);
           var val = (inputEl.value || '').trim();
           var finalVal = val !== '' ? val : '0';
           if (box) box.textContent = finalVal; else minutesTd.textContent = finalVal;
-          try {
-            var workingJson = localStorage.getItem('working_values');
-            var working = workingJson ? JSON.parse(workingJson) : {};
-            working['minutes_value'] = finalVal;
-            localStorage.setItem('working_values', JSON.stringify(working));
-          } catch (err) {
-            console.error('Error saving working_values:', err);
-          }
+          // Persist minutes_value any time it changes
+          saveMinutesValueToSupabase();
         }
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
         if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
@@ -1813,7 +1895,7 @@ console.error('Error loading habit for editing:', error);
     }
     var dailyHoursForm = document.getElementById('daily-hours-form');
     if (dailyHoursForm) {
-      dailyHoursForm.addEventListener('submit', function (e) {
+      dailyHoursForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         var inputEl = document.getElementById('daily-hours-input');
         var td = document.getElementById('daily-hours-value');
@@ -1834,10 +1916,14 @@ console.error('Error loading habit for editing:', error);
         var box = td.querySelector('.goals-cell-box');
         if (box) box.textContent = displayVal; else td.textContent = displayVal;
         try {
-          var workingJson = localStorage.getItem('working_values');
+          var workingJson = await getTemporaryFromSupabase('working_values');
+          if (workingJson == null) workingJson = localStorage.getItem('working_values');
           var working = workingJson ? JSON.parse(workingJson) : {};
           working['daily_hours_value'] = displayVal;
-          localStorage.setItem('working_values', JSON.stringify(working));
+          var newWorkingJson = JSON.stringify(working);
+          localStorage.setItem('working_values', newWorkingJson);
+          // Mirror to Supabase temporary_variables
+          saveTemporaryToSupabase('working_values', newWorkingJson);
         } catch (err) {
           console.error('Error saving working_values:', err);
         }
@@ -1849,7 +1935,7 @@ console.error('Error loading habit for editing:', error);
     }
     var workingStartForm = document.getElementById('working-start-form');
     if (workingStartForm) {
-      workingStartForm.addEventListener('submit', function (e) {
+      workingStartForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         var inputEl = document.getElementById('working-start-input');
         var td = document.getElementById('working_start');
@@ -1867,9 +1953,14 @@ console.error('Error loading habit for editing:', error);
         if (box) box.textContent = normalized; else td.textContent = normalized;
         try {
           var workingJson = localStorage.getItem('working_values');
+          workingJson = getTemporaryFromSupabase('working_values');
           var working = workingJson ? JSON.parse(workingJson) : {};
           working['working_start'] = normalized;
-          localStorage.setItem('working_values', JSON.stringify(working));
+          var newWorkingJson = JSON.stringify(working);
+          localStorage.setItem('working_values', newWorkingJson);
+          // Mirror to Supabase temporary_variables
+          console.log('saveTemporaryToSupabase',working_values, newWorkingJson);
+          saveTemporaryToSupabase('working_values', newWorkingJson);
         } catch (err) {
           console.error('Error saving working_values:', err);
         }
@@ -2060,7 +2151,7 @@ console.error('Error loading habit for editing:', error);
         $('#goalsCellModal').modal('show');
         if (inputEl) inputEl.focus();
       }
-      function showGoalEditModal(cell) {
+      async function showGoalEditModal(cell) {
         if (!cell || !cell.id) return;
         const row = cell.closest('tr');
         const goalIndex = row ? row.dataset.goalIndex : null;
@@ -2071,14 +2162,15 @@ console.error('Error loading habit for editing:', error);
         const inputEl = document.getElementById('goal-edit-value-input');
         if (inputEl) inputEl.value = currentGoalEdit.oldValue;
         var slugFromName = function (name) { var s = String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); return s || 'goal'; };
-        var goalsFormatJson = localStorage.getItem('goals_format');
+        var goalsFormatJson = await getTemporaryFromSupabase('goals_format');
+        if (goalsFormatJson == null) goalsFormatJson = localStorage.getItem('goals_format');
         var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
         var formatSelect = document.getElementById('goals-cell-format-select');
         if (formatSelect) formatSelect.value = goalsFormat[slugFromName(currentGoalEdit.oldValue)] || 'text';
         $('#goalEditModal').modal('show');
         if (inputEl) inputEl.focus();
       }
-      goalsTable.addEventListener('click', function (e) {
+      goalsTable.addEventListener('click', async function (e) {
         const goalCell = e.target.closest('.goals-goal-cell');
         if (goalCell) {
           showGoalEditModal(goalCell);
@@ -2112,7 +2204,7 @@ console.error('Error loading habit for editing:', error);
     }
     const plusminusForm = document.getElementById('plusminus-form');
     if (plusminusForm) {
-      plusminusForm.addEventListener('submit', function (e) {
+      plusminusForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         if (currentPlusMinusCellId == null) return;
         var selectEl = document.getElementById('plusminus-select');
@@ -2122,11 +2214,15 @@ console.error('Error loading habit for editing:', error);
           var box = cell.querySelector('.goals-cell-box-plusminus');
           if (box) box.textContent = value;
         }
-        var dataJson = localStorage.getItem('goals_targets_plusMinus');
+        var dataJson = await getTemporaryFromSupabase('goals_targets_plusMinus');
+        if (dataJson == null) dataJson = localStorage.getItem('goals_targets_plusMinus');
         var data = dataJson ? JSON.parse(dataJson) : {};
         data[currentPlusMinusCellId] = value;
         try {
-          localStorage.setItem('goals_targets_plusMinus', JSON.stringify(data));
+          var newPlusMinusJson = JSON.stringify(data);
+          localStorage.setItem('goals_targets_plusMinus', newPlusMinusJson);
+          // Mirror to Supabase temporary_variables
+          saveTemporaryToSupabase('goals_targets_plusMinus', newPlusMinusJson);
         } catch (err) {
           console.error('Error saving goals_targets_plusMinus:', err);
         }
@@ -2146,13 +2242,17 @@ console.error('Error loading habit for editing:', error);
           : currentGoalsCellId.replace(/-[^-]+$/, '');
         const cell = document.getElementById(currentGoalsCellId);
         if (currentGoalsCellId.indexOf('-target') !== -1) {
-          var localTargetsJson = localStorage.getItem('local_goal_targets');
+          var localTargetsJson = await getTemporaryFromSupabase('local_goal_targets');
+          if (localTargetsJson == null) localTargetsJson = localStorage.getItem('local_goal_targets');
           var localTargets = localTargetsJson ? JSON.parse(localTargetsJson) : {};
           console.log('local_goal_targets (before change)', localTargets);
           localTargets[currentGoalsCellId] = value;
           console.log('local_goal_targets (after change)', localTargets);
           try {
-            localStorage.setItem('local_goal_targets', JSON.stringify(localTargets));
+            var newLocalTargetsJson = JSON.stringify(localTargets);
+            localStorage.setItem('local_goal_targets', newLocalTargetsJson);
+            // Mirror to Supabase temporary_variables
+            saveTemporaryToSupabase('local_goal_targets', newLocalTargetsJson);
           } catch (err) {
             console.error('Error saving local_goal_targets:', err);
           }
@@ -2160,7 +2260,7 @@ console.error('Error loading habit for editing:', error);
             var box = cell.querySelector('.goals-cell-box');
             if (box) box.textContent = value;
           }
-          if (typeof setGoalsFormat === 'function') setGoalsFormat();
+          if (typeof setGoalsFormat === 'function') await setGoalsFormat();
           currentGoalsCellId = null;
           $('#goalsCellModal').modal('hide');
           return;
@@ -2252,10 +2352,14 @@ console.error('Error loading habit for editing:', error);
         var formatSelect = document.getElementById('goals-cell-format-select');
         var formatValue = formatSelect ? formatSelect.value : 'text';
         try {
-          var goalsFormatJson = localStorage.getItem('goals_format');
+          var goalsFormatJson = await getTemporaryFromSupabase('goals_format');
+          if (goalsFormatJson == null) goalsFormatJson = localStorage.getItem('goals_format');
           var goalsFormat = goalsFormatJson ? JSON.parse(goalsFormatJson) : {};
           goalsFormat[slugFromName(newValue)] = formatValue;
-          localStorage.setItem('goals_format', JSON.stringify(goalsFormat));
+          var newGoalsFormatJson = JSON.stringify(goalsFormat);
+          localStorage.setItem('goals_format', newGoalsFormatJson);
+          // Mirror to Supabase temporary_variables
+          saveTemporaryToSupabase('goals_format', newGoalsFormatJson);
         } catch (err) {
           console.error('Error saving goals_format:', err);
         }

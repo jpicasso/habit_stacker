@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDatabase, getAllHabits, addHabit, updateHabit, deleteHabit } = require('./db');
 const supabaseHabits = require('./supabase-habits');
 const supabaseGoals = require('./supabase-goals');
+const supabaseTemporary = require('./supabase-temporary');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -291,6 +292,48 @@ app.post('/api/goals/values', async (req, res) => {
     console.error('Error saving goal value:', error);
     const message = error.message || 'Failed to save goal value';
     res.status(500).json({ error: message });
+  }
+});
+
+// --- Temporary variables API (Supabase temporary_variables) ---
+
+app.post('/api/temporary_variables', async (req, res) => {
+  try {
+    if (!supabaseTemporary.isConfigured()) {
+      return res.status(503).json({ error: 'Temporary variables require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const { user_id, key, value } = req.body || {};
+    const userId = (user_id || '').trim();
+    const k = (key || '').trim();
+    const v = value != null ? String(value) : '';
+    if (!userId || !k) {
+      return res.status(400).json({ error: 'user_id and key are required' });
+    }
+    const row = await supabaseTemporary.upsertVariable(userId, k, v);
+    res.status(201).json(row);
+  } catch (error) {
+    console.error('Error saving temporary variable:', error);
+    res.status(500).json({ error: error.message || 'Failed to save temporary variable' });
+  }
+});
+
+app.get('/api/temporary_variables', async (req, res) => {
+  try {
+    if (!supabaseTemporary.isConfigured()) {
+      return res.status(503).json({ error: 'Temporary variables require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = (req.query.user_id || '').trim();
+    const key = (req.query.key || '').trim();
+    if (!userId || !key) {
+      return res.status(400).json({ error: 'user_id and key query parameters are required' });
+    }
+    const row = await supabaseTemporary.getVariable(userId, key);
+    console.log('[GET temporary_variables] user_id=%j key=%j found=%s', userId, key, !!row);
+    if (!row) return res.json(null);
+    res.json({ temporary_table_value: row.temporary_table_value });
+  } catch (error) {
+    console.error('Error fetching temporary variable:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch temporary variable' });
   }
 });
 
