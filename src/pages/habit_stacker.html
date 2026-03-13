@@ -1,5 +1,5 @@
 ---
-title: 'Private'
+title: 'Habit Stacker'
 course: 'Courses'
 aboutNav: true
 ---
@@ -91,6 +91,13 @@ aboutNav: true
   #goals-table td:nth-child(n+2):nth-child(-n+9) {
     min-width: 3em;
   }
+  #goals-table td[id*="target"], #goals-table td[id*="><"] {
+    color: #ffffff;
+  }
+  #goals-table td[id*="goal"], #goals-table td[id*="total"] {
+    font-weight: bold;
+  }
+
   #goals-table td:nth-child(12) {
     text-align: center;
   }
@@ -1556,7 +1563,7 @@ console.error('Error loading habit for editing:', error);
       if (format === '#,###' && !isNaN(num)) {
         formatted = num.toLocaleString('en-US', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
       } else if (format === '#.#' && !isNaN(num)) {
-        formatted = (Math.round(num * 10) / 10).toFixed(1);
+        formatted = num.toLocaleString('en-US', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
       }
       if (formatted !== '') {
         if (box) box.textContent = formatted; else td.textContent = formatted;
@@ -1612,6 +1619,7 @@ console.error('Error loading habit for editing:', error);
     if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
     (function initStopwatch() {
       var stopwatchElapsed = 0;
+      var stopwatchStartTime = null;
       var stopwatchIntervalId = null;
       var displayEl = document.getElementById('stopwatch-display');
       function formatStopwatch(seconds) {
@@ -1620,18 +1628,26 @@ console.error('Error loading habit for editing:', error);
         var s = Math.floor(seconds % 60);
         return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
       }
+      function getCurrentElapsedSeconds() {
+        if (stopwatchStartTime === null) return stopwatchElapsed;
+        return stopwatchElapsed + (Date.now() - stopwatchStartTime) / 1000;
+      }
       function stopwatchTick() {
-        stopwatchElapsed += 1;
-        if (displayEl) displayEl.textContent = formatStopwatch(stopwatchElapsed);
+        if (displayEl) displayEl.textContent = formatStopwatch(getCurrentElapsedSeconds());
       }
       document.getElementById('stopwatch-start') && document.getElementById('stopwatch-start').addEventListener('click', function () {
         if (stopwatchIntervalId !== null) return;
+        stopwatchStartTime = Date.now();
         stopwatchIntervalId = setInterval(stopwatchTick, 1000);
+        stopwatchTick();
       });
       document.getElementById('stopwatch-pause') && document.getElementById('stopwatch-pause').addEventListener('click', function () {
         if (stopwatchIntervalId !== null) {
+          stopwatchElapsed = getCurrentElapsedSeconds();
+          stopwatchStartTime = null;
           clearInterval(stopwatchIntervalId);
           stopwatchIntervalId = null;
+          if (displayEl) displayEl.textContent = formatStopwatch(stopwatchElapsed);
         }
       });
       document.getElementById('stopwatch-reset') && document.getElementById('stopwatch-reset').addEventListener('click', function () {
@@ -1640,10 +1656,11 @@ console.error('Error loading habit for editing:', error);
           stopwatchIntervalId = null;
         }
         stopwatchElapsed = 0;
+        stopwatchStartTime = null;
         if (displayEl) displayEl.textContent = formatStopwatch(0);
       });
       document.getElementById('stopwatch-submit') && document.getElementById('stopwatch-submit').addEventListener('click', function () {
-        var minutesToAdd = stopwatchElapsed / 60;
+        var minutesToAdd = getCurrentElapsedSeconds() / 60;
         var minutesTd = document.getElementById('minutes_value');
         if (!minutesTd) return;
         var box = minutesTd.querySelector('.goals-cell-box');
@@ -1841,6 +1858,7 @@ console.error('Error loading habit for editing:', error);
         var box = targetCell.querySelector('.goals-cell-box');
         var displayVal = value % 1 === 0 ? String(value) : value.toFixed(2);
         if (box) box.textContent = displayVal; else targetCell.textContent = displayVal;
+        if (typeof setGoalsFormat === 'function') setGoalsFormat();
         var userEmail = null;
         try {
           if (window.auth0) {
@@ -1899,6 +1917,7 @@ console.error('Error loading habit for editing:', error);
         var goalName = targetCell.id.replace(/-\d{4}-\d{2}-\d{2}$/, '');
         var box = targetCell.querySelector('.goals-cell-box');
         if (box) box.textContent = value;
+        if (typeof setGoalsFormat === 'function') setGoalsFormat();
         var userEmail = null;
         try {
           if (window.auth0) {

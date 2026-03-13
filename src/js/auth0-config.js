@@ -100,9 +100,9 @@ async function updateUI() {
     if (logoutButton) {
       logoutButton.style.display = isAuthenticated ? 'block' : 'none';
     }
-    // Private links: visible only when logged in
+    // Private links: always visible (logged in or out)
     privateNavItems.forEach(el => {
-      el.style.display = isAuthenticated ? 'block' : 'none';
+      el.style.display = 'block';
     });
     
     // If user is authenticated, you can get user info
