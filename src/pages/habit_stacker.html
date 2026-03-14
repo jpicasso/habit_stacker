@@ -836,8 +836,8 @@ aboutNav: true
       var deltaCell = cells[11];
       var plusMinusBox = plusMinusCell ? plusMinusCell.querySelector('.goals-cell-box-plusminus') : null;
       var targetBox = targetCell ? targetCell.querySelector('.goals-cell-box') : null;
-      var totalVal = parseFloat((totalCell.textContent || '').trim());
-      var targetVal = parseFloat((targetBox ? targetBox.textContent : targetCell.textContent || '').trim());
+      var totalVal = parseFloat((totalCell.textContent || '').trim().replace(/,/g, ''));
+      var targetVal = parseFloat((targetBox ? targetBox.textContent : (targetCell.textContent || '')).trim().replace(/,/g, ''));
       if (isNaN(totalVal)) totalVal = 0;
       if (isNaN(targetVal)) targetVal = 0;
       var pmVal = (plusMinusBox ? plusMinusBox.textContent : '').trim();
@@ -1038,7 +1038,7 @@ aboutNav: true
         } catch (e) {
           console.error('Error populating goals_targets_plusMinus:', e);
         }
-        // Set total cell for each row: sum of parseInt() of each day cell (same goal, date in id)
+        // Set total cell for each row: sum of day cells (strip commas before parse so "1,200" -> 1200)
         var rows = tbody.querySelectorAll('tr[data-goal-index]');
         for (var r = 0; r < rows.length; r++) {
           var cells = rows[r].querySelectorAll('td');
@@ -1046,7 +1046,7 @@ aboutNav: true
           var sum = 0;
           for (var c = 1; c <= 7; c++) {
             var box = cells[c].querySelector('.goals-cell-box');
-            var text = box ? box.textContent.trim() : (cells[c].textContent || '').trim();
+            var text = (box ? box.textContent : cells[c].textContent || '').trim().replace(/,/g, '');
             var n = parseFloat(text);
             if (!isNaN(n)) sum += n;
           }
@@ -1760,11 +1760,20 @@ console.error('Error loading habit for editing:', error);
     if (typeof setGoalsFormat === 'function') setGoalsFormat();
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
     if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
-    (function initStopwatch() {
+    (async function initStopwatch() {
       var stopwatchElapsed = 0;
       var stopwatchStartTime = null;
       var stopwatchIntervalId = null;
       var displayEl = document.getElementById('stopwatch-display');
+      var savedStart = await getTemporaryFromSupabase('stopwatch_start_time');
+      if (savedStart != null && savedStart !== '') {
+        var ts = parseFloat(String(savedStart).trim());
+        if (!isNaN(ts)) {
+          stopwatchStartTime = ts;
+          stopwatchIntervalId = setInterval(stopwatchTick, 1000);
+          stopwatchTick();
+        }
+      }
       function formatStopwatch(seconds) {
         var h = Math.floor(seconds / 3600);
         var m = Math.floor((seconds % 3600) / 60);
@@ -1781,6 +1790,7 @@ console.error('Error loading habit for editing:', error);
       document.getElementById('stopwatch-start') && document.getElementById('stopwatch-start').addEventListener('click', function () {
         if (stopwatchIntervalId !== null) return;
         stopwatchStartTime = Date.now();
+        saveTemporaryToSupabase('stopwatch_start_time', String(stopwatchStartTime));
         stopwatchIntervalId = setInterval(stopwatchTick, 1000);
         stopwatchTick();
       });
@@ -1800,6 +1810,7 @@ console.error('Error loading habit for editing:', error);
         }
         stopwatchElapsed = 0;
         stopwatchStartTime = null;
+        saveTemporaryToSupabase('stopwatch_start_time', '');
         if (displayEl) displayEl.textContent = formatStopwatch(0);
       });
       document.getElementById('stopwatch-submit') && document.getElementById('stopwatch-submit').addEventListener('click', function () {
@@ -1818,6 +1829,7 @@ console.error('Error loading habit for editing:', error);
         if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
         if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
         submitTimeWorked();
+        saveTemporaryToSupabase('stopwatch_start_time', '');
       });
     })();
     var caloriesTbody = document.querySelector('#calories-today-table tbody');
@@ -1974,7 +1986,7 @@ console.error('Error loading habit for editing:', error);
         if (box) box.textContent = normalized; else td.textContent = normalized;
         try {
           var workingJson = await getTemporaryFromSupabase('working_values');
-          console.log('workingJson', workingJson);
+          
           if (workingJson == null) workingJson = localStorage.getItem('working_values');
           var working = workingJson ? JSON.parse(workingJson) : {};
           working['working_start'] = normalized;
@@ -2291,7 +2303,7 @@ console.error('Error loading habit for editing:', error);
               var sum = 0;
               for (var c = 1; c <= 7; c++) {
                 var b = cells[c].querySelector('.goals-cell-box');
-                var t = b ? b.textContent.trim() : (cells[c].textContent || '').trim();
+                var t = (b ? b.textContent : (cells[c].textContent || '')).trim().replace(/,/g, '');
                 var n = parseFloat(t);
                 if (!isNaN(n)) sum += n;
               }
