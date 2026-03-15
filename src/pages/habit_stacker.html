@@ -1906,6 +1906,41 @@ console.error('Error loading habit for editing:', error);
       var value = (box ? box.textContent : minutesTd.textContent || '').trim();
       saveTemporaryToSupabase('minutes_value', value);
     }
+
+    /// put the cursor in the input field when the modal is shown and highlight value
+    $('#minutesWorkModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('minutes-work-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#dailyHoursModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('daily-hours-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#workingStartModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('working-start-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#goalsCellModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('goals-cell-value-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#goalEditModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('goal-edit-value-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#plusMinusModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('plusminus-select');
+      if (el) el.focus();
+    });
+    $('#caloriesRowEditModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('calories-edit-calories-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    $('#editEventModal').on('shown.bs.modal', function () {
+      var el = document.getElementById('edit-task-input');
+      if (el) { el.focus(); el.select(); }
+    });
+    /// ^^^ end of put the cursor in...
     var minutesWorkForm = document.getElementById('minutes-work-form');
     if (minutesWorkForm) {
       minutesWorkForm.addEventListener('submit', function (e) {
