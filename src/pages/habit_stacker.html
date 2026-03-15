@@ -236,6 +236,23 @@ aboutNav: true
     text-align: center;
     width: 3em;
   }
+  #habit-stacker-nav-pills {
+    margin-left: 10px;
+  }
+  #habit-stacker-nav-pills .nav-link {
+    background-color: #6c757d;
+    color: #fff;
+    border-radius: 8px;
+    margin-right: 0.25rem;
+  }
+  #habit-stacker-nav-pills .nav-link:hover {
+    background-color: #5a6268;
+    color: #fff;
+  }
+  #habit-stacker-nav-pills .nav-link.active {
+    background-color: #495057;
+    color: #fff;
+  }
 </style>
 
 <main class="main main--interior">
@@ -488,6 +505,13 @@ aboutNav: true
    <!-- ***********                 *********** -->
    <!-- *************************************** -->
 
+          <ul class="nav nav-pills mb-3" id="habit-stacker-nav-pills">
+            <li class="nav-item"><a class="nav-link" href="#stopwatch-card" id="stopwatch-card-pill">Stopwatch</a></li>
+            <li class="nav-item"><a class="nav-link" href="#working-card" id="working-card-pill">Working</a></li>
+            <li class="nav-item"><a class="nav-link" href="#calories-today-card" id="calories-today-card-pill">Calories</a></li>
+            <li class="nav-item"><a class="nav-link" href="#goals-section" id="goals-section-pill">Goals</a></li>
+            <li class="nav-item"><a class="nav-link" href="#habits-section" id="habits-section-pill">Habits</a></li>
+          </ul>
           <div class="flex-modules-container" id="flex-modules-container-stopwatch">
               <!-- Stopwatch -->
               <div class="card mb-4" id="stopwatch-card">
@@ -594,7 +618,7 @@ aboutNav: true
               </div><!--flex-modules-container -->
 
               <!-- Goals Table -->
-              <div class="card mb-4">
+              <div id="goals-section"class="card mb-4">
                 <div class="card-body">
                   <h5 class="card-title">Goals Table</h5>
                   <p class="mb-2">
@@ -665,7 +689,7 @@ aboutNav: true
 
               
               <!-- Habits Table -->
-              <div class="card">
+              <div class="card" id="habits-section">
                 <div class="card-body">
                   <div id="tasks-loading" class="text-center py-3">
                     <div class="spinner-border" role="status">
@@ -1720,7 +1744,61 @@ console.error('Error loading habit for editing:', error);
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
     if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
   }
+  var moduleVisibility = {
+    'stopwatch-card': 'hide',
+    'working-card': 'hide',
+    'calories-today-card': 'hide',
+    'goals-section': 'hide',
+    'habits-section': 'show'
+  };
+  function applyModuleVisibility() {
+    var key;
+    for (key in moduleVisibility) {
+      var el = document.getElementById(key);
+      if (el) el.style.display = moduleVisibility[key] === 'show' ? '' : 'none';
+    }
+    var pills = document.querySelectorAll('#habit-stacker-nav-pills .nav-link');
+    pills.forEach(function (pill) {
+      var id = pill.id;
+      if (id && id.endsWith('-pill')) {
+        var moduleId = id.slice(0, -5);
+        pill.classList.toggle('active', moduleVisibility[moduleId] === 'show');
+      }
+    });
+  }
+  function saveModuleVisibilityToSupabase() {
+    saveTemporaryToSupabase('module_visibility', JSON.stringify(moduleVisibility));
+  }
   document.addEventListener('DOMContentLoaded', async () => {
+    var saved = await getTemporaryFromSupabase('module_visibility');
+    if (saved != null && saved !== '') {
+      try {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var k;
+          for (k in parsed) {
+            if (moduleVisibility.hasOwnProperty(k) && (parsed[k] === 'show' || parsed[k] === 'hide')) {
+              moduleVisibility[k] = parsed[k];
+            }
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+    var pillsContainer = document.getElementById('habit-stacker-nav-pills');
+    if (pillsContainer) {
+      pillsContainer.addEventListener('click', function (e) {
+        var pill = e.target.closest('a.nav-link[id$="-pill"]');
+        if (!pill) return;
+        e.preventDefault();
+        var moduleId = pill.id.slice(0, -5);
+        if (moduleVisibility.hasOwnProperty(moduleId)) {
+          moduleVisibility[moduleId] = moduleVisibility[moduleId] === 'show' ? 'hide' : 'show';
+          applyModuleVisibility();
+          saveModuleVisibilityToSupabase();
+        }
+      });
+    }
+    applyModuleVisibility();
     await updateCaloriesTableFromLocal();
     var minutesVal = await getTemporaryFromSupabase('minutes_value');
     if (minutesVal == null) {
