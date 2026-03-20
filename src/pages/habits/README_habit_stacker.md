@@ -263,6 +263,7 @@ Numeric parsing note: Anywhere the app reads displayed numbers (totals, targets,
 ## 6. Other notes for developers
 
 - **Execution order:** Auth check runs early; `updateContentVisibility` is overridden to call `loadTasks`, `loadGoals`, and `loadMinutesValueFromSupabase` when authenticated. Most DOM listeners are attached inside a single `DOMContentLoaded` handler; `submitTodaysCalories` is defined there, so it is not visible to `updateCaloriesTableFromLocal()` (which lives in an outer scope). Therefore `submitTodaysCalories()` is explicitly called from the calories row-edit submit handler so it runs when calories1–6 change.
+- **Goals tracker scripts:** The goals page loads multiple files from `/goals/goals-*.js` in a fixed order (see `goals_tracker.html` and the comment atop `goals-temporary-storage.js`). They share one global scope like the former single `goals.js`.
 - **Goals table week:** The week is determined by “Sunday’s date” from `#goals-table-date-input`. If that element is hidden, ensure it still has a valid value (e.g. set in code or by the date-display click flow). `loadGoals()` uses it to build `dayDateStrs` for Sun–Sat.
 - **Row totals and deltas:** Total column = sum of day columns 1–7; values are stripped of commas before summing. Delta uses Total and Target (also comma-stripped) and the &gt;/&lt; cell to decide direction and coloring.
 - **Goals table cell IDs:** Built from goal name slug (lowercase, spaces → hyphens) plus suffix: date for days, `total`, `><`, `target`, `delta`. Duplicate slugs get a numeric suffix (e.g. `goal-2`).

@@ -1,6 +1,6 @@
 /**
  * Auth0 page gate: resolve client, wait for redirect handling, toggle #private-content vs #login-required-message.
- * Loaded before habits.js so habits.js can wrap updateContentVisibility (e.g. to loadTasks after login).
+ * Loaded before habits.js or goals/goals-*.js so that script can wrap updateContentVisibility (e.g. loadTasks / loadGoals after login).
  */
 
 // --- Auth0: resolve client, wait for redirect handling, then toggle page sections ---
