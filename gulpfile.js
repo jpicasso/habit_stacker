@@ -30,9 +30,9 @@ function copyJs() { // Copy the js folder and its subfolders to /dist
     .pipe(gulp.dest('dist/js'));
 }
 
-function copyHabitsPageJs() { // Habit Stacker page script (lives next to source HTML in src/pages)
-  return gulp.src('./src/pages/habits.js')
-    .pipe(gulp.dest('dist'));
+function copyHabitsPageAssets() { // Habit Stacker assets under src/pages/habits → dist/habits
+  return gulp.src(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/habits.css'])
+    .pipe(gulp.dest('dist/habits'));
 }
 
 function copySounds() { // Copy the sounds folder and its subfolders to /dist
@@ -56,7 +56,7 @@ function startup() { // Run all the tasks (occurs once when gulp watch starts up
   compileHtml();
   copyImages();
   copyJs();
-  copyHabitsPageJs();
+  copyHabitsPageAssets();
   copySounds();
 }
 
@@ -71,7 +71,7 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
   gulp.watch('./src/scss/**/*.scss', style);
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
   gulp.watch('./src/js/**/*.js',{cwd:'./'}).on('change', gulp.series(copyJs, browserSync.reload));
-  gulp.watch('./src/pages/habits.js',{cwd:'./'}).on('change', gulp.series(copyHabitsPageJs, browserSync.reload));
+  gulp.watch(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/habits.css'], { cwd: './' }).on('change', gulp.series(copyHabitsPageAssets, browserSync.reload));
   gulp.watch('./src/img/**/*.*',{cwd:'./'}).on('change', gulp.series(copyImages, browserSync.reload));
   gulp.watch('./src/sounds/**/*.*',{cwd:'./'}).on('change', gulp.series(copySounds, browserSync.reload));
   // gulp.watch('./src/{layouts,partials}/**/*').on('change', gulp.series(resetPages, compileHtml, browserSync.reload));
@@ -79,4 +79,4 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
 
 exports.style = style;
 exports.watch = watch;
-exports.build = gulp.series(style, compileHtml, copyImages, copyJs, copyHabitsPageJs, copySounds);
+exports.build = gulp.series(style, compileHtml, copyImages, copyJs, copyHabitsPageAssets, copySounds);

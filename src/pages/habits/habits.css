@@ -1,0 +1,110 @@
+#tasks-table,
+#tasks-table thead th,
+#tasks-table tbody td,
+#tasks-table strong,
+#tasks-table small {
+  font-size: 1rem;
+  font-family: inherit;
+}
+/* Make habits table 90% of viewport width */
+#tasks-table {
+  width: 90vw;
+  max-width: 90vw;
+  table-layout: fixed;
+}
+/* Align numeric columns */
+#tasks-table thead th:nth-child(2),
+#tasks-table thead th:nth-child(3),
+#tasks-table td:nth-child(2),
+#tasks-table td:nth-child(3) {
+  text-align: center;
+}
+/* Flexible first column: takes remaining space */
+#tasks-table thead th:nth-child(1),
+#tasks-table td:nth-child(1) {
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Second column fixed at 100px */
+#tasks-table thead th:nth-child(2),
+#tasks-table td:nth-child(2) {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Third column fixed at 150px */
+#tasks-table thead th:nth-child(3),
+#tasks-table td:nth-child(3) {
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#tasks-table tbody tr {
+  cursor: pointer;
+}
+#tasks-table,
+#tasks-table thead th,
+#tasks-table thead td {
+  border: none !important;
+}
+#tasks-table {
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+#tasks-table tbody td {
+  border-top: 1px solid #dee2e6 !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  border-left: none !important;
+  border-right: none !important;
+  background: inherit;
+}
+#tasks-table tbody td:first-child {
+  border-left: 1px solid #dee2e6 !important;
+}
+#tasks-table tbody td:last-child {
+  border-right: 1px solid #dee2e6 !important;
+}
+#tasks-table tbody td:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+#tasks-table tbody td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.mb-4 {
+  margin-bottom: 0.5rem !important;
+}
+.card {
+  border: none !important;
+  box-shadow: none !important;
+}
+.card .table-responsive:first-of-type {
+  border: none;
+}
+#rowActionModal .modal-header {
+  border-bottom: none;
+  padding-bottom: 0;
+  justify-content: flex-end;
+}
+#rowActionModal .modal-footer {
+  border-top: none;
+  padding-top: 0;
+  justify-content: flex-start;
+}
+.table-responsive {
+  margin-bottom: 0;
+}
+.table-responsive .table {
+  margin-bottom: 0;
+}

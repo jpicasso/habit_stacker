@@ -1,6 +1,6 @@
 # Habit Stacker — Developer README
 
-This document describes the **Habit Stacker** page (`habit_stacker.html`): user flows, structure, IDs, functions, CSS, data/APIs, and notes for new developers.
+This document describes the **Habit Stacker** page (`habits/habit_stacker.html` with `habits.js` / `habits.css` in the same folder): user flows, structure, IDs, functions, CSS, data/APIs, and notes for new developers.
 
 ---
 
