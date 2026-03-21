@@ -1,6 +1,6 @@
 # Goals Tracker page — developer overview
 
-This document summarizes **user-facing behavior**, **DOM IDs** (including those created by JavaScript), **assets and scripts**, and **important functions** for the Goals Tracker (`goals_tracker.html`).
+This document summarizes **user-facing behavior**, **DOM IDs** (including those created by JavaScript), **assets and scripts**, and **important functions** for the Goals Tracker (`goals_tracker.html`). **Section 4** is a dedicated walkthrough of `goals-table-load.js` (`loadGoals` / `addGoalForm`).
 
 ---
 
@@ -238,11 +238,81 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 |-------|-----|
 | `GET/POST /api/temporary_variables` | User-scoped key/value (mirrors many localStorage keys). |
 | `GET/POST/PATCH /api/goals` | List/update `goal1`…`goal8`, add goal, delete goal slot. |
-| `GET/POST /api/goals/values` | Per-day goal values by `goal_name` + `date`. |
+| `GET/POST /api/goals/values` | Per-day goal values by `goal_name` + `date`. `GET` accepts optional `week_start=YYYY-MM-DD` (Sunday): returns only rows with `date >= week_start` and `date < week_start + 8 days`. Omit `week_start` to fetch all rows (e.g. goal 1 chart). |
 
 ### Common `temporary_variables` keys on this page
 
 `module_visibility`, `minutes_value`, `working_values`, `calories_today_local`, `stopwatch_start_time`, `goals_format`, `local_goal_targets`, `goals_targets_plusMinus`.
+
+---
+
+## 4. How `goals-table-load.js` works
+
+`goals-table-load.js` defines two globals used on the Goals Tracker page: **`loadGoals()`** (rebuild and fill the main goals grid) and **`addGoalForm()`** (add a new goal via the API, then refresh the grid).
+
+### `loadGoals()`
+
+**Guardrails**  
+It requires `#goals-table tbody` and a logged-in user from Auth0 (`email`, `nickname`, or `sub`). If either is missing, it returns without changing the table.
+
+**Load the user’s goal list**  
+It calls `GET /api/goals?user_id=…` and expects a single row with `goal1` … `goal8`. It collects every non-empty slot into an array `{ value, columnIndex }` so order matches the database columns.
+
+**Week dates (Sun → Sat)**  
+The week is anchored on **`#goals-table-date-input`**, interpreted as that week’s Sunday. If the input is empty or invalid, it falls back to the most recent Sunday in the local calendar. It builds seven ISO date strings (`YYYY-MM-DD`) for Sunday through Saturday.
+
+**Build table rows**  
+It clears `tbody` and then:
+
+- **No goals:** one placeholder row (“Add your first goal”) with empty cells.
+- **Has goals:** for each goal it computes a **slug prefix** from the name (`goalToIdPrefix`: lowercase, spaces → hyphens, strip non-alphanumerics). Duplicate display names get suffixes `-1`, `-2`, … so cell IDs stay unique.
+
+Each goal becomes a `<tr data-goal-index="1"…"8">` with **12 columns** in a fixed order: Goal, Sun…Sat, Total, `><`, Target, Delta.
+
+**Cell IDs** (used by clicks, API saves, and storage):
+
+| Column | Pattern |
+|--------|---------|
+| Goal | `{base}-goal` |
+| Sun … Sat | `{base}-{YYYY-MM-DD}` for that weekday |
+| Total | `{base}-total` |
+| Comparison | `{base}><` (literal `><` in the id) |
+| Target | `{base}-target` |
+| Delta | `{base}-delta` |
+
+Editable numeric cells get a yellow `.goals-cell-box` (blue for target, grey for `><`). The goal name cell is `.goals-goal-cell` for edit/delete.
+
+**Fill day values from the server**  
+`GET /api/goals/values?user_id=…&week_start=<Sunday YYYY-MM-DD>` returns only rows in that week window (`date >= week_start` and `date < week_start + 8 days`). For each **day** `<td>` whose id ends with `-YYYY-MM-DD`, it finds a matching row (goal name case-insensitive, date normalized to `YYYY-MM-DD`) and writes the value into the inner box. `week_start` matches `#goals-table-date-input` / `baseDateVal`.
+
+**Fill target and `><` from local / Supabase**
+
+- **`local_goal_targets`** (via `getTemporaryFromSupabase`, then `localStorage`) — keys are full target cell ids; values go in the blue boxes.
+- **`goals_targets_plusMinus`** — same pattern for grey `><` cells.
+
+**Recompute totals and downstream UI**  
+For each data row it sums columns 1–7 (Sun–Sat), strips commas, and puts the sum in column 9 (Total). Then it calls:
+
+- **`getDeltaValue()`** — delta column vs target / `><`
+- **`setGoalsFormat()`** — number formatting from saved preferences
+- **`loadGoal1Chart()`** — refresh the bar chart for goal 1
+
+### `addGoalForm(e)`
+
+Submit handler for “add goal”:
+
+1. `preventDefault`, read `#goal-input`, require non-empty text.
+2. Resolve the same Auth0 user id as above.
+3. `POST /api/goals` with `{ user_id, goal }` (the server picks the next free `goal1`…`goal8` slot).
+4. On success, clear the input and **`await loadGoals()`** so the new row appears.
+5. The submit button is disabled and the label set to “Submitting…” while the request runs.
+
+### Role in the rest of the app
+
+- **Edit goal name / delete** and **click day cells to POST values** live in `dom_init_js/goals-dom-init-goals-table.js`; they rely on these stable **`td.id`** patterns.
+- **`loadGoals()`** is also run after login (`goals-auth-bridge.js`), when the week date changes, and after edits that `PATCH` `/api/goals`.
+
+In short: **`loadGoals()` is the single function that turns API + storage into the live `#goals-table` DOM and keeps totals, deltas, formats, and the goal 1 chart in sync.**
 
 ---
 

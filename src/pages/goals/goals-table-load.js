@@ -1,9 +1,7 @@
 /** Fetch goals_list + goals_values, build #goals-table rows; addGoalForm POSTs new goals. */
 async function loadGoals() {
-  console.log('[Goals table] loadGoals: start');
   const tbody = document.querySelector('#goals-table tbody');
   if (!tbody) {
-    console.log('[Goals table] loadGoals: abort — #goals-table tbody not found');
     return;
   }
   let userEmail = null;
@@ -20,24 +18,18 @@ async function loadGoals() {
     return;
   }
   if (!userEmail) {
-    console.log('[Goals table] loadGoals: abort — no user email (not logged in or Auth0 user missing)');
     return;
   }
-  console.log('[Goals table] loadGoals: user_id for API', userEmail);
   try {
     const goalsUrl = '/api/goals?user_id=' + encodeURIComponent(userEmail);
-    console.log('[Goals table] loadGoals: fetching', goalsUrl);
     const response = await fetch(goalsUrl);
     if (!response.ok) {
-      console.log('[Goals table] loadGoals: /api/goals failed', response.status, response.statusText);
       return;
     }
     const row = await response.json();
     if (!row) {
-      console.log('[Goals table] loadGoals: /api/goals returned null/empty row — no goals_list row for this user?');
       return;
     }
-    console.log('[Goals table] loadGoals: goals_list row received', { id: row.id, goal1: row.goal1, goal2: row.goal2, goal3: row.goal3, goal4: row.goal4, goal5: row.goal5, goal6: row.goal6, goal7: row.goal7, goal8: row.goal8 });
     // Build list of non-empty goal values with column index (goal1 .. goal8)
     const goals = [];
     for (let i = 1; i <= 8; i++) {
@@ -63,7 +55,6 @@ async function loadGoals() {
       return yyyy + '-' + mm + '-' + dd;
     }
     var baseDateVal = dateInputEl && dateInputEl.value ? dateInputEl.value.trim() : getRecentSundayISO();
-    console.log('[Goals table] loadGoals: week base (Sunday) date', baseDateVal, '| from #goals-table-date-input:', !!(dateInputEl && dateInputEl.value), '| fallback would be getRecentSundayISO():', getRecentSundayISO());
     var dayDateStrs = [];
     for (var d = 0; d < 7; d++) {
       var dObj = new Date(baseDateVal + 'T12:00:00');
@@ -73,12 +64,9 @@ async function loadGoals() {
       dObj.setDate(dObj.getDate() + d);
       dayDateStrs.push(dObj.getFullYear() + '-' + String(dObj.getMonth() + 1).padStart(2, '0') + '-' + String(dObj.getDate()).padStart(2, '0'));
     }
-    console.log('[Goals table] loadGoals: Sun–Sat column dates', dayDateStrs);
-    console.log('[Goals table] loadGoals: non-empty goals from goals_list', goals.length, goals.map(function (g) { return { columnIndex: g.columnIndex, value: g.value }; }));
     // Remove existing rows and add one row per goal
     tbody.innerHTML = '';
     if (goals.length === 0) {
-      console.log('[Goals table] loadGoals: no goals — showing placeholder row');
       const tr = document.createElement('tr');
       tr.innerHTML = '<td>Add your first goal</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
       tbody.appendChild(tr);
@@ -138,21 +126,25 @@ async function loadGoals() {
         });
         tbody.appendChild(tr);
       });
-      console.log('[Goals table] loadGoals: built table rows; id prefixes (goal_name in goals_values must match idPrefix)', rowSlugDebug);
-      // Populate day cells from goals_values (user_id + goal_name + date match)
+      // Populate day cells from goals_values (user_id + goal_name + date match).
+      // API filters to week_start <= date < week_start+8d when week_start is set (matches #goals-table-date-input Sunday).
       try {
-        var valuesUrl = '/api/goals/values?user_id=' + encodeURIComponent(userEmail);
-        console.log('[Goals table] loadGoals: fetching', valuesUrl);
+        var valuesUrl =
+          '/api/goals/values?user_id=' +
+          encodeURIComponent(userEmail) +
+          '&week_start=' +
+          encodeURIComponent(baseDateVal);
         const gvRes = await fetch(valuesUrl);
+        console.log('gvRes', gvRes);
         if (gvRes.ok) {
           const goalValues = await gvRes.json();
+          console.log('goalValues', goalValues);
           var arr = Array.isArray(goalValues) ? goalValues : [];
           var uniqNames = [];
           for (var u = 0; u < arr.length; u++) {
             var gn = arr[u] && arr[u].goal_name != null ? String(arr[u].goal_name).trim() : '';
             if (gn && uniqNames.indexOf(gn) === -1) uniqNames.push(gn);
           }
-          console.log('[Goals table] loadGoals: goals_values rows', arr.length, '| unique goal_name (first 30)', uniqNames.slice(0, 30));
           var allTds = tbody.querySelectorAll('td[id]');
           function normalizeGoalValuesDate(val) {
             if (val == null) return null;
@@ -186,7 +178,7 @@ async function loadGoals() {
             var goalName = id.replace(/-\d{4}-\d{2}-\d{2}$/, '');
             var dateStr = dateMatch[1];
             var goalNameNorm = goalName != null ? String(goalName).trim().toLowerCase() : '';
-            var r = goalValues.find(function (row) {
+            var r = arr.find(function (row) {
               var rowGoalNorm = row.goal_name != null ? String(row.goal_name).trim().toLowerCase() : '';
               var rDateNorm = normalizeGoalValuesDate(row.date);
               return rowGoalNorm === goalNameNorm && rDateNorm === dateStr;
@@ -199,10 +191,7 @@ async function loadGoals() {
               noMatchSamples.push({ cellId: id, expectedGoalName: goalName, expectedDate: dateStr, hint: 'No goals_values row matching goal_name (case-insensitive) + date YYYY-MM-DD; compare idPrefix to unique goal_name list above' });
             }
           }
-          console.log('[Goals table] loadGoals: yellow day cells — checked', dayCellsChecked, '| filled from Supabase', dayCellsFilled, '| sample misses', noMatchSamples);
-        } else {
-          console.log('[Goals table] loadGoals: /api/goals/values failed', gvRes.status, gvRes.statusText);
-        }
+        } 
       } catch (e) {
         console.error('Error populating goal values:', e);
       }
@@ -255,11 +244,9 @@ async function loadGoals() {
         getDeltaValue();
         if (typeof setGoalsFormat === 'function') setGoalsFormat();
         if (typeof loadGoal1Chart === 'function') loadGoal1Chart();
-      console.log('[Goals table] loadGoals: complete');
     }
   } catch (err) {
     console.error('Error loading goals:', err);
-    console.log('[Goals table] loadGoals: threw — see console.error above');
   }
 }
 

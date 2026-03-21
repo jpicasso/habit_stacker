@@ -264,7 +264,16 @@ app.get('/api/goals/values', async (req, res) => {
     if (!userId || typeof userId !== 'string' || !userId.trim()) {
       return res.status(400).json({ error: 'user_id query parameter is required' });
     }
-    const rows = await supabaseGoals.getGoalValues(userId.trim());
+    const weekStart = req.query.week_start;
+    const options = {};
+    if (weekStart != null && String(weekStart).trim() !== '') {
+      const ws = String(weekStart).trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(ws)) {
+        return res.status(400).json({ error: 'week_start must be YYYY-MM-DD' });
+      }
+      options.weekStart = ws;
+    }
+    const rows = await supabaseGoals.getGoalValues(userId.trim(), options);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching goal values:', error);

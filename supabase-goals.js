@@ -97,16 +97,41 @@ async function updateGoal(userId, goalColumnIndex, newValue) {
   return data;
 }
 
+/** YYYY-MM-DD + n days (UTC date math). */
+function addDaysIso(isoDateStr, n) {
+  const p = String(isoDateStr).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!p) return null;
+  const d = new Date(Date.UTC(parseInt(p[1], 10), parseInt(p[2], 10) - 1, parseInt(p[3], 10)));
+  d.setUTCDate(d.getUTCDate() + n);
+  return (
+    d.getUTCFullYear() +
+    '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(d.getUTCDate()).padStart(2, '0')
+  );
+}
+
 /**
- * Get all goals_values rows for a user. Returns array of { goal_name, value, date }.
+ * Get goals_values rows for a user. Returns array of { goal_name, value, date }.
+ * If weekStart (YYYY-MM-DD) is set, only rows with date >= weekStart AND date < weekStart + 8 days.
+ * Otherwise returns all rows for the user (e.g. chart needs full history).
  */
-async function getGoalValues(userId) {
+async function getGoalValues(userId, options = {}) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-  const { data, error } = await supabase
+  const weekStart = options.weekStart != null ? String(options.weekStart).trim() : '';
+  let query = supabase
     .from('goals_values')
     .select('goal_name, value, date')
     .eq('user_id', userId);
+  if (weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+    const endExclusive = addDaysIso(weekStart, 8);
+    if (endExclusive) {
+      query = query.gte('date', weekStart).lt('date', endExclusive);
+    }
+  }
+  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }
