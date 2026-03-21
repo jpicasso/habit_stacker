@@ -35,8 +35,11 @@ function copyHabitsPageAssets() { // Habit Stacker assets under src/pages/habits
     .pipe(gulp.dest('dist/habits'));
 }
 
-function copyGoalsPageAssets() { // Goals Tracker JS/CSS under src/pages/goals → dist/goals
-  return gulp.src(['./src/pages/goals/goals-*.js', './src/pages/goals/goals.css'])
+function copyGoalsPageAssets() { // Goals Tracker JS/CSS under src/pages/goals → dist/goals (preserves dom_init_js/)
+  return gulp.src(
+    ['./src/pages/goals/goals-*.js', './src/pages/goals/goals.css', './src/pages/goals/dom_init_js/*.js'],
+    { base: './src/pages/goals' }
+  )
     .pipe(gulp.dest('dist/goals'));
 }
 
@@ -78,7 +81,7 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
   gulp.watch('./src/js/**/*.js',{cwd:'./'}).on('change', gulp.series(copyJs, browserSync.reload));
   gulp.watch(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/habits.css'], { cwd: './' }).on('change', gulp.series(copyHabitsPageAssets, browserSync.reload));
-  gulp.watch(['./src/pages/goals/goals*.js', './src/pages/goals/goals.css'], { cwd: './' }).on('change', gulp.series(copyGoalsPageAssets, browserSync.reload));
+  gulp.watch(['./src/pages/goals/goals*.js', './src/pages/goals/goals.css', './src/pages/goals/dom_init_js/**/*.js'], { cwd: './' }).on('change', gulp.series(copyGoalsPageAssets, browserSync.reload));
   gulp.watch('./src/img/**/*.*',{cwd:'./'}).on('change', gulp.series(copyImages, browserSync.reload));
   gulp.watch('./src/sounds/**/*.*',{cwd:'./'}).on('change', gulp.series(copySounds, browserSync.reload));
   // gulp.watch('./src/{layouts,partials}/**/*').on('change', gulp.series(resetPages, compileHtml, browserSync.reload));

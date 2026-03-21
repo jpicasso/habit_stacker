@@ -252,10 +252,9 @@ async function loadGoals() {
         }
         cells[8].textContent = sum;
       }
-      getDeltaValue();
-      if (typeof setGoalsFormat === 'function') setGoalsFormat();
-      if (typeof loadGoal1Chart === 'function') loadGoal1Chart();
-      if (typeof loadGoal2Chart === 'function') loadGoal2Chart();
+        getDeltaValue();
+        if (typeof setGoalsFormat === 'function') setGoalsFormat();
+        if (typeof loadGoal1Chart === 'function') loadGoal1Chart();
       console.log('[Goals table] loadGoals: complete');
     }
   } catch (err) {

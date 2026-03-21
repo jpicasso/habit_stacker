@@ -35,7 +35,7 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 - User sets the week via `#goals-table-date-input` (Sunday). Changing the date reloads the table (`loadGoals`).
 - **Add goal**: `#goal-form` / `#goal-input` → POST new goal name into `goal1`…`goal8` slot via API → table rebuilds.
 - **Per goal row** (built by JS): click **goal name** to edit/delete goal; click **day / target** yellow cells to set values; click **grey >< cell** to choose `>` or `<` for delta direction; totals and **Delta** column update after edits.
-- **Charts**: two bar charts show last-12-month aggregates for goal 1 and goal 2 (`#goal1-bar-chart`, `#goal2-bar-chart`).
+- **Charts**: one bar chart shows last-12-month aggregates for goal 1 (`#goal1-bar-chart`).
 
 ### Typical journeys
 
@@ -100,7 +100,7 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 | `#goals-table-date-input` | Sunday date for the week (may be hidden; still drives `loadGoals`). |
 | `#goals-table` | Main goals table; **`tbody` rows are replaced by JS** when goals exist. |
 | `#goal-form`, `#goal-input` | Add new goal. |
-| `#goal1-chart-title`, `#goal1-bar-chart`, `#goal2-chart-title`, `#goal2-bar-chart` | Chart title + canvas. |
+| `#goal1-chart-title`, `#goal1-bar-chart` | Goal 1 chart title + canvas. |
 
 ### Modals (forms)
 
@@ -157,12 +157,17 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 | `goals-temporary-storage.js` | `saveTemporaryToSupabase`, `getTemporaryFromSupabase` → `/api/temporary_variables`. |
 | `goals-table-delta.js` | `getDeltaValue` — fills delta column from total, target, ><. |
 | `goals-slugs.js` | `goalToSlug`, `getGoalIdPrefixForIndex` (table slug rules; charts may duplicate helpers — last script wins). |
-| `goals-charts.js` | `goal1ChartInstance`, `goal2ChartInstance`, `loadGoal1Chart`, `loadGoal2Chart`. |
+| `goals-charts.js` | `goal1ChartInstance`, `loadGoal1Chart`, `goalToSlug` (duplicates table slug helper; last script wins). |
 | `goals-working-calories.js` | Working/calories math and persistence helpers; `setGoalsFormat`; `currentCaloriesEdit`; `loadMinutesValueFromSupabase`. |
 | `goals-table-load.js` | `loadGoals`, `addGoalForm`. |
 | `goals-auth-bridge.js` | Wraps `updateContentVisibility` to call `loadGoals`, charts, `loadMinutesValueFromSupabase` when authenticated. |
 | `goals-module-visibility.js` | `moduleVisibility`, `applyModuleVisibility`, `saveModuleVisibilityToSupabase`. |
-| `goals-dom-init.js` | Large `DOMContentLoaded`: pills, stopwatch, calories/working/goals listeners, modals, `submitTimeWorked`, `submitTodaysCalories`, goals table interactions. |
+| `dom_init_js/goals-dom-submit-helpers.js` | Globals: `saveMinutesValueToSupabase`, `submitTimeWorked`, `submitTodaysCalories` (shared by stopwatch & forms). |
+| `dom_init_js/goals-dom-init-bootstrap.js` | `goalsDomInitBootstrap()` — restore pills/modules, calories table, minutes & working_values from storage, run derived cells. |
+| `dom_init_js/goals-dom-init-stopwatch.js` | `goalsDomInitStopwatch()` — stopwatch UI and submit-to-minutes. |
+| `dom_init_js/goals-dom-init-working-forms.js` | `goalsDomInitWorkingAndCaloriesForms()` — calories row modal, working table modals, working forms, modal focus hooks. |
+| `dom_init_js/goals-dom-init-goals-table.js` | `goalsDomInitGoalsTableUi()` — goals add form, week date, cell/plus-minus/edit modals, delete. |
+| `dom_init_js/goals-dom-init.js` | `DOMContentLoaded` only: awaits bootstrap + stopwatch, then runs working-forms + goals-table inits. |
 
 ### Important functions (by file)
 
@@ -183,7 +188,6 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 **`goals-charts.js`**
 
 - `loadGoal1Chart()`
-- `loadGoal2Chart()`
 
 **`goals-working-calories.js`**
 
@@ -208,13 +212,25 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 - `applyModuleVisibility()`, `saveModuleVisibilityToSupabase()`
 - `moduleVisibility` (state object)
 
-**`goals-dom-init.js`** (inner functions — not global unless attached)
+**`dom_init_js/goals-dom-submit-helpers.js`**
 
-- Stopwatch: `initStopwatch` IIFE, `formatStopwatch`, `getCurrentElapsedSeconds`, `stopwatchTick`
-- `saveMinutesValueToSupabase` (inner)
-- `submitTimeWorked()`, `submitTodaysCalories()`
-- Goals table UI: `showPlusMinusModal`, `showGoalsCellModal`, `showGoalEditModal`
-- Date display helper: `formatGoalsDate`, `showDisplay`, `showInput`, `commitDate` (goals table date display/input)
+- `saveMinutesValueToSupabase()`, `submitTimeWorked()`, `submitTodaysCalories()`
+
+**`dom_init_js/goals-dom-init-bootstrap.js`**
+
+- `goalsDomInitBootstrap()` (async)
+
+**`dom_init_js/goals-dom-init-stopwatch.js`**
+
+- `goalsDomInitStopwatch()` (async) — inner helpers `formatStopwatch`, `getCurrentElapsedSeconds`, `stopwatchTick`
+
+**`dom_init_js/goals-dom-init-working-forms.js`**
+
+- `goalsDomInitWorkingAndCaloriesForms()`
+
+**`dom_init_js/goals-dom-init-goals-table.js`**
+
+- `goalsDomInitGoalsTableUi()` — inner `showPlusMinusModal`, `showGoalsCellModal`, `showGoalEditModal`; date display IIFE `formatGoalsDate`, `showDisplay`, `showInput`, `commitDate`
 
 ### Backend routes used
 
@@ -230,4 +246,4 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 
 ---
 
-*Gulp copies `src/pages/goals/goals-*.js` and `goals.css` to `dist/goals/`; the HTML template lists script tags in load order.*
+*Gulp copies `src/pages/goals/goals-*.js`, `src/pages/goals/dom_init_js/*.js`, and `goals.css` to `dist/goals/` (with `dom_init_js/` preserved); the HTML template lists script tags in load order.*

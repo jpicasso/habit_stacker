@@ -1,7 +1,9 @@
 /**
  * Supabase temporary_variables read/write. Load first (after auth_page_load.js).
  * Full script order: goals-temporary-storage → table-delta → slugs → charts →
- * working-calories → table-load → auth-bridge → module-visibility → dom-init.
+ * working-calories → table-load → auth-bridge → module-visibility →
+ * dom_init_js/: submit-helpers → init-bootstrap → init-stopwatch →
+ * init-working-forms → init-goals-table → dom-init (entry).
  */
 // Generic helpers for Supabase temporary_variables (must be in scope for updateCaloriesTableFromLocal, setGoalsFormat, loadGoals, etc.)
 async function saveTemporaryToSupabase(tempKey, tempValue) {

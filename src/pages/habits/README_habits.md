@@ -1,6 +1,6 @@
 # Habit Stacker page — developer overview
 
-This document summarizes **user-facing behavior**, **DOM IDs** (including those created by JavaScript), **assets and scripts**, and **important functions** for the Habit Stacker (`habit_stacker.html`).
+This document summarizes **user-facing behavior**, **DOM IDs** (including those created by JavaScript), **assets and scripts**, and **important functions** for the Habit Stacker app (`habit_stacker.html`).
 
 ---
 
