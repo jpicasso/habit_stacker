@@ -135,10 +135,8 @@ async function loadGoals() {
           '&week_start=' +
           encodeURIComponent(baseDateVal);
         const gvRes = await fetch(valuesUrl);
-        console.log('gvRes', gvRes);
         if (gvRes.ok) {
           const goalValues = await gvRes.json();
-          console.log('goalValues', goalValues);
           var arr = Array.isArray(goalValues) ? goalValues : [];
           var uniqNames = [];
           for (var u = 0; u < arr.length; u++) {
@@ -244,6 +242,7 @@ async function loadGoals() {
         getDeltaValue();
         if (typeof setGoalsFormat === 'function') setGoalsFormat();
         if (typeof loadGoal1Chart === 'function') loadGoal1Chart();
+        if (typeof loadWeightLineChart === 'function') loadWeightLineChart();
     }
   } catch (err) {
     console.error('Error loading goals:', err);

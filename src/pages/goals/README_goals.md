@@ -35,7 +35,7 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 - User sets the week via `#goals-table-date-input` (Sunday). Changing the date reloads the table (`loadGoals`).
 - **Add goal**: `#goal-form` / `#goal-input` → POST new goal name into `goal1`…`goal8` slot via API → table rebuilds.
 - **Per goal row** (built by JS): click **goal name** to edit/delete goal; click **day / target** yellow cells to set values; click **grey >< cell** to choose `>` or `<` for delta direction; totals and **Delta** column update after edits.
-- **Charts**: one bar chart shows last-12-month aggregates for goal 1 (`#goal1-bar-chart`).
+- **Charts**: a bar chart shows last-12-month aggregates for goal 1 (`#goal1-bar-chart`); a **Weight** line chart uses **goal 3** from `goals_list` and `goals_values` with `goal_name=weight`, plotting a **7-day rolling average** over the last 30 days (`#weight-line-graph`).
 
 ### Typical journeys
 
@@ -100,6 +100,7 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 | `#goals-table-date-input` | Sunday date for the week (may be hidden; still drives `loadGoals`). |
 | `#goals-table` | Main goals table; **`tbody` rows are replaced by JS** when goals exist. |
 | `#goal-form`, `#goal-input` | Add new goal. |
+| `#weight-chart-title`, `#weight-line-graph` | Weight line chart (goal 3 slot) title + canvas. |
 | `#goal1-chart-title`, `#goal1-bar-chart` | Goal 1 chart title + canvas. |
 
 ### Modals (forms)
@@ -157,7 +158,7 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 | `goals-temporary-storage.js` | `saveTemporaryToSupabase`, `getTemporaryFromSupabase` → `/api/temporary_variables`. |
 | `goals-table-delta.js` | `getDeltaValue` — fills delta column from total, target, ><. |
 | `goals-slugs.js` | `goalToSlug`, `getGoalIdPrefixForIndex` (table slug rules; charts may duplicate helpers — last script wins). |
-| `goals-charts.js` | `goal1ChartInstance`, `loadGoal1Chart`, `goalToSlug` (duplicates table slug helper; last script wins). |
+| `goals-charts.js` | `goal1ChartInstance`, `loadGoal1Chart`, `weightLineChartInstance`, `loadWeightLineChart`, `goalToSlug` (duplicates table slug helper; last script wins). |
 | `goals-working-calories.js` | Working/calories math and persistence helpers; `setGoalsFormat`; `currentCaloriesEdit`; `loadMinutesValueFromSupabase`. |
 | `goals-table-load.js` | `loadGoals`, `addGoalForm`. |
 | `goals-auth-bridge.js` | Wraps `updateContentVisibility` to call `loadGoals`, charts, `loadMinutesValueFromSupabase` when authenticated. |
@@ -188,6 +189,7 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 **`goals-charts.js`**
 
 - `loadGoal1Chart()`
+- `loadWeightLineChart()`
 
 **`goals-working-calories.js`**
 
@@ -238,7 +240,7 @@ If the user has no goals, `loadGoals` inserts a single placeholder row (no `data
 |-------|-----|
 | `GET/POST /api/temporary_variables` | User-scoped key/value (mirrors many localStorage keys). |
 | `GET/POST/PATCH /api/goals` | List/update `goal1`…`goal8`, add goal, delete goal slot. |
-| `GET/POST /api/goals/values` | Per-day goal values by `goal_name` + `date`. `GET` accepts optional `week_start=YYYY-MM-DD` (Sunday): returns only rows with `date >= week_start` and `date < week_start + 8 days`. Omit `week_start` to fetch all rows (e.g. goal 1 chart). |
+| `GET/POST /api/goals/values` | Per-day goal values by `goal_name` + `date`. `GET` accepts optional `week_start=YYYY-MM-DD` (Sunday): returns only rows with `date >= week_start` and `date < week_start + 8 days`. Optional `goal_name` filters to that exact stored name (Weight line chart uses `goal_name=weight`). Omit `week_start` to fetch all rows (e.g. goal 1 chart). |
 
 ### Common `temporary_variables` keys on this page
 
@@ -296,6 +298,7 @@ For each data row it sums columns 1–7 (Sun–Sat), strips commas, and puts the
 - **`getDeltaValue()`** — delta column vs target / `><`
 - **`setGoalsFormat()`** — number formatting from saved preferences
 - **`loadGoal1Chart()`** — refresh the bar chart for goal 1
+- **`loadWeightLineChart()`** — refresh the Weight line chart (goal 3; see `goals-charts.js`)
 
 ### `addGoalForm(e)`
 
@@ -312,7 +315,7 @@ Submit handler for “add goal”:
 - **Edit goal name / delete** and **click day cells to POST values** live in `dom_init_js/goals-dom-init-goals-table.js`; they rely on these stable **`td.id`** patterns.
 - **`loadGoals()`** is also run after login (`goals-auth-bridge.js`), when the week date changes, and after edits that `PATCH` `/api/goals`.
 
-In short: **`loadGoals()` is the single function that turns API + storage into the live `#goals-table` DOM and keeps totals, deltas, formats, and the goal 1 chart in sync.**
+In short: **`loadGoals()` is the single function that turns API + storage into the live `#goals-table` DOM and keeps totals, deltas, formats, and the goal 1 bar + Weight (goal 3) line charts in sync.**
 
 ---
 

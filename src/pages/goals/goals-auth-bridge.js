@@ -7,6 +7,7 @@ updateContentVisibility = function(isAuthenticated) {
       (async function() {
         await loadGoals();
         if (typeof loadGoal1Chart === 'function') loadGoal1Chart();
+        if (typeof loadWeightLineChart === 'function') loadWeightLineChart();
       })();
     }, 100);
     loadMinutesValueFromSupabase();

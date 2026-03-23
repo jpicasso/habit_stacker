@@ -115,16 +115,21 @@ function addDaysIso(isoDateStr, n) {
 /**
  * Get goals_values rows for a user. Returns array of { goal_name, value, date }.
  * If weekStart (YYYY-MM-DD) is set, only rows with date >= weekStart AND date < weekStart + 8 days.
+ * If goalName is set, only rows with that exact goal_name.
  * Otherwise returns all rows for the user (e.g. chart needs full history).
  */
 async function getGoalValues(userId, options = {}) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
   const weekStart = options.weekStart != null ? String(options.weekStart).trim() : '';
+  const goalName = options.goalName != null ? String(options.goalName).trim() : '';
   let query = supabase
     .from('goals_values')
     .select('goal_name, value, date')
     .eq('user_id', userId);
+  if (goalName) {
+    query = query.eq('goal_name', goalName);
+  }
   if (weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
     const endExclusive = addDaysIso(weekStart, 8);
     if (endExclusive) {
