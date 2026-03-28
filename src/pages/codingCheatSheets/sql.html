@@ -1,0 +1,1462 @@
+---
+title: 'SQL 101'
+life101_1: true
+coursesNav: true
+course: 'SQL 101'
+---
+
+{{> navbar }}
+
+<main id="main">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- .sidebar -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <ul class="accordion nav flex-column" id="sidebarAccordion">
+            <li class="nav-item"><a href="#sql-0" class="nav-link">0. Overview</a></li>
+            <li class="nav-item"><a href="#sql-1" class="nav-link">1. Databases &amp; Tables</a></li>
+            <li class="nav-item"><a href="#sql-2" class="nav-link">2. SELECT Basics</a></li>
+            <li class="nav-item"><a href="#sql-3" class="nav-link">3. Filtering with WHERE</a></li>
+            <li class="nav-item"><a href="#sql-4" class="nav-link">4. Sorting &amp; Limiting</a></li>
+            <li class="nav-item"><a href="#sql-5" class="nav-link">5. Aggregations &amp; GROUP BY</a></li>
+            <li class="nav-item"><a href="#sql-6" class="nav-link">6. JOINs</a></li>
+            <li class="nav-item"><a href="#sql-7" class="nav-link">7. Subqueries &amp; CTEs</a></li>
+            <li class="nav-item"><a href="#sql-8" class="nav-link">8. Modifying Data</a></li>
+            <li class="nav-item"><a href="#sql-9" class="nav-link">9. Creating &amp; Altering Tables</a></li>
+            <li class="nav-item"><a href="#sql-10" class="nav-link">10. Window Functions</a></li>
+            <li class="nav-item"><a href="#sql-11" class="nav-link">11. Google SQL Interview</a></li>
+          </ul>
+        </div>
+      </nav>
+      <!-- /.sidebar -->
+
+      <!-- .main -->
+      <section class="col-md-9 ml-sm-auto col-lg-10 main">
+        <div class="tab-content mx-2 mx-md-4 my-2 my-md-3" id="mainTabContent">
+          <div class="tab-pane fade show active" id="cheat-sheets" role="tabpanel">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ root }}/courses.html">Courses</a></li>
+                <li class="breadcrumb-item active" aria-current="page">SQL 101</li>
+              </ol>
+            </nav>
+
+            <div class="cheat-sheet">
+              <div class="bryce-example">
+
+                <!-- =====================================================================
+                     0. OVERVIEW
+                     ===================================================================== -->
+                <h1 id="sql-0">SQL 101</h1>
+                <p>SQL (Structured Query Language) is the standard language for working with relational databases. Every major database system—PostgreSQL, MySQL, SQLite, Supabase, BigQuery, Snowflake—speaks SQL. This course teaches you everything you need to go from zero to writing real, production-quality queries.</p>
+
+                <h3>What you will learn</h3>
+                <ol>
+                  <li><strong>Databases &amp; Tables</strong> — how data is organized</li>
+                  <li><strong>SELECT Basics</strong> — reading data</li>
+                  <li><strong>Filtering with WHERE</strong> — narrowing results</li>
+                  <li><strong>Sorting &amp; Limiting</strong> — ordering and paging</li>
+                  <li><strong>Aggregations &amp; GROUP BY</strong> — summarizing data</li>
+                  <li><strong>JOINs</strong> — combining multiple tables</li>
+                  <li><strong>Subqueries &amp; CTEs</strong> — nested and reusable queries</li>
+                  <li><strong>Modifying Data</strong> — INSERT, UPDATE, DELETE</li>
+                  <li><strong>Creating &amp; Altering Tables</strong> — DDL basics</li>
+                  <li><strong>Window Functions</strong> — advanced analytics</li>
+                </ol>
+
+                <h3>Running SQL</h3>
+                <ul>
+                  <li><strong>Online (free, instant):</strong> <a href="https://sqliteonline.com" target="_blank">sqliteonline.com</a> — paste and run SQL in your browser</li>
+                  <li><strong>Supabase:</strong> project → SQL editor (PostgreSQL)</li>
+                  <li><strong>VS Code:</strong> SQLite extension + any <code>.db</code> file</li>
+                  <li><strong>PostgreSQL locally:</strong> <code>psql</code> in terminal</li>
+                </ul>
+
+                <h3>Sample tables used throughout this course</h3>
+                <p>All examples below use these three tables. You can create them yourself using Lesson 9.</p>
+                <ul class="code-comment-list">
+                  <li><code>users</code> <code>-- id, name, email, age, city, joined_at</code></li>
+                  <li><code>orders</code> <code>-- id, user_id, product, amount, status, created_at</code></li>
+                  <li><code>products</code> <code>-- id, name, category, price, stock</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     1. DATABASES & TABLES
+                     ===================================================================== -->
+                <h2 id="sql-1">1. Databases &amp; Tables</h2>
+
+                <h3>1.1 What is a relational database?</h3>
+                <p>A relational database stores data in <strong>tables</strong> — like spreadsheets, but with rules. Each table has:</p>
+                <ul>
+                  <li><strong>Columns</strong> — the fields (e.g., <code>name</code>, <code>email</code>)</li>
+                  <li><strong>Rows</strong> — one record per row</li>
+                  <li><strong>Primary key</strong> — a column that uniquely identifies each row (usually <code>id</code>)</li>
+                  <li><strong>Foreign key</strong> — a column in one table that references the primary key of another</li>
+                </ul>
+
+                <h3>1.2 Data types you need to know</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Type</th><th>Description</th><th>Example</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>INTEGER</code> / <code>INT</code></td><td>Whole numbers</td><td><code>42</code></td></tr>
+                    <tr><td><code>NUMERIC</code> / <code>DECIMAL</code></td><td>Precise decimal numbers</td><td><code>9.99</code></td></tr>
+                    <tr><td><code>TEXT</code> / <code>VARCHAR(n)</code></td><td>Text strings</td><td><code>'hello'</code></td></tr>
+                    <tr><td><code>BOOLEAN</code></td><td>True / false</td><td><code>true</code></td></tr>
+                    <tr><td><code>DATE</code></td><td>Calendar date</td><td><code>'2025-01-15'</code></td></tr>
+                    <tr><td><code>TIMESTAMP</code></td><td>Date + time</td><td><code>'2025-01-15 09:30:00'</code></td></tr>
+                    <tr><td><code>NULL</code></td><td>Missing / unknown value</td><td><code>NULL</code></td></tr>
+                  </tbody>
+                </table>
+
+                <h3>1.3 Key concepts</h3>
+                <ul>
+                  <li><strong>Schema</strong> — the structure/blueprint of a database (its tables, columns, types, and relationships)</li>
+                  <li><strong>Query</strong> — a question you ask the database, written in SQL</li>
+                  <li><strong>Result set</strong> — the rows returned by a query</li>
+                  <li><strong>NULL</strong> — represents a missing or unknown value. <code>NULL ≠ 0</code> and <code>NULL ≠ ''</code></li>
+                  <li><strong>Case sensitivity</strong> — SQL keywords are case-insensitive (<code>SELECT</code> = <code>select</code>); string values are case-sensitive in most databases</li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     2. SELECT BASICS
+                     ===================================================================== -->
+                <h2 id="sql-2">2. SELECT Basics</h2>
+                <p><code>SELECT</code> is how you read data. It is the most-used SQL statement by far.</p>
+
+                <h3>2.1 Select all columns</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT *</code></li>
+                  <li><code>FROM users;</code></li>
+                </ul>
+                <p>Returns every column and every row in <code>users</code>. The <code>*</code> means "all columns".</p>
+
+                <h3>2.2 Select specific columns</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name, email</code></li>
+                  <li><code>FROM users;</code></li>
+                </ul>
+
+                <h3>2.3 Aliases with AS</h3>
+                <p>Rename a column in the result set without changing the database.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name AS full_name,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   email AS contact_email</code></li>
+                  <li><code>FROM users;</code></li>
+                </ul>
+
+                <h3>2.4 Calculated columns</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   price,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   price * 1.1 AS price_with_tax</code></li>
+                  <li><code>FROM products;</code></li>
+                </ul>
+
+                <h3>2.5 Removing duplicates with DISTINCT</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT DISTINCT city</code></li>
+                  <li><code>FROM users;</code> <code>-- returns each city once</code></li>
+                </ul>
+
+                <h3>2.6 String functions</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT UPPER(name) AS name_upper FROM users;</code></li>
+                  <li><code>SELECT LOWER(email) AS email_lower FROM users;</code></li>
+                  <li><code>SELECT LENGTH(name) AS name_length FROM users;</code></li>
+                  <li><code>SELECT name || ' — ' || city AS label FROM users;</code> <code>-- concatenate (PostgreSQL)</code></li>
+                  <li><code>SELECT CONCAT(name, ' — ', city) AS label FROM users;</code> <code>-- concatenate (MySQL)</code></li>
+                  <li><code>SELECT TRIM('  hello  ') AS trimmed;</code> <code>-- removes leading/trailing spaces</code></li>
+                </ul>
+
+                <h3>2.7 Number functions</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT ROUND(price, 2) FROM products;</code> <code>-- 2 decimal places</code></li>
+                  <li><code>SELECT ABS(-5);</code> <code>-- absolute value → 5</code></li>
+                  <li><code>SELECT CEIL(4.1);</code> <code>-- round up → 5</code></li>
+                  <li><code>SELECT FLOOR(4.9);</code> <code>-- round down → 4</code></li>
+                </ul>
+
+                <h3>2.8 Handling NULL</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT COALESCE(phone, 'no phone') AS phone FROM users;</code> <code>-- returns first non-NULL</code></li>
+                  <li><code>SELECT name FROM users WHERE phone IS NULL;</code></li>
+                  <li><code>SELECT name FROM users WHERE phone IS NOT NULL;</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     3. FILTERING WITH WHERE
+                     ===================================================================== -->
+                <h2 id="sql-3">3. Filtering with WHERE</h2>
+                <p><code>WHERE</code> limits which rows are returned. Think of it as "only include rows where this condition is true."</p>
+
+                <h3>3.1 Comparison operators</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Operator</th><th>Meaning</th><th>Example</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>=</code></td><td>Equal to</td><td><code>age = 30</code></td></tr>
+                    <tr><td><code>!=</code> or <code>&lt;&gt;</code></td><td>Not equal to</td><td><code>status != 'cancelled'</code></td></tr>
+                    <tr><td><code>&gt;</code></td><td>Greater than</td><td><code>amount &gt; 100</code></td></tr>
+                    <tr><td><code>&lt;</code></td><td>Less than</td><td><code>age &lt; 25</code></td></tr>
+                    <tr><td><code>&gt;=</code></td><td>Greater than or equal</td><td><code>price &gt;= 10</code></td></tr>
+                    <tr><td><code>&lt;=</code></td><td>Less than or equal</td><td><code>stock &lt;= 5</code></td></tr>
+                  </tbody>
+                </table>
+
+                <h3>3.2 AND / OR / NOT</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT * FROM users</code></li>
+                  <li><code>WHERE age &gt;= 21 AND city = 'New York';</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT * FROM orders</code></li>
+                  <li><code>WHERE status = 'pending' OR status = 'processing';</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT * FROM products</code></li>
+                  <li><code>WHERE NOT category = 'electronics';</code></li>
+                </ul>
+                <p><strong>Tip:</strong> use parentheses when mixing AND and OR to make precedence explicit:</p>
+                <ul class="code-comment-list">
+                  <li><code>WHERE (status = 'pending' OR status = 'processing')</code></li>
+                  <li><code>&nbsp;&nbsp;AND amount &gt; 50;</code></li>
+                </ul>
+
+                <h3>3.3 IN</h3>
+                <p>Match any value in a list — cleaner than multiple OR conditions.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT * FROM users</code></li>
+                  <li><code>WHERE city IN ('New York', 'Los Angeles', 'Chicago');</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT * FROM orders</code></li>
+                  <li><code>WHERE status NOT IN ('cancelled', 'refunded');</code></li>
+                </ul>
+
+                <h3>3.4 BETWEEN</h3>
+                <p>Inclusive range filter.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT * FROM products</code></li>
+                  <li><code>WHERE price BETWEEN 10 AND 50;</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT * FROM orders</code></li>
+                  <li><code>WHERE created_at BETWEEN '2024-01-01' AND '2024-12-31';</code></li>
+                </ul>
+
+                <h3>3.5 LIKE — pattern matching</h3>
+                <ul>
+                  <li><code>%</code> — matches any number of characters</li>
+                  <li><code>_</code> — matches exactly one character</li>
+                </ul>
+                <ul class="code-comment-list">
+                  <li><code>SELECT * FROM users WHERE email LIKE '%@gmail.com';</code> <code>-- ends with @gmail.com</code></li>
+                  <li><code>SELECT * FROM users WHERE name LIKE 'J%';</code> <code>-- starts with J</code></li>
+                  <li><code>SELECT * FROM users WHERE name LIKE '%son%';</code> <code>-- contains "son" anywhere</code></li>
+                  <li><code>SELECT * FROM users WHERE name LIKE 'J___';</code> <code>-- J + exactly 3 more chars</code></li>
+                  <li><code>SELECT * FROM users WHERE name ILIKE 'john%';</code> <code>-- PostgreSQL case-insensitive LIKE</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     4. SORTING & LIMITING
+                     ===================================================================== -->
+                <h2 id="sql-4">4. Sorting &amp; Limiting</h2>
+
+                <h3>4.1 ORDER BY</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name, age FROM users</code></li>
+                  <li><code>ORDER BY age;</code> <code>-- ascending (lowest first) by default</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT name, age FROM users</code></li>
+                  <li><code>ORDER BY age DESC;</code> <code>-- descending (highest first)</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT name, city, age FROM users</code></li>
+                  <li><code>ORDER BY city ASC, age DESC;</code> <code>-- city A→Z, then age high→low within each city</code></li>
+                </ul>
+
+                <h3>4.2 LIMIT and OFFSET</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT * FROM orders</code></li>
+                  <li><code>ORDER BY created_at DESC</code></li>
+                  <li><code>LIMIT 10;</code> <code>-- only return the 10 most recent orders</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT * FROM orders</code> <code>-- pagination: page 3, 10 rows per page</code></li>
+                  <li><code>ORDER BY id</code></li>
+                  <li><code>LIMIT 10 OFFSET 20;</code> <code>-- skip first 20, return next 10</code></li>
+                </ul>
+
+                <h3>4.3 NULL ordering</h3>
+                <p>NULLs sort to the end by default in ascending order in most databases. To control this explicitly:</p>
+                <ul class="code-comment-list">
+                  <li><code>ORDER BY phone NULLS LAST;</code> <code>-- PostgreSQL</code></li>
+                  <li><code>ORDER BY phone IS NULL, phone;</code> <code>-- MySQL trick</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     5. AGGREGATIONS & GROUP BY
+                     ===================================================================== -->
+                <h2 id="sql-5">5. Aggregations &amp; GROUP BY</h2>
+                <p>Aggregate functions collapse many rows into one summary value.</p>
+
+                <h3>5.1 Aggregate functions</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Function</th><th>What it does</th><th>Example</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>COUNT(*)</code></td><td>Count all rows</td><td><code>SELECT COUNT(*) FROM users;</code></td></tr>
+                    <tr><td><code>COUNT(col)</code></td><td>Count non-NULL values in a column</td><td><code>SELECT COUNT(phone) FROM users;</code></td></tr>
+                    <tr><td><code>COUNT(DISTINCT col)</code></td><td>Count unique non-NULL values</td><td><code>SELECT COUNT(DISTINCT city) FROM users;</code></td></tr>
+                    <tr><td><code>SUM(col)</code></td><td>Total of a numeric column</td><td><code>SELECT SUM(amount) FROM orders;</code></td></tr>
+                    <tr><td><code>AVG(col)</code></td><td>Average value</td><td><code>SELECT AVG(price) FROM products;</code></td></tr>
+                    <tr><td><code>MIN(col)</code></td><td>Smallest value</td><td><code>SELECT MIN(amount) FROM orders;</code></td></tr>
+                    <tr><td><code>MAX(col)</code></td><td>Largest value</td><td><code>SELECT MAX(amount) FROM orders;</code></td></tr>
+                  </tbody>
+                </table>
+
+                <h3>5.2 GROUP BY — aggregate per group</h3>
+                <p>Group rows that share a value, then aggregate each group.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT city, COUNT(*) AS user_count</code></li>
+                  <li><code>FROM users</code></li>
+                  <li><code>GROUP BY city;</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT status, SUM(amount) AS total_revenue</code></li>
+                  <li><code>FROM orders</code></li>
+                  <li><code>GROUP BY status;</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT category, MIN(price) AS cheapest, MAX(price) AS most_expensive</code></li>
+                  <li><code>FROM products</code></li>
+                  <li><code>GROUP BY category</code></li>
+                  <li><code>ORDER BY category;</code></li>
+                </ul>
+
+                <h4>Rule: every column in SELECT must either be in GROUP BY or inside an aggregate function.</h4>
+                <ul class="code-comment-list">
+                  <li><code>-- ✅ correct</code></li>
+                  <li><code>SELECT city, COUNT(*) FROM users GROUP BY city;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- ❌ incorrect — name is not in GROUP BY and not aggregated</code></li>
+                  <li><code>SELECT city, name, COUNT(*) FROM users GROUP BY city;</code></li>
+                </ul>
+
+                <h3>5.3 HAVING — filter groups</h3>
+                <p><code>WHERE</code> filters rows before grouping. <code>HAVING</code> filters groups after grouping.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT city, COUNT(*) AS user_count</code></li>
+                  <li><code>FROM users</code></li>
+                  <li><code>GROUP BY city</code></li>
+                  <li><code>HAVING COUNT(*) &gt;= 5</code> <code>-- only cities with 5 or more users</code></li>
+                  <li><code>ORDER BY user_count DESC;</code></li>
+                  <li><code></code></li>
+                  <li><code>SELECT user_id, SUM(amount) AS total_spent</code></li>
+                  <li><code>FROM orders</code></li>
+                  <li><code>WHERE status = 'completed'</code> <code>-- filter rows first</code></li>
+                  <li><code>GROUP BY user_id</code></li>
+                  <li><code>HAVING SUM(amount) &gt; 500</code> <code>-- then filter groups</code></li>
+                  <li><code>ORDER BY total_spent DESC;</code></li>
+                </ul>
+
+                <h3>5.4 Order of clauses (important!)</h3>
+                <p>SQL clauses must appear in this order:</p>
+                <ol>
+                  <li><code>SELECT</code></li>
+                  <li><code>FROM</code></li>
+                  <li><code>JOIN</code></li>
+                  <li><code>WHERE</code></li>
+                  <li><code>GROUP BY</code></li>
+                  <li><code>HAVING</code></li>
+                  <li><code>ORDER BY</code></li>
+                  <li><code>LIMIT</code></li>
+                </ol>
+
+                <hr>
+
+                <!-- =====================================================================
+                     6. JOINS
+                     ===================================================================== -->
+                <h2 id="sql-6">6. JOINs</h2>
+                <p>JOINs combine rows from two tables based on a related column.</p>
+
+                <h3>6.1 INNER JOIN — only matching rows</h3>
+                <p>Returns only rows where the join condition is true in <em>both</em> tables.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, u.email, o.product, o.amount</code></li>
+                  <li><code>FROM orders AS o</code></li>
+                  <li><code>INNER JOIN users AS u ON o.user_id = u.id;</code></li>
+                </ul>
+                <p>Any order without a matching user, or any user with no orders, is excluded.</p>
+
+                <h3>6.2 LEFT JOIN — all rows from the left table</h3>
+                <p>Returns all rows from the left table. Rows from the right table that don't match get <code>NULL</code>.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, o.product, o.amount</code></li>
+                  <li><code>FROM users AS u</code></li>
+                  <li><code>LEFT JOIN orders AS o ON u.id = o.user_id;</code></li>
+                  <li><code>-- users with no orders appear with NULL in product and amount</code></li>
+                </ul>
+
+                <h4>Common use: find users who have never placed an order</h4>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name</code></li>
+                  <li><code>FROM users AS u</code></li>
+                  <li><code>LEFT JOIN orders AS o ON u.id = o.user_id</code></li>
+                  <li><code>WHERE o.id IS NULL;</code></li>
+                </ul>
+
+                <h3>6.3 RIGHT JOIN — all rows from the right table</h3>
+                <p>Mirror of LEFT JOIN. Less common — most developers rewrite as LEFT JOIN with tables swapped.</p>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, o.product</code></li>
+                  <li><code>FROM users AS u</code></li>
+                  <li><code>RIGHT JOIN orders AS o ON u.id = o.user_id;</code></li>
+                  <li><code>-- all orders appear; users without orders get NULL for name</code></li>
+                </ul>
+
+                <h3>6.4 FULL OUTER JOIN — all rows from both tables</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, o.product</code></li>
+                  <li><code>FROM users AS u</code></li>
+                  <li><code>FULL OUTER JOIN orders AS o ON u.id = o.user_id;</code></li>
+                  <li><code>-- all users and all orders; NULLs where no match exists</code></li>
+                </ul>
+
+                <h3>6.5 Joining three tables</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, o.amount, p.name AS product_name, p.category</code></li>
+                  <li><code>FROM orders AS o</code></li>
+                  <li><code>JOIN users AS u ON o.user_id = u.id</code></li>
+                  <li><code>JOIN products AS p ON o.product_id = p.id;</code></li>
+                </ul>
+
+                <h3>6.6 CROSS JOIN — every combination</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT u.name, p.name AS product</code></li>
+                  <li><code>FROM users AS u</code></li>
+                  <li><code>CROSS JOIN products AS p;</code></li>
+                  <li><code>-- returns every user paired with every product (m × n rows)</code></li>
+                </ul>
+
+                <h3>6.7 Self JOIN — a table joined to itself</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Example: employees table with manager_id referencing id</code></li>
+                  <li><code>SELECT e.name AS employee, m.name AS manager</code></li>
+                  <li><code>FROM employees AS e</code></li>
+                  <li><code>LEFT JOIN employees AS m ON e.manager_id = m.id;</code></li>
+                </ul>
+
+                <h3>JOIN visual summary</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>JOIN type</th><th>Rows returned</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>INNER JOIN</code></td><td>Only rows matching in both tables</td></tr>
+                    <tr><td><code>LEFT JOIN</code></td><td>All rows from left + matched right (NULLs otherwise)</td></tr>
+                    <tr><td><code>RIGHT JOIN</code></td><td>All rows from right + matched left (NULLs otherwise)</td></tr>
+                    <tr><td><code>FULL OUTER JOIN</code></td><td>All rows from both tables</td></tr>
+                    <tr><td><code>CROSS JOIN</code></td><td>Every combination (Cartesian product)</td></tr>
+                  </tbody>
+                </table>
+
+                <hr>
+
+                <!-- =====================================================================
+                     7. SUBQUERIES & CTEs
+                     ===================================================================== -->
+                <h2 id="sql-7">7. Subqueries &amp; CTEs</h2>
+
+                <h3>7.1 Subquery in WHERE</h3>
+                <p>A subquery is a query nested inside another query.</p>
+                <ul class="code-comment-list">
+                  <li><code>-- Find users who have placed at least one order</code></li>
+                  <li><code>SELECT name FROM users</code></li>
+                  <li><code>WHERE id IN (SELECT DISTINCT user_id FROM orders);</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Find products priced above average</code></li>
+                  <li><code>SELECT name, price FROM products</code></li>
+                  <li><code>WHERE price &gt; (SELECT AVG(price) FROM products);</code></li>
+                </ul>
+
+                <h3>7.2 Subquery in FROM (derived table)</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT city, avg_age</code></li>
+                  <li><code>FROM (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;SELECT city, AVG(age) AS avg_age</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;FROM users</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;GROUP BY city</code></li>
+                  <li><code>) AS city_stats</code></li>
+                  <li><code>WHERE avg_age &gt; 30;</code></li>
+                </ul>
+
+                <h3>7.3 Subquery in SELECT (scalar subquery)</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   (SELECT COUNT(*) FROM orders WHERE orders.user_id = users.id) AS order_count</code></li>
+                  <li><code>FROM users;</code></li>
+                </ul>
+
+                <h3>7.4 EXISTS and NOT EXISTS</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Users who have placed at least one order</code></li>
+                  <li><code>SELECT name FROM users u</code></li>
+                  <li><code>WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Users who have never ordered</code></li>
+                  <li><code>SELECT name FROM users u</code></li>
+                  <li><code>WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);</code></li>
+                </ul>
+
+                <h3>7.5 CTE — Common Table Expression (WITH clause)</h3>
+                <p>A CTE is like a named subquery defined at the top of a query. It makes complex queries much more readable.</p>
+                <ul class="code-comment-list">
+                  <li><code>WITH high_spenders AS (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;SELECT user_id, SUM(amount) AS total_spent</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;FROM orders</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;WHERE status = 'completed'</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;GROUP BY user_id</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;HAVING SUM(amount) &gt; 1000</code></li>
+                  <li><code>)</code></li>
+                  <li><code>SELECT u.name, u.email, h.total_spent</code></li>
+                  <li><code>FROM high_spenders h</code></li>
+                  <li><code>JOIN users u ON h.user_id = u.id</code></li>
+                  <li><code>ORDER BY h.total_spent DESC;</code></li>
+                </ul>
+
+                <h4>Multiple CTEs</h4>
+                <ul class="code-comment-list">
+                  <li><code>WITH</code></li>
+                  <li><code>revenue AS (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;SELECT user_id, SUM(amount) AS total FROM orders GROUP BY user_id</code></li>
+                  <li><code>),</code></li>
+                  <li><code>order_counts AS (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;SELECT user_id, COUNT(*) AS num_orders FROM orders GROUP BY user_id</code></li>
+                  <li><code>)</code></li>
+                  <li><code>SELECT u.name, r.total, oc.num_orders</code></li>
+                  <li><code>FROM users u</code></li>
+                  <li><code>JOIN revenue r ON u.id = r.user_id</code></li>
+                  <li><code>JOIN order_counts oc ON u.id = oc.user_id;</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     8. MODIFYING DATA
+                     ===================================================================== -->
+                <h2 id="sql-8">8. Modifying Data</h2>
+                <p><strong>Warning:</strong> always run a matching <code>SELECT</code> with the same <code>WHERE</code> clause first to confirm which rows you will affect before running <code>UPDATE</code> or <code>DELETE</code>.</p>
+
+                <h3>8.1 INSERT — add rows</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Single row</code></li>
+                  <li><code>INSERT INTO users (name, email, age, city)</code></li>
+                  <li><code>VALUES ('Alice Smith', 'alice@email.com', 28, 'New York');</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Multiple rows</code></li>
+                  <li><code>INSERT INTO users (name, email, age, city)</code></li>
+                  <li><code>VALUES</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;('Bob Jones', 'bob@email.com', 34, 'Chicago'),</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;('Carol Wu', 'carol@email.com', 22, 'Seattle');</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Insert from a SELECT</code></li>
+                  <li><code>INSERT INTO vip_users (user_id, total_spent)</code></li>
+                  <li><code>SELECT user_id, SUM(amount)</code></li>
+                  <li><code>FROM orders WHERE status = 'completed'</code></li>
+                  <li><code>GROUP BY user_id HAVING SUM(amount) &gt; 1000;</code></li>
+                </ul>
+
+                <h3>8.2 UPDATE — modify existing rows</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Update a single row</code></li>
+                  <li><code>UPDATE users</code></li>
+                  <li><code>SET city = 'Los Angeles'</code></li>
+                  <li><code>WHERE id = 42;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Update multiple columns</code></li>
+                  <li><code>UPDATE users</code></li>
+                  <li><code>SET city = 'Boston', age = 29</code></li>
+                  <li><code>WHERE email = 'alice@email.com';</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Update many rows at once</code></li>
+                  <li><code>UPDATE orders</code></li>
+                  <li><code>SET status = 'archived'</code></li>
+                  <li><code>WHERE created_at &lt; '2023-01-01';</code></li>
+                </ul>
+
+                <h3>8.3 DELETE — remove rows</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Delete a single row</code></li>
+                  <li><code>DELETE FROM users WHERE id = 42;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Delete by condition</code></li>
+                  <li><code>DELETE FROM orders WHERE status = 'cancelled'</code></li>
+                  <li><code>&nbsp;&nbsp;AND created_at &lt; '2022-01-01';</code></li>
+                  <li><code></code></li>
+                  <li><code>-- ⚠️ Delete ALL rows (dangerous!)</code></li>
+                  <li><code>DELETE FROM temp_staging;</code></li>
+                </ul>
+
+                <h3>8.4 UPSERT (INSERT … ON CONFLICT)</h3>
+                <p>Insert a row, or update it if the primary key already exists. Supported in PostgreSQL and SQLite.</p>
+                <ul class="code-comment-list">
+                  <li><code>INSERT INTO products (id, name, price)</code></li>
+                  <li><code>VALUES (5, 'Widget', 9.99)</code></li>
+                  <li><code>ON CONFLICT (id) DO UPDATE</code></li>
+                  <li><code>&nbsp;&nbsp;SET price = EXCLUDED.price;</code></li>
+                </ul>
+
+                <h3>8.5 TRUNCATE — delete all rows fast</h3>
+                <ul class="code-comment-list">
+                  <li><code>TRUNCATE TABLE temp_staging;</code> <code>-- much faster than DELETE for full clears</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     9. CREATING & ALTERING TABLES
+                     ===================================================================== -->
+                <h2 id="sql-9">9. Creating &amp; Altering Tables</h2>
+
+                <h3>9.1 CREATE TABLE</h3>
+                <ul class="code-comment-list">
+                  <li><code>CREATE TABLE users (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;id         SERIAL PRIMARY KEY,</code> <code>-- auto-incrementing integer PK (PostgreSQL)</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;name       TEXT NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;email      TEXT UNIQUE NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;age        INTEGER,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;city       TEXT,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;joined_at  TIMESTAMP DEFAULT NOW()</code></li>
+                  <li><code>);</code></li>
+                  <li><code></code></li>
+                  <li><code>CREATE TABLE orders (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;id          SERIAL PRIMARY KEY,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;user_id     INTEGER NOT NULL REFERENCES users(id),</code> <code>-- foreign key</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;product     TEXT NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;amount      NUMERIC(10, 2) NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;status      TEXT DEFAULT 'pending',</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;created_at  TIMESTAMP DEFAULT NOW()</code></li>
+                  <li><code>);</code></li>
+                  <li><code></code></li>
+                  <li><code>CREATE TABLE products (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;id        SERIAL PRIMARY KEY,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;name      TEXT NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;category  TEXT,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;price     NUMERIC(10, 2) NOT NULL,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;stock     INTEGER DEFAULT 0</code></li>
+                  <li><code>);</code></li>
+                </ul>
+
+                <h3>9.2 Constraints</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Constraint</th><th>Effect</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>PRIMARY KEY</code></td><td>Unique + NOT NULL; identifies each row</td></tr>
+                    <tr><td><code>NOT NULL</code></td><td>Column cannot be NULL</td></tr>
+                    <tr><td><code>UNIQUE</code></td><td>All values in the column must be different</td></tr>
+                    <tr><td><code>DEFAULT value</code></td><td>Used when INSERT omits the column</td></tr>
+                    <tr><td><code>REFERENCES table(col)</code></td><td>Foreign key — value must exist in the referenced table</td></tr>
+                    <tr><td><code>CHECK (expr)</code></td><td>Row is only inserted if expression is true</td></tr>
+                  </tbody>
+                </table>
+
+                <h3>9.3 ALTER TABLE</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Add a column</code></li>
+                  <li><code>ALTER TABLE users ADD COLUMN phone TEXT;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Drop a column</code></li>
+                  <li><code>ALTER TABLE users DROP COLUMN phone;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Rename a column (PostgreSQL)</code></li>
+                  <li><code>ALTER TABLE users RENAME COLUMN city TO location;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Change column type (PostgreSQL)</code></li>
+                  <li><code>ALTER TABLE products ALTER COLUMN price TYPE NUMERIC(12, 2);</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Add a NOT NULL constraint</code></li>
+                  <li><code>ALTER TABLE users ALTER COLUMN name SET NOT NULL;</code></li>
+                </ul>
+
+                <h3>9.4 DROP TABLE</h3>
+                <ul class="code-comment-list">
+                  <li><code>DROP TABLE temp_staging;</code> <code>-- ⚠️ permanently deletes the table and all data</code></li>
+                  <li><code>DROP TABLE IF EXISTS temp_staging;</code> <code>-- no error if table doesn't exist</code></li>
+                </ul>
+
+                <h3>9.5 CREATE INDEX</h3>
+                <p>Indexes speed up queries that filter or sort by specific columns. The database uses them automatically.</p>
+                <ul class="code-comment-list">
+                  <li><code>CREATE INDEX idx_orders_user_id ON orders(user_id);</code></li>
+                  <li><code>CREATE INDEX idx_users_city ON users(city);</code></li>
+                  <li><code>CREATE UNIQUE INDEX idx_users_email ON users(email);</code></li>
+                </ul>
+                <p><strong>Rule of thumb:</strong> index columns you frequently use in <code>WHERE</code>, <code>JOIN ON</code>, or <code>ORDER BY</code>. Don't over-index — each index slows down writes.</p>
+
+                <hr>
+
+                <!-- =====================================================================
+                     10. WINDOW FUNCTIONS
+                     ===================================================================== -->
+                <h2 id="sql-10">10. Window Functions</h2>
+                <p>Window functions perform calculations <em>across a set of rows related to the current row</em> — without collapsing rows like GROUP BY does. They use the <code>OVER()</code> clause.</p>
+
+                <h3>10.1 Syntax</h3>
+                <ul class="code-comment-list">
+                  <li><code>function_name() OVER (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;PARTITION BY partition_column  -- optional: reset the window per group</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ORDER BY sort_column           -- optional: order within window</code></li>
+                  <li><code>)</code></li>
+                </ul>
+
+                <h3>10.2 ROW_NUMBER — rank each row</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name, city, age,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   ROW_NUMBER() OVER (PARTITION BY city ORDER BY age DESC) AS rank_in_city</code></li>
+                  <li><code>FROM users;</code></li>
+                  <li><code>-- rank 1 = oldest user in each city</code></li>
+                </ul>
+
+                <h4>Top-N per group (using ROW_NUMBER in a CTE)</h4>
+                <ul class="code-comment-list">
+                  <li><code>WITH ranked AS (</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;SELECT user_id, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rn</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;FROM orders</code></li>
+                  <li><code>)</code></li>
+                  <li><code>SELECT * FROM ranked WHERE rn = 1;</code> <code>-- largest order per user</code></li>
+                </ul>
+
+                <h3>10.3 RANK and DENSE_RANK</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   RANK()       OVER (ORDER BY amount DESC) AS rank,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   DENSE_RANK() OVER (ORDER BY amount DESC) AS dense_rank</code></li>
+                  <li><code>FROM orders;</code></li>
+                </ul>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Function</th><th>Ties behavior</th><th>Example (amounts: 100, 100, 80)</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>ROW_NUMBER</code></td><td>Always unique — ties broken arbitrarily</td><td>1, 2, 3</td></tr>
+                    <tr><td><code>RANK</code></td><td>Ties get same rank; next rank skips</td><td>1, 1, 3</td></tr>
+                    <tr><td><code>DENSE_RANK</code></td><td>Ties get same rank; next rank does not skip</td><td>1, 1, 2</td></tr>
+                  </tbody>
+                </table>
+
+                <h3>10.4 Running totals and moving averages</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT created_at, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   SUM(amount) OVER (ORDER BY created_at) AS running_total</code></li>
+                  <li><code>FROM orders</code></li>
+                  <li><code>ORDER BY created_at;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- 7-day moving average</code></li>
+                  <li><code>SELECT created_at, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   AVG(amount) OVER (ORDER BY created_at ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7d</code></li>
+                  <li><code>FROM orders;</code></li>
+                </ul>
+
+                <h3>10.5 LAG and LEAD — access adjacent rows</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT created_at, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   LAG(amount)  OVER (ORDER BY created_at) AS prev_amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   LEAD(amount) OVER (ORDER BY created_at) AS next_amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   amount - LAG(amount) OVER (ORDER BY created_at) AS change_from_prev</code></li>
+                  <li><code>FROM orders;</code></li>
+                </ul>
+
+                <h3>10.6 NTILE — split into buckets</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT name, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   NTILE(4) OVER (ORDER BY amount DESC) AS quartile</code></li>
+                  <li><code>FROM orders;</code></li>
+                  <li><code>-- quartile 1 = top 25%, quartile 4 = bottom 25%</code></li>
+                </ul>
+
+                <h3>10.7 FIRST_VALUE / LAST_VALUE</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT user_id, amount,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   FIRST_VALUE(amount) OVER (PARTITION BY user_id ORDER BY created_at) AS first_order_amt,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   LAST_VALUE(amount)  OVER (PARTITION BY user_id ORDER BY created_at</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_order_amt</code></li>
+                  <li><code>FROM orders;</code></li>
+                </ul>
+
+                <h3>10.8 Window function quick reference</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Function</th><th>Use case</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>ROW_NUMBER()</code></td><td>Unique sequential number per row</td></tr>
+                    <tr><td><code>RANK()</code></td><td>Rank with gaps on ties</td></tr>
+                    <tr><td><code>DENSE_RANK()</code></td><td>Rank without gaps on ties</td></tr>
+                    <tr><td><code>NTILE(n)</code></td><td>Divide rows into n equal buckets</td></tr>
+                    <tr><td><code>SUM() OVER</code></td><td>Running or partitioned total</td></tr>
+                    <tr><td><code>AVG() OVER</code></td><td>Running or moving average</td></tr>
+                    <tr><td><code>COUNT() OVER</code></td><td>Running or partitioned count</td></tr>
+                    <tr><td><code>LAG(col, n)</code></td><td>Value from n rows before current row</td></tr>
+                    <tr><td><code>LEAD(col, n)</code></td><td>Value from n rows after current row</td></tr>
+                    <tr><td><code>FIRST_VALUE(col)</code></td><td>First value in the window</td></tr>
+                    <tr><td><code>LAST_VALUE(col)</code></td><td>Last value in the window</td></tr>
+                  </tbody>
+                </table>
+
+                <hr>
+
+                <!-- =====================================================================
+                     QUICK REFERENCE CARD
+                     ===================================================================== -->
+                <h2>Quick Reference Card</h2>
+
+                <h3>Full SELECT anatomy</h3>
+                <ul class="code-comment-list">
+                  <li><code>SELECT  col1, col2, AGG(col3) AS alias</code></li>
+                  <li><code>FROM    table_a AS a</code></li>
+                  <li><code>JOIN    table_b AS b ON a.id = b.a_id</code></li>
+                  <li><code>WHERE   a.status = 'active' AND b.amount &gt; 50</code></li>
+                  <li><code>GROUP BY col1, col2</code></li>
+                  <li><code>HAVING  AGG(col3) &gt; 100</code></li>
+                  <li><code>ORDER BY alias DESC</code></li>
+                  <li><code>LIMIT 25 OFFSET 0;</code></li>
+                </ul>
+
+                <h3>Common interview patterns</h3>
+                <ul class="code-comment-list">
+                  <li><code>-- Nth highest value</code></li>
+                  <li><code>SELECT amount FROM orders ORDER BY amount DESC LIMIT 1 OFFSET (n-1);</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Duplicate rows</code></li>
+                  <li><code>SELECT email, COUNT(*) FROM users GROUP BY email HAVING COUNT(*) &gt; 1;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Percentage of total</code></li>
+                  <li><code>SELECT category, SUM(amount) AS cat_total,</code></li>
+                  <li><code>&nbsp;&nbsp;&nbsp;&nbsp;   ROUND(100.0 * SUM(amount) / SUM(SUM(amount)) OVER (), 2) AS pct</code></li>
+                  <li><code>FROM orders GROUP BY category;</code></li>
+                  <li><code></code></li>
+                  <li><code>-- First event per user</code></li>
+                  <li><code>SELECT DISTINCT ON (user_id) user_id, created_at, product</code></li>
+                  <li><code>FROM orders ORDER BY user_id, created_at;</code> <code>-- PostgreSQL</code></li>
+                  <li><code></code></li>
+                  <li><code>-- Cohort by signup month</code></li>
+                  <li><code>SELECT DATE_TRUNC('month', joined_at) AS cohort, COUNT(*) AS signups</code></li>
+                  <li><code>FROM users GROUP BY 1 ORDER BY 1;</code></li>
+                </ul>
+
+                <hr>
+
+                <!-- =====================================================================
+                     11. GOOGLE SQL INTERVIEW (StratOps)
+                     ===================================================================== -->
+                <h2 id="sql-11">11. Google SQL Interview — Product Strategy &amp; Operations (StratOps)</h2>
+
+                <p>Congratulations on landing an interview for the <strong>Product Strategy &amp; Operations (StratOps)</strong> role! This is a highly sought-after position that sits at the intersection of product management and business analytics.</p>
+                <p>For StratOps, the SQL test is designed to see if you can <strong>translate business questions into data queries</strong>. Google doesn't expect you to be a database engineer, but they do need you to be "data-fluent."</p>
+
+                <h3>Test Format</h3>
+                <p>While individual teams vary, the SQL assessment typically follows one of two formats:</p>
+                <ul>
+                  <li><strong>Live Coding (Most Common):</strong> A 30–45 minute video call where you share your screen (using a tool like Google Docs or a simple code editor). You will be given a set of tables and asked to write queries in real-time while explaining your logic.</li>
+                  <li><strong>Take-Home / Online Assessment:</strong> A timed platform test (like HackerRank or CoderPad) featuring 3–5 problems ranging from basic filtering to complex data manipulation.</li>
+                </ul>
+
+                <h3>What's on the Test?</h3>
+                <p>The questions will almost always be framed around Google products (e.g., YouTube watch time, Google Ads performance, or Play Store transactions).</p>
+
+                <h4>1. Core SQL Fundamentals</h4>
+                <p>You must be comfortable with the "bread and butter" of SQL. Expect to use:</p>
+                <ul>
+                  <li><strong>Aggregations:</strong> <code>SUM</code>, <code>AVG</code>, <code>COUNT(DISTINCT ...)</code>, and the essential <code>GROUP BY</code>.</li>
+                  <li><strong>Joins:</strong> Knowing when to use <code>LEFT JOIN</code> vs. <code>INNER JOIN</code> is critical. You might be asked to join a "User" table with an "Activity" table to find inactive users.</li>
+                  <li><strong>Filtering:</strong> <code>WHERE</code> vs. <code>HAVING</code> (this is a classic trap).</li>
+                </ul>
+
+                <h4>2. Intermediate Concepts</h4>
+                <p>This is where StratOps candidates are usually differentiated:</p>
+                <ul>
+                  <li><strong>Window Functions:</strong> Be ready to use <code>RANK()</code>, <code>DENSE_RANK()</code>, or <code>ROW_NUMBER()</code>. For example: "Find the top 3 most-viewed YouTube categories per country."</li>
+                  <li><strong>Date/Time Manipulation:</strong> Calculating Month-over-Month (MoM) growth or identifying users who signed up in the last 30 days.</li>
+                  <li><strong>CTEs:</strong> Use <code>WITH</code> clauses to keep your code organized. Google interviewers love clean, readable code.</li>
+                </ul>
+
+                <h4>3. Business Logic &amp; Case Integration</h4>
+                <p>Expect "Case-style" SQL questions. Instead of being told "Join Table A and B," you'll be told:</p>
+                <blockquote class="blockquote ml-3 pl-3 border-left">
+                  <p>"Our Ads revenue dropped by 5% in EMEA last month. Write a query to identify which ad formats (Search, Display, Video) contributed most to this decline."</p>
+                </blockquote>
+
+                <h3>Preparation Checklist</h3>
+                <table class="table table-bordered table-sm">
+                  <thead><tr><th>Topic</th><th>Focus Area</th></tr></thead>
+                  <tbody>
+                    <tr><td>Joins</td><td>Understand Self-Joins (e.g., comparing a user's behavior today vs. yesterday)</td></tr>
+                    <tr><td>Case Logic</td><td>Use <code>CASE WHEN</code> to bucket data (e.g., "Small," "Medium," "Large" advertisers)</td></tr>
+                    <tr><td>Windowing</td><td>Practice calculating running totals or period-over-period changes</td></tr>
+                    <tr><td>Syntax</td><td>Google typically uses Standard SQL (BigQuery syntax), which is very similar to Postgres</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="alert alert-info">
+                  <strong>Pro-Tip: Think Aloud.</strong> At Google, your thought process is often more important than perfect syntax. If you get stuck, explain what you are trying to achieve (e.g., "I'm trying to filter for the latest timestamp per user before I join it to the revenue table"). The interviewer will often give you a nudge in the right direction.
+                </div>
+
+                <hr>
+
+                <h3>50 Practice Questions &amp; Answers</h3>
+                <p>These are categorized by difficulty and focus on business-centric problems you'll likely encounter. Questions assume <strong>BigQuery / Standard SQL</strong> syntax.</p>
+
+                <h4>I. Basic: Filtering, Aggregation, and Joins (Q1–15)</h4>
+
+                <ol>
+                  <li>
+                    <strong>Find the total number of unique users who were active on YouTube yesterday.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT COUNT(DISTINCT user_id)</code></li>
+                      <li><code>FROM youtube_activity</code></li>
+                      <li><code>WHERE date = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY);</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>List all Google Cloud customers who spent more than $10,000 last month.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT customer_name</code></li>
+                      <li><code>FROM cloud_billing</code></li>
+                      <li><code>WHERE billing_month = '2023-10'</code></li>
+                      <li><code>GROUP BY customer_name</code></li>
+                      <li><code>HAVING SUM(spend) &gt; 10000;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Calculate the average rating for every app category in the Play Store.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT category, AVG(rating) AS avg_rating</code></li>
+                      <li><code>FROM play_store_apps</code></li>
+                      <li><code>GROUP BY category;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find users who have never made a purchase (Users + Orders tables).</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT u.user_id</code></li>
+                      <li><code>FROM Users u</code></li>
+                      <li><code>LEFT JOIN Orders o ON u.user_id = o.user_id</code></li>
+                      <li><code>WHERE o.order_id IS NULL;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Count how many videos were uploaded to YouTube per country today.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT country, COUNT(video_id) AS uploads</code></li>
+                      <li><code>FROM uploads</code></li>
+                      <li><code>WHERE upload_date = CURRENT_DATE()</code></li>
+                      <li><code>GROUP BY country;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the top 5 most expensive products in the Google Store.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT product_name, price</code></li>
+                      <li><code>FROM google_store_products</code></li>
+                      <li><code>ORDER BY price DESC</code></li>
+                      <li><code>LIMIT 5;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Show all Gmail users whose accounts were created in 2022.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT email</code></li>
+                      <li><code>FROM gmail_users</code></li>
+                      <li><code>WHERE EXTRACT(YEAR FROM created_at) = 2022;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Get total revenue generated by "Search" ads vs. "Display" ads.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT ad_type, SUM(revenue) AS total_revenue</code></li>
+                      <li><code>FROM ads_performance</code></li>
+                      <li><code>GROUP BY ad_type;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the number of Android users on a version higher than 12.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT COUNT(user_id)</code></li>
+                      <li><code>FROM devices</code></li>
+                      <li><code>WHERE android_version &gt; 12;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Select all active Google Workspace subscriptions set to "Annual" billing.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT sub_id</code></li>
+                      <li><code>FROM subscriptions</code></li>
+                      <li><code>WHERE status = 'Active' AND billing_cycle = 'Annual';</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>What is the maximum storage used by a single Google Drive user?</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT MAX(storage_gb) AS max_storage</code></li>
+                      <li><code>FROM drive_usage;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>List all YouTube creators with more than 1 million subscribers.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT channel_name</code></li>
+                      <li><code>FROM creators</code></li>
+                      <li><code>WHERE subscriber_count &gt; 1000000;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the total number of support tickets closed by each agent today.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT agent_id, COUNT(ticket_id) AS closed_today</code></li>
+                      <li><code>FROM tickets</code></li>
+                      <li><code>WHERE status = 'Closed' AND closed_date = CURRENT_DATE()</code></li>
+                      <li><code>GROUP BY agent_id;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Combine First_Name and Last_Name into a Full_Name column.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT CONCAT(first_name, ' ', last_name) AS full_name</code></li>
+                      <li><code>FROM employees;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find all search queries that contain the word "Pixel".</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT query</code></li>
+                      <li><code>FROM search_logs</code></li>
+                      <li><code>WHERE query LIKE '%Pixel%';</code></li>
+                    </ul>
+                  </li>
+                </ol>
+
+                <h4>II. Intermediate: CTEs, Case Logic, and Dates (Q16–35)</h4>
+
+                <ol start="16">
+                  <li>
+                    <strong>Bucket advertisers into 'Small' (&lt;$1k), 'Medium' ($1k–$10k), and 'Large' (&gt;$10k).</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT advertiser_id,</code></li>
+                      <li><code>&nbsp;&nbsp;CASE</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;WHEN SUM(spend) &lt; 1000 THEN 'Small'</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;WHEN SUM(spend) BETWEEN 1000 AND 10000 THEN 'Medium'</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ELSE 'Large'</code></li>
+                      <li><code>&nbsp;&nbsp;END AS tier</code></li>
+                      <li><code>FROM ads</code></li>
+                      <li><code>GROUP BY advertiser_id;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Calculate Month-over-Month growth in YouTube Premium subscribers.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH monthly AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT DATE_TRUNC(signup_date, MONTH) AS month,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;COUNT(*) AS subs</code></li>
+                      <li><code>&nbsp;&nbsp;FROM premium_signups</code></li>
+                      <li><code>&nbsp;&nbsp;GROUP BY 1</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT month, subs,</code></li>
+                      <li><code>&nbsp;&nbsp;LAG(subs) OVER (ORDER BY month) AS prev_subs,</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND(100.0 * (subs - LAG(subs) OVER (ORDER BY month))</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;/ LAG(subs) OVER (ORDER BY month), 2) AS mom_pct</code></li>
+                      <li><code>FROM monthly;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find users who logged in on both Monday and Tuesday of this week.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT user_id FROM logins WHERE date = '2023-11-06'</code></li>
+                      <li><code>INTERSECT DISTINCT</code></li>
+                      <li><code>SELECT user_id FROM logins WHERE date = '2023-11-07';</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Identify "Power Users" who used Google Search at least 5 days in the last week.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT user_id</code></li>
+                      <li><code>FROM search_logs</code></li>
+                      <li><code>WHERE date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)</code></li>
+                      <li><code>GROUP BY user_id</code></li>
+                      <li><code>HAVING COUNT(DISTINCT date) &gt;= 5;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>For each country, find the app with the highest number of downloads.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH ranked AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT country, app_name, downloads,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK() OVER (PARTITION BY country ORDER BY downloads DESC) AS rk</code></li>
+                      <li><code>&nbsp;&nbsp;FROM app_downloads</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT country, app_name, downloads</code></li>
+                      <li><code>FROM ranked WHERE rk = 1;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Calculate the 7-day rolling average of Google Maps searches.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT date,</code></li>
+                      <li><code>&nbsp;&nbsp;AVG(search_count) OVER (</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ORDER BY date</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</code></li>
+                      <li><code>&nbsp;&nbsp;) AS rolling_7d_avg</code></li>
+                      <li><code>FROM maps_stats;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the time difference (in hours) between a user signing up and their first search.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT user_id,</code></li>
+                      <li><code>&nbsp;&nbsp;TIMESTAMP_DIFF(first_search_at, signup_at, HOUR) AS hours_to_first_search</code></li>
+                      <li><code>FROM user_journey;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>List the second most popular video in each category.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH ranked AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT category, video_id, views,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DENSE_RANK() OVER (PARTITION BY category ORDER BY views DESC) AS rk</code></li>
+                      <li><code>&nbsp;&nbsp;FROM videos</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT * FROM ranked WHERE rk = 2;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Convert a Unix timestamp to a readable date (BigQuery).</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT TIMESTAMP_SECONDS(unix_column) AS readable_ts</code></li>
+                      <li><code>FROM your_table;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find users who upgraded from Free to Paid within 24 hours.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT t1.user_id</code></li>
+                      <li><code>FROM plan_changes t1</code></li>
+                      <li><code>JOIN plan_changes t2</code></li>
+                      <li><code>&nbsp;&nbsp;ON t1.user_id = t2.user_id</code></li>
+                      <li><code>&nbsp;&nbsp;AND t1.plan = 'Free'</code></li>
+                      <li><code>&nbsp;&nbsp;AND t2.plan = 'Paid'</code></li>
+                      <li><code>&nbsp;&nbsp;AND TIMESTAMP_DIFF(t2.changed_at, t1.changed_at, HOUR) &lt;= 24;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Retrieve the last search query performed by each user today.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH ranked AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id, query,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY timestamp DESC) AS rn</code></li>
+                      <li><code>&nbsp;&nbsp;FROM search_logs</code></li>
+                      <li><code>&nbsp;&nbsp;WHERE DATE(timestamp) = CURRENT_DATE()</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT user_id, query FROM ranked WHERE rn = 1;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Calculate the "Take Rate" (Revenue / GMV) for the Play Store.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT ROUND(SUM(revenue) / SUM(gmv), 4) AS take_rate</code></li>
+                      <li><code>FROM transactions;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Which YouTube channels have zero uploads in the last 90 days?</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT channel_id</code></li>
+                      <li><code>FROM channels</code></li>
+                      <li><code>WHERE channel_id NOT IN (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT channel_id FROM uploads</code></li>
+                      <li><code>&nbsp;&nbsp;WHERE date &gt; DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)</code></li>
+                      <li><code>);</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the median spend of all Google Cloud customers.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT PERCENTILE_CONT(spend, 0.5) OVER() AS median_spend</code></li>
+                      <li><code>FROM cloud_billing</code></li>
+                      <li><code>LIMIT 1;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>List all pairs of users who share the same IP address.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT a.user_id AS user_a, b.user_id AS user_b</code></li>
+                      <li><code>FROM logins a</code></li>
+                      <li><code>JOIN logins b ON a.ip = b.ip</code></li>
+                      <li><code>WHERE a.user_id &lt; b.user_id;</code> <code>-- avoids duplicate pairs</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Calculate the click-through rate (CTR) of Search results.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND(100.0 * SUM(CASE WHEN clicked = 1 THEN 1 ELSE 0 END) / COUNT(*), 2) AS ctr_pct</code></li>
+                      <li><code>FROM search_results;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find total revenue per quarter for the last two years.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT EXTRACT(YEAR FROM date) AS yr,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EXTRACT(QUARTER FROM date) AS qtr,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SUM(revenue) AS total</code></li>
+                      <li><code>FROM sales</code></li>
+                      <li><code>WHERE date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 2 YEAR)</code></li>
+                      <li><code>GROUP BY 1, 2</code></li>
+                      <li><code>ORDER BY 1, 2;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Replace all NULL values in a 'Comments' column with 'No Comment'.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT COALESCE(comments, 'No Comment') AS comments</code></li>
+                      <li><code>FROM feedback;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Find the top 10% of users by data usage on Google Photos.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH buckets AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id, data_gb,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NTILE(10) OVER (ORDER BY data_gb DESC) AS decile</code></li>
+                      <li><code>&nbsp;&nbsp;FROM photos_usage</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT user_id, data_gb FROM buckets WHERE decile = 1;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Determine if a string is a valid email (basic @ check, BigQuery).</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT email</code></li>
+                      <li><code>FROM users</code></li>
+                      <li><code>WHERE REGEXP_CONTAINS(email, r'@');</code></li>
+                    </ul>
+                  </li>
+                </ol>
+
+                <h4>III. Advanced: Business Logic &amp; Complex Analytics (Q36–50)</h4>
+
+                <ol start="36">
+                  <li>
+                    <strong>Retention: What % of Day-0 users returned on Day 7?</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH d0 AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT DISTINCT user_id FROM activity WHERE date = '2023-11-01'</code></li>
+                      <li><code>),</code></li>
+                      <li><code>d7 AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT DISTINCT user_id FROM activity WHERE date = '2023-11-08'</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT ROUND(100.0 * COUNT(d7.user_id) / COUNT(d0.user_id), 2) AS day7_retention_pct</code></li>
+                      <li><code>FROM d0</code></li>
+                      <li><code>LEFT JOIN d7 USING (user_id);</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Cannibalization: Did YouTube Shorts reduce long-form watch time?</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH first_shorts AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id, MIN(date) AS first_shorts_date FROM shorts_views GROUP BY user_id</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT</code></li>
+                      <li><code>&nbsp;&nbsp;AVG(CASE WHEN lv.date &lt; fs.first_shorts_date THEN lv.watch_minutes END) AS before_shorts,</code></li>
+                      <li><code>&nbsp;&nbsp;AVG(CASE WHEN lv.date &gt;= fs.first_shorts_date THEN lv.watch_minutes END) AS after_shorts</code></li>
+                      <li><code>FROM longform_views lv</code></li>
+                      <li><code>JOIN first_shorts fs ON lv.user_id = fs.user_id</code></li>
+                      <li><code>WHERE lv.date BETWEEN DATE_SUB(fs.first_shorts_date, INTERVAL 30 DAY)</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND DATE_ADD(fs.first_shorts_date, INTERVAL 30 DAY);</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Anomaly Detection: Find any day where Ads revenue dropped &gt;20% vs. prior day.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH daily AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT date, SUM(revenue) AS rev,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LAG(SUM(revenue)) OVER (ORDER BY date) AS prev_rev</code></li>
+                      <li><code>&nbsp;&nbsp;FROM ads_revenue GROUP BY date</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT date, rev, prev_rev,</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND((rev - prev_rev) / prev_rev * 100, 2) AS pct_change</code></li>
+                      <li><code>FROM daily</code></li>
+                      <li><code>WHERE (rev - prev_rev) / prev_rev &lt; -0.20;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Attribution: Find the first marketing channel each user touched before purchase.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT DISTINCT user_id,</code></li>
+                      <li><code>&nbsp;&nbsp;FIRST_VALUE(channel) OVER (PARTITION BY user_id ORDER BY touchpoint_time) AS first_channel</code></li>
+                      <li><code>FROM touchpoints</code></li>
+                      <li><code>WHERE touchpoint_time &lt; purchase_time;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Sessionization: Assign session IDs where actions &gt;30 min apart start a new session.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH gaps AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id, timestamp,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CASE WHEN TIMESTAMP_DIFF(timestamp,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LAG(timestamp) OVER (PARTITION BY user_id ORDER BY timestamp), MINUTE) &gt; 30</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OR LAG(timestamp) OVER (PARTITION BY user_id ORDER BY timestamp) IS NULL</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;THEN 1 ELSE 0 END AS new_session</code></li>
+                      <li><code>&nbsp;&nbsp;FROM events</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT user_id, timestamp,</code></li>
+                      <li><code>&nbsp;&nbsp;SUM(new_session) OVER (PARTITION BY user_id ORDER BY timestamp) AS session_id</code></li>
+                      <li><code>FROM gaps;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Market Share: Percentage of total search volume by browser.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT browser,</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) AS share_pct</code></li>
+                      <li><code>FROM search_logs</code></li>
+                      <li><code>GROUP BY browser</code></li>
+                      <li><code>ORDER BY share_pct DESC;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Churn: Users active every month for 6 months but not in the last 30 days.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH regulars AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id</code></li>
+                      <li><code>&nbsp;&nbsp;FROM activity</code></li>
+                      <li><code>&nbsp;&nbsp;WHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)</code></li>
+                      <li><code>&nbsp;&nbsp;GROUP BY user_id</code></li>
+                      <li><code>&nbsp;&nbsp;HAVING COUNT(DISTINCT DATE_TRUNC(date, MONTH)) = 6</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT r.user_id</code></li>
+                      <li><code>FROM regulars r</code></li>
+                      <li><code>WHERE r.user_id NOT IN (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT user_id FROM activity</code></li>
+                      <li><code>&nbsp;&nbsp;WHERE date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)</code></li>
+                      <li><code>);</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Upsell: Identify users who reached 90% of their Google One storage limit.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT user_id,</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND(100.0 * used_bytes / limit_bytes, 1) AS pct_used</code></li>
+                      <li><code>FROM storage</code></li>
+                      <li><code>WHERE (used_bytes / limit_bytes) &gt;= 0.9;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>ABC Analysis: Classify products as A (top 80% revenue), B (next 15%), C (bottom 5%).</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH totals AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT product_id, SUM(revenue) AS rev FROM sales GROUP BY 1</code></li>
+                      <li><code>),</code></li>
+                      <li><code>running AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT product_id, rev,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SUM(rev) OVER (ORDER BY rev DESC) AS running_total,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SUM(rev) OVER () AS grand_total</code></li>
+                      <li><code>&nbsp;&nbsp;FROM totals</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT product_id,</code></li>
+                      <li><code>&nbsp;&nbsp;CASE</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;WHEN running_total / grand_total &lt;= 0.80 THEN 'A'</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;WHEN running_total / grand_total &lt;= 0.95 THEN 'B'</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ELSE 'C'</code></li>
+                      <li><code>&nbsp;&nbsp;END AS abc_class</code></li>
+                      <li><code>FROM running;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Cross-Sell: Most common app bought by users who also bought "Minecraft".</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT p.product_name, COUNT(*) AS co_purchases</code></li>
+                      <li><code>FROM purchases mc</code></li>
+                      <li><code>JOIN purchases p ON mc.user_id = p.user_id</code></li>
+                      <li><code>&nbsp;&nbsp;AND p.product_name != 'Minecraft'</code></li>
+                      <li><code>WHERE mc.product_name = 'Minecraft'</code></li>
+                      <li><code>GROUP BY p.product_name</code></li>
+                      <li><code>ORDER BY co_purchases DESC</code></li>
+                      <li><code>LIMIT 10;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Funnel Analysis: Drop-off rate between "Add to Cart" and "Checkout Complete".</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH steps AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;COUNT(DISTINCT CASE WHEN event = 'add_to_cart' THEN user_id END) AS add_to_cart,</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;COUNT(DISTINCT CASE WHEN event = 'checkout_complete' THEN user_id END) AS completed</code></li>
+                      <li><code>&nbsp;&nbsp;FROM funnel_events</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT add_to_cart, completed,</code></li>
+                      <li><code>&nbsp;&nbsp;ROUND(100.0 * (add_to_cart - completed) / add_to_cart, 2) AS dropoff_pct</code></li>
+                      <li><code>FROM steps;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Seasonality: Which day of the week has the highest Google Maps traffic for "Restaurants"?</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT FORMAT_DATE('%A', date) AS day_of_week,</code></li>
+                      <li><code>&nbsp;&nbsp;SUM(searches) AS total_searches</code></li>
+                      <li><code>FROM maps_traffic</code></li>
+                      <li><code>WHERE category = 'Restaurants'</code></li>
+                      <li><code>GROUP BY day_of_week</code></li>
+                      <li><code>ORDER BY total_searches DESC</code></li>
+                      <li><code>LIMIT 1;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>LTV: Calculate total revenue generated by a user since their join date.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT u.user_id, u.joined_at,</code></li>
+                      <li><code>&nbsp;&nbsp;COALESCE(SUM(o.amount), 0) AS lifetime_value</code></li>
+                      <li><code>FROM users u</code></li>
+                      <li><code>LEFT JOIN orders o ON u.user_id = o.user_id</code></li>
+                      <li><code>&nbsp;&nbsp;AND o.created_at &gt;= u.joined_at</code></li>
+                      <li><code>GROUP BY u.user_id, u.joined_at</code></li>
+                      <li><code>ORDER BY lifetime_value DESC;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Data Integrity: Find transactions where tax_amount is not exactly 8% of subtotal.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>SELECT transaction_id, subtotal, tax_amount</code></li>
+                      <li><code>FROM transactions</code></li>
+                      <li><code>WHERE ABS(tax_amount - ROUND(subtotal * 0.08, 2)) &gt; 0.01;</code></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Efficiency: Average number of searches before a user clicks a "Help" article.</strong>
+                    <ul class="code-comment-list">
+                      <li><code>WITH pre_help AS (</code></li>
+                      <li><code>&nbsp;&nbsp;SELECT s.user_id, s.session_id, COUNT(*) AS searches_before_help</code></li>
+                      <li><code>&nbsp;&nbsp;FROM searches s</code></li>
+                      <li><code>&nbsp;&nbsp;JOIN help_clicks h</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;ON s.user_id = h.user_id</code></li>
+                      <li><code>&nbsp;&nbsp;&nbsp;&nbsp;AND s.timestamp &lt; h.clicked_at</code></li>
+                      <li><code>&nbsp;&nbsp;GROUP BY s.user_id, s.session_id</code></li>
+                      <li><code>)</code></li>
+                      <li><code>SELECT AVG(searches_before_help) AS avg_searches</code></li>
+                      <li><code>FROM pre_help;</code></li>
+                    </ul>
+                  </li>
+                </ol>
+
+                <div class="alert alert-success mt-3">
+                  <strong>Practice Tip:</strong> Don't just read these — go to <a href="https://cloud.google.com/bigquery/public-data" target="_blank">BigQuery Public Datasets</a> or <a href="https://www.db-fiddle.com" target="_blank">DB Fiddle</a>, create small tables, and actually write the code. Focus on the <strong>Intermediate section</strong> (Q16–35), as that's where most Google StratOps interviews live.
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- /.main -->
+    </div>
+  </div>
+</main>
+
+{{> main-site-footer }}

@@ -71,7 +71,79 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-async function loadFriends() {
+async function getLoggedInUserId() {
+  try {
+    if (window.auth0) {
+      const isAuthenticated = await window.auth0.isAuthenticated();
+      if (isAuthenticated) {
+        const user = await window.auth0.getUser();
+        return user?.email || user?.nickname || user?.sub || null;
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+}
+
+async function loadIncomingRequests(email) {
+  const loadingEl = document.getElementById('requests-loading');
+  const errorEl = document.getElementById('requests-error');
+  const emptyEl = document.getElementById('requests-empty');
+  const tableEl = document.getElementById('requests-table');
+  const tbodyEl = document.getElementById('requests-tbody');
+
+  loadingEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  tableEl.style.display = 'none';
+  tbodyEl.innerHTML = '';
+
+  try {
+    const response = await fetch(
+      '/api/friends/incoming?user_id=' + encodeURIComponent(email)
+    );
+    if (response.status === 503) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent =
+        'Friends require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!response.ok) {
+      throw new Error('Failed to fetch friend requests');
+    }
+
+    const rows = await response.json();
+    loadingEl.style.display = 'none';
+
+    if (!rows.length) {
+      emptyEl.style.display = 'block';
+      return;
+    }
+
+    tableEl.style.display = 'table';
+    rows.forEach((row) => {
+      const tr = document.createElement('tr');
+      const person = row.user1 != null ? String(row.user1) : '';
+      tr.innerHTML = `
+        <td>${escapeHtml(person)}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-success friend-request-accept mr-1" data-id="${escapeHtml(String(row.id))}">Accept</button>
+          <button type="button" class="btn btn-sm btn-outline-danger friend-request-reject" data-id="${escapeHtml(String(row.id))}">Reject</button>
+        </td>
+      `;
+      tbodyEl.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+    loadingEl.style.display = 'none';
+    errorEl.textContent = 'Failed to load friend requests. Please refresh the page.';
+    errorEl.style.display = 'block';
+  }
+}
+
+async function loadConnectedFriends(email) {
   const loadingEl = document.getElementById('friends-loading');
   const errorEl = document.getElementById('friends-error');
   const emptyEl = document.getElementById('friends-empty');
@@ -84,29 +156,9 @@ async function loadFriends() {
   tableEl.style.display = 'none';
   tbodyEl.innerHTML = '';
 
-  let currentUserEmail = null;
-  try {
-    if (window.auth0) {
-      const isAuthenticated = await window.auth0.isAuthenticated();
-      if (isAuthenticated) {
-        const user = await window.auth0.getUser();
-        currentUserEmail = user?.email || null;
-      }
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  if (!currentUserEmail) {
-    loadingEl.style.display = 'none';
-    emptyEl.textContent = 'Please log in to view your friends.';
-    emptyEl.style.display = 'block';
-    return;
-  }
-
   try {
     const response = await fetch(
-      '/api/friends?user_id=' + encodeURIComponent(currentUserEmail)
+      '/api/friends?user_id=' + encodeURIComponent(email)
     );
     if (response.status === 503) {
       loadingEl.style.display = 'none';
@@ -153,6 +205,52 @@ async function loadFriends() {
   }
 }
 
+async function loadFriendsPage() {
+  const email = await getLoggedInUserId();
+  if (!email) {
+    document.getElementById('requests-loading').style.display = 'none';
+    document.getElementById('friends-loading').style.display = 'none';
+    document.getElementById('requests-empty').textContent = 'Please log in to view friend requests.';
+    document.getElementById('requests-empty').style.display = 'block';
+    document.getElementById('friends-empty').textContent = 'Please log in to view your friends.';
+    document.getElementById('friends-empty').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('requests-empty').textContent = 'No pending friend requests.';
+  document.getElementById('friends-empty').textContent = 'No friends yet. Add someone below.';
+
+  await Promise.all([loadIncomingRequests(email), loadConnectedFriends(email)]);
+}
+
+async function respondToRequest(id, action) {
+  const userId = await getLoggedInUserId();
+  if (!userId) {
+    alert('You must be logged in.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/friends/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, action })
+    });
+    if (response.status === 503) {
+      alert('Friends require Supabase.');
+      return;
+    }
+    if (!response.ok) {
+      const j = await response.json().catch(() => ({}));
+      throw new Error(j.error || 'Could not update request');
+    }
+    await loadFriendsPage();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Something went wrong. Please try again.');
+  }
+}
+
 async function addFriendSubmit(e) {
   e.preventDefault();
   const input = document.getElementById('friend-email-input');
@@ -163,18 +261,7 @@ async function addFriendSubmit(e) {
     return;
   }
 
-  let userId = null;
-  try {
-    if (window.auth0) {
-      const ok = await window.auth0.isAuthenticated();
-      if (ok) {
-        const user = await window.auth0.getUser();
-        userId = user?.email || user?.nickname || user?.sub || null;
-      }
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  const userId = await getLoggedInUserId();
   if (!userId) {
     alert('You must be logged in to add a friend.');
     return;
@@ -206,7 +293,7 @@ async function addFriendSubmit(e) {
       throw new Error(j.error || 'Failed to add friend');
     }
     input.value = '';
-    await loadFriends();
+    await loadFriendsPage();
   } catch (err) {
     console.error(err);
     alert(err.message || 'Failed to add friend. Please try again.');
@@ -219,18 +306,7 @@ async function addFriendSubmit(e) {
 async function removeFriend(id) {
   if (!confirm('Remove this friend from your list?')) return;
 
-  let userId = null;
-  try {
-    if (window.auth0) {
-      const ok = await window.auth0.isAuthenticated();
-      if (ok) {
-        const user = await window.auth0.getUser();
-        userId = user?.email || user?.nickname || user?.sub || null;
-      }
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  const userId = await getLoggedInUserId();
   if (!userId) {
     alert('You must be logged in.');
     return;
@@ -244,7 +320,7 @@ async function removeFriend(id) {
     if (!response.ok) {
       throw new Error('Failed to remove');
     }
-    await loadFriends();
+    await loadFriendsPage();
   } catch (err) {
     console.error(err);
     alert('Could not remove friend. Please try again.');
@@ -255,7 +331,7 @@ const originalUpdateContentVisibility = updateContentVisibility;
 updateContentVisibility = function (isAuthenticated) {
   originalUpdateContentVisibility(isAuthenticated);
   if (isAuthenticated) {
-    setTimeout(loadFriends, 100);
+    setTimeout(loadFriendsPage, 100);
   }
 };
 
@@ -270,6 +346,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const b = e.target.closest('.friends-remove-btn');
       if (!b || !b.dataset.id) return;
       removeFriend(b.dataset.id);
+    });
+  }
+  const reqTbody = document.getElementById('requests-tbody');
+  if (reqTbody) {
+    reqTbody.addEventListener('click', (e) => {
+      const accept = e.target.closest('.friend-request-accept');
+      const reject = e.target.closest('.friend-request-reject');
+      const btn = accept || reject;
+      if (!btn || !btn.dataset.id) return;
+      const id = btn.dataset.id;
+      if (accept) {
+        respondToRequest(id, 'accept');
+      } else {
+        respondToRequest(id, 'reject');
+      }
     });
   }
 });

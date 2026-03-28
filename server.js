@@ -250,6 +250,23 @@ app.delete('/api/events/:id', async (req, res) => {
 
 // --- Friends API (Supabase `friends` table: user1, user2) ---
 
+app.get('/api/friends/incoming', async (req, res) => {
+  try {
+    if (!supabaseFriends.isConfigured()) {
+      return res.status(503).json({ error: 'Friends require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseFriends.listIncomingInvites(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching friend requests:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch friend requests' });
+  }
+});
+
 app.get('/api/friends', async (req, res) => {
   try {
     if (!supabaseFriends.isConfigured()) {
@@ -298,6 +315,30 @@ app.post('/api/friends', async (req, res) => {
       return res.status(409).json({ error: 'That friend is already in your list.' });
     }
     res.status(500).json({ error: msg || 'Failed to add friend' });
+  }
+});
+
+app.patch('/api/friends/:id', async (req, res) => {
+  try {
+    if (!supabaseFriends.isConfigured()) {
+      return res.status(503).json({ error: 'Friends require Supabase' });
+    }
+    const { id } = req.params;
+    const { user_id, action } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (action !== 'accept' && action !== 'reject') {
+      return res.status(400).json({ error: 'action must be accept or reject' });
+    }
+    const ok = await supabaseFriends.respondToInvite(id, user_id.trim(), action);
+    if (!ok) {
+      return res.status(404).json({ error: 'Request not found or not allowed' });
+    }
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    console.error('Error responding to friend request:', error);
+    res.status(500).json({ error: error.message || 'Failed to update request' });
   }
 });
 

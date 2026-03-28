@@ -121,9 +121,56 @@ async function deleteFriendForUser(id, userId) {
   return true;
 }
 
+/**
+ * Invites where this user is user2 (invitee) and status is invited.
+ */
+async function listIncomingInvites(userId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeId(userId);
+  if (!uid) return [];
+  const { data, error } = await supabase
+    .from('friends')
+    .select('*')
+    .eq('user2', uid)
+    .eq('status', 'invited')
+    .order('id', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Invitee (user2) accepts or rejects. Accept → connected; reject → rejected.
+ */
+async function respondToInvite(id, inviteeUserId, action) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeId(inviteeUserId);
+  const newStatus = action === 'accept' ? 'connected' : 'rejected';
+  if (action !== 'accept' && action !== 'reject') {
+    throw new Error('action must be accept or reject');
+  }
+
+  const { data: row, error: selErr } = await supabase
+    .from('friends')
+    .select('id, user1, user2, status')
+    .eq('id', id)
+    .maybeSingle();
+  if (selErr) throw selErr;
+  if (!row) return false;
+  if (normalizeId(row.user2) !== uid) return false;
+  if (normalizeId(row.status) !== 'invited') return false;
+
+  const { error } = await supabase.from('friends').update({ status: newStatus }).eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
 module.exports = {
   isConfigured,
   listFriendsForUser,
+  listIncomingInvites,
   insertFriend,
-  deleteFriendForUser
+  deleteFriendForUser,
+  respondToInvite
 };
