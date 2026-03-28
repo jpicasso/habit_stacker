@@ -159,9 +159,9 @@ async function getGoalValueRow(userId, goalName, date) {
   } else {
     query = query.is('date', null);
   }
-  const { data, error } = await query.maybeSingle();
+  const { data, error } = await query.limit(1);
   if (error) throw error;
-  return data;
+  return data && data.length > 0 ? data[0] : null;
 }
 
 /**

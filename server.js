@@ -12,9 +12,11 @@ const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDa
 const supabaseHabits = require('./supabase-habits');
 const supabaseGoals = require('./supabase-goals');
 const supabaseTemporary = require('./supabase-temporary');
+const supabaseEvents = require('./supabase-events');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
+const useSupabaseEvents = supabaseEvents.isConfigured();
 
 // Middleware
 app.use(bodyParser.json());
@@ -51,6 +53,9 @@ if (useSupabaseHabits) {
     .catch((err) => {
       console.error('Failed to initialize habits database:', err);
     });
+}
+if (useSupabaseEvents) {
+  console.log('Events using Supabase');
 }
 
 // API Routes
@@ -124,6 +129,117 @@ app.delete('/api/tasks/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ error: 'Failed to delete task' });
+  }
+});
+
+// --- Life events API (Supabase `events` table) ---
+
+app.get('/api/events', async (req, res) => {
+  try {
+    if (!supabaseEvents.isConfigured()) {
+      return res.status(503).json({ error: 'Events require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseEvents.getEventsForUser(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch events' });
+  }
+});
+
+app.post('/api/events', async (req, res) => {
+  try {
+    if (!supabaseEvents.isConfigured()) {
+      return res.status(503).json({ error: 'Events require Supabase' });
+    }
+    const { event, event_date, user_id, shared, copied } = req.body || {};
+    if (!event || String(event).trim() === '') {
+      return res.status(400).json({ error: 'Event is required' });
+    }
+    if (!event_date) {
+      return res.status(400).json({ error: 'Event date is required' });
+    }
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const row = await supabaseEvents.insertEvent({
+      event: String(event).trim(),
+      event_date,
+      owner: user_id.trim(),
+      shared: shared != null ? shared : null,
+      copied: copied !== undefined ? copied : undefined
+    });
+    res.status(201).json(row);
+  } catch (error) {
+    console.error('Error adding event:', error);
+    res.status(500).json({ error: error.message || 'Failed to add event' });
+  }
+});
+
+app.put('/api/events/:id', async (req, res) => {
+  try {
+    if (!supabaseEvents.isConfigured()) {
+      return res.status(503).json({ error: 'Events require Supabase' });
+    }
+    const { id } = req.params;
+    const { event, event_date, user_id, owner, shared, copied } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!event || String(event).trim() === '') {
+      return res.status(400).json({ error: 'Event is required' });
+    }
+    if (!event_date) {
+      return res.status(400).json({ error: 'Event date is required' });
+    }
+    const existing = await supabaseEvents.getEventById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    if (!supabaseEvents.rowVisibleForUser(existing, user_id.trim())) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const payload = {
+      event: String(event).trim(),
+      event_date,
+      owner: owner !== undefined ? owner : existing.owner,
+      shared: shared !== undefined ? shared : existing.shared
+    };
+    if (copied !== undefined) payload.copied = copied;
+    const updated = await supabaseEvents.updateEvent(id, payload);
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ error: error.message || 'Failed to update event' });
+  }
+});
+
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    if (!supabaseEvents.isConfigured()) {
+      return res.status(503).json({ error: 'Events require Supabase' });
+    }
+    const { id } = req.params;
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const existing = await supabaseEvents.getEventById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    if (!supabaseEvents.rowVisibleForUser(existing, userId.trim())) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    await supabaseEvents.deleteEvent(id);
+    res.json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete event' });
   }
 });
 

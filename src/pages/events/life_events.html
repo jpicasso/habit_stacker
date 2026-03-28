@@ -1,0 +1,149 @@
+---
+title: 'Private'
+course: 'Courses'
+aboutNav: true
+---
+
+{{> navbar}}
+
+<style>
+  #tasks-table.events-table th.events-col-shared,
+  #tasks-table.events-table td.events-col-shared,
+  #tasks-table.events-table th.events-col-owner,
+  #tasks-table.events-table td.events-col-owner {
+    width: 5em;
+    max-width: 5em;
+    box-sizing: border-box;
+  }
+</style>
+
+<main class="main main--interior">
+  <div class="i-section mb-4">
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        </nav>
+        <section class="col-md-9 ml-sm-auto col-lg-10 content">
+          <!-- Protected content (hidden by default) -->
+          <div id="private-content" style="display: none;">
+            <!-- Event Management Section -->
+            <div class="mt-5">
+            
+          <!-- View / edit event (opened by clicking a table row) -->
+          <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editEventModalLabel">Event</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="edit-task-form" onsubmit="return false;">
+                    <input type="hidden" id="edit-task-id">
+                    <div class="form-group">
+                      <label for="edit-task-input">Event *</label>
+                      <input type="text" class="form-control" id="edit-task-input" placeholder="Event name" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-event-date">Event date *</label>
+                      <input type="date" class="form-control" id="edit-event-date" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-shared">Shared</label>
+                      <textarea class="form-control" id="edit-shared" rows="3" placeholder="People or list this event is shared with"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-owner">Owner</label>
+                      <input type="text" class="form-control" id="edit-owner" placeholder="Owner user id">
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-copied">Copied</label>
+                      <select class="form-control" id="edit-copied">
+                        <option value="">—</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  <button type="button" class="btn btn-primary" id="edit-event-submit">Submit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+              <!-- Events table -->
+              <div class="mb-4">
+                <div id="tasks-loading" class="text-center py-3">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+                <div id="tasks-error" class="alert alert-danger" style="display: none;"></div>
+                <div id="tasks-empty" class="alert alert-info" style="display: none;">No events yet. Add one below.</div>
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover events-table" id="tasks-table" style="display: none;">
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th style="width: 130px;">Event Date</th>
+                        <th class="events-col-shared">Shared</th>
+                        <th class="events-col-owner">Owner</th>
+                        <th style="width: 90px;">Copied</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tasks-tbody">
+                      <!-- Events will be inserted here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Add Event Form -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">Add New Event</h5>
+                </div>
+                <div class="card-body">
+                  <form id="task-form">
+                    <div class="form-group">
+                      <label for="task-input">Event *</label>
+                      <input type="text" class="form-control" id="task-input" placeholder="Enter event name" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="event-date">Event Date *</label>
+                      <input type="date" class="form-control" id="event-date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Event</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Login required message (shown by default) -->
+          <div id="login-required-message" style="display: none;">
+            <h1 class="display-3 mb-3">Access Restricted</h1>
+            <div class="alert alert-warning" role="alert">
+              <h4 class="alert-heading">You must log in to see this page</h4>
+              <p>This page is only accessible to authenticated users. Please log in to continue.</p>
+              <hr>
+              <p class="mb-0">
+                <button class="btn btn-primary" onclick="handleLogin(); return false;">Log In</button>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script defer src="/events/events_table.js"></script>
+
+{{> main-site-footer }}
