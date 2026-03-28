@@ -1,6 +1,6 @@
 /**
  * Life events table in Supabase (`events`).
- * Expected columns: id, event (text), event_date (date), owner (text), shared (text/json),
+ * Expected columns: id, event (text), event_date (date), who (text), owner (text), shared (text/json),
  * copied (boolean, optional) — create in Supabase SQL if missing.
  * Visibility: a row is returned when the current user_id matches owner (exact or comma-separated)
  * or appears in shared (comma list, JSON array, or substring fallback).
@@ -88,7 +88,7 @@ async function getEventsForUser(userId) {
   return visible;
 }
 
-async function insertEvent({ event, event_date, owner, shared, copied }) {
+async function insertEvent({ event, event_date, who, owner, shared, copied }) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
   const row = {
@@ -97,6 +97,9 @@ async function insertEvent({ event, event_date, owner, shared, copied }) {
     owner: owner != null ? String(owner).trim() : null,
     shared: shared != null ? shared : null
   };
+  if (who !== undefined) {
+    row.who = who == null || String(who).trim() === '' ? null : String(who).trim();
+  }
   if (copied !== undefined) row.copied = copied;
   const { data, error } = await supabase.from('events').insert(row).select('*').single();
   if (error) throw error;
@@ -111,12 +114,15 @@ async function getEventById(id) {
   return data;
 }
 
-async function updateEvent(id, { event, event_date, owner, shared, copied }) {
+async function updateEvent(id, { event, event_date, who, owner, shared, copied }) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
   const patch = {};
   if (event !== undefined) patch.event = String(event).trim();
   if (event_date !== undefined) patch.event_date = event_date;
+  if (who !== undefined) {
+    patch.who = who == null || String(who).trim() === '' ? null : String(who).trim();
+  }
   if (owner !== undefined) patch.owner = owner != null ? String(owner).trim() : null;
   if (shared !== undefined) patch.shared = shared;
   if (copied !== undefined) patch.copied = copied;

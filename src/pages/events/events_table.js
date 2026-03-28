@@ -92,7 +92,7 @@ if (window.location.search.includes('code=') && window.location.search.includes(
   setTimeout(checkAuthAndDisplayContent, 500);
 }
 
-/** Max characters before "..." in Shared / Owner columns (e.g. john.p...). */
+/** Max characters before "..." in Who / Shared / Owner columns (e.g. john.p...). */
 var SHARED_OWNER_MAX_CHARS = 6;
 
 // Event Management Functions
@@ -177,9 +177,16 @@ async function loadTasks() {
       row.style.cursor = 'pointer';
       row.dataset.eventId = String(task.id);
       row.setAttribute('title', 'Click to view or edit');
+      const whoPlain =
+        task.who != null && String(task.who).trim() !== '' ? String(task.who).trim() : '';
+      const whoHtml =
+        whoPlain === '' ? '—' : truncateEllipsisHtml(whoPlain, SHARED_OWNER_MAX_CHARS);
+      const whoTitleAttr =
+        whoPlain !== '' ? ' title="' + escapeAttr(whoPlain) + '"' : '';
       row.innerHTML = `
           <td><strong>${escapeHtml(name)}</strong></td>
           <td><small>${eventDate}</small></td>
+          <td class="events-col-who"${whoTitleAttr}><small>${whoHtml}</small></td>
           <td class="events-col-shared"${sharedTitleAttr}><small>${sharedHtml}</small></td>
           <td class="events-col-owner"${ownerTitleAttr}><small>${ownerHtml}</small></td>
           <td><small>${formatCopiedCell(task.copied)}</small></td>
@@ -198,10 +205,15 @@ async function addTaskForm(event) {
   event.preventDefault();
 
   const taskInput = document.getElementById('task-input');
+  const whoInput = document.getElementById('who-input');
+  const sharedInput = document.getElementById('shared-input');
   const eventDateInput = document.getElementById('event-date');
   const submitButton = event.target.querySelector('button[type="submit"]');
 
   const task = taskInput.value.trim();
+  const whoVal = whoInput && whoInput.value.trim() !== '' ? whoInput.value.trim() : undefined;
+  const sharedVal =
+    sharedInput && sharedInput.value.trim() !== '' ? sharedInput.value.trim() : undefined;
   const eventDate = eventDateInput.value;
 
   if (!task) {
@@ -235,12 +247,14 @@ async function addTaskForm(event) {
       // Continue without user_id if there's an error
     }
 
+    const postBody = { event: task, event_date: eventDate, user_id: userId };
+    if (whoVal !== undefined) postBody.who = whoVal;
     const response = await fetch('/api/events', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ event: task, event_date: eventDate, user_id: userId })
+      body: JSON.stringify(postBody)
     });
 
     if (response.status === 503) {
@@ -254,6 +268,8 @@ async function addTaskForm(event) {
     // Clear form
     taskInput.value = '';
     eventDateInput.value = '';
+    if (whoInput) whoInput.value = '';
+    if (sharedInput) sharedInput.value = '';
 
     // Reload events
     await loadTasks();
@@ -377,6 +393,9 @@ async function openEventModalFromRow(id) {
       document.getElementById('edit-event-date').value = '';
     }
 
+    document.getElementById('edit-who').value =
+      task.who != null && task.who !== '' ? String(task.who) : '';
+
     document.getElementById('edit-shared').value = sharedToFormString(task.shared);
     document.getElementById('edit-owner').value =
       task.owner != null && task.owner !== '' ? String(task.owner) : '';
@@ -393,6 +412,7 @@ async function saveEditTask() {
   const taskId = document.getElementById('edit-task-id').value;
   const taskInput = document.getElementById('edit-task-input');
   const eventDateInput = document.getElementById('edit-event-date');
+  const whoInput = document.getElementById('edit-who');
   const sharedInput = document.getElementById('edit-shared');
   const ownerInput = document.getElementById('edit-owner');
   const copiedSelect = document.getElementById('edit-copied');
@@ -435,12 +455,14 @@ async function saveEditTask() {
       return;
     }
 
+    const whoVal = whoInput.value.trim();
     const ownerVal = ownerInput.value.trim();
     const sharedVal = sharedInput.value.trim();
     const payload = {
       event: task,
       event_date: eventDate,
       user_id: userId,
+      who: whoVal === '' ? null : whoVal,
       owner: ownerVal === '' ? null : ownerVal,
       shared: sharedVal === '' ? null : sharedVal
     };
@@ -467,6 +489,81 @@ async function saveEditTask() {
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit';
+  }
+}
+
+async function deleteEventFromModal() {
+  const taskId = document.getElementById('edit-task-id').value;
+  if (!taskId) {
+    alert('No event selected.');
+    return;
+  }
+
+  const evName = document.getElementById('edit-task-input').value.trim();
+  const label = evName ? '"' + evName + '"' : 'this event';
+  if (!confirm('Delete ' + label + '? This cannot be undone.')) {
+    return;
+  }
+
+  const deleteBtn = document.getElementById('edit-event-delete');
+  const submitBtn = document.getElementById('edit-event-submit');
+
+  try {
+    if (deleteBtn) {
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Deleting...';
+    }
+    if (submitBtn) submitBtn.disabled = true;
+
+    let userId = null;
+    try {
+      if (window.auth0) {
+        const isAuthenticated = await window.auth0.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await window.auth0.getUser();
+          userId = user?.email || user?.nickname || user?.sub || null;
+        }
+      }
+    } catch (authError) {
+      console.error('Error getting Auth0 user:', authError);
+    }
+
+    if (!userId) {
+      alert('You must be logged in to delete an event.');
+      return;
+    }
+
+    const response = await fetch(
+      '/api/events/' + encodeURIComponent(taskId) + '?user_id=' + encodeURIComponent(userId),
+      { method: 'DELETE' }
+    );
+
+    if (response.status === 403) {
+      alert('You do not have permission to delete this event.');
+      return;
+    }
+    if (response.status === 404) {
+      alert('Event was not found. It may have already been deleted.');
+      $('#editEventModal').modal('hide');
+      await loadTasks();
+      return;
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete event');
+    }
+
+    $('#editEventModal').modal('hide');
+    await loadTasks();
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    alert('Failed to delete event. Please try again.');
+  } finally {
+    if (deleteBtn) {
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete';
+    }
+    if (submitBtn) submitBtn.disabled = false;
   }
 }
 
@@ -498,5 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitBtn = document.getElementById('edit-event-submit');
   if (submitBtn) {
     submitBtn.addEventListener('click', saveEditTask);
+  }
+  const deleteBtn = document.getElementById('edit-event-delete');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', deleteEventFromModal);
   }
 });

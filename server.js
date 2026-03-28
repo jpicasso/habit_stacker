@@ -13,6 +13,7 @@ const supabaseHabits = require('./supabase-habits');
 const supabaseGoals = require('./supabase-goals');
 const supabaseTemporary = require('./supabase-temporary');
 const supabaseEvents = require('./supabase-events');
+const supabaseFriends = require('./supabase-friends');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -56,6 +57,9 @@ if (useSupabaseHabits) {
 }
 if (useSupabaseEvents) {
   console.log('Events using Supabase');
+}
+if (supabaseFriends.isConfigured()) {
+  console.log('Friends API using Supabase');
 }
 
 // API Routes
@@ -156,7 +160,7 @@ app.post('/api/events', async (req, res) => {
     if (!supabaseEvents.isConfigured()) {
       return res.status(503).json({ error: 'Events require Supabase' });
     }
-    const { event, event_date, user_id, shared, copied } = req.body || {};
+    const { event, event_date, user_id, who, shared, copied } = req.body || {};
     if (!event || String(event).trim() === '') {
       return res.status(400).json({ error: 'Event is required' });
     }
@@ -186,7 +190,7 @@ app.put('/api/events/:id', async (req, res) => {
       return res.status(503).json({ error: 'Events require Supabase' });
     }
     const { id } = req.params;
-    const { event, event_date, user_id, owner, shared, copied } = req.body || {};
+    const { event, event_date, user_id, who, owner, shared, copied } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
@@ -206,6 +210,7 @@ app.put('/api/events/:id', async (req, res) => {
     const payload = {
       event: String(event).trim(),
       event_date,
+      who: who !== undefined ? who : existing.who,
       owner: owner !== undefined ? owner : existing.owner,
       shared: shared !== undefined ? shared : existing.shared
     };
@@ -240,6 +245,80 @@ app.delete('/api/events/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting event:', error);
     res.status(500).json({ error: error.message || 'Failed to delete event' });
+  }
+});
+
+// --- Friends API (Supabase `friends` table: user1, user2) ---
+
+app.get('/api/friends', async (req, res) => {
+  try {
+    if (!supabaseFriends.isConfigured()) {
+      return res.status(503).json({ error: 'Friends require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseFriends.listFriendsForUser(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch friends' });
+  }
+});
+
+app.post('/api/friends', async (req, res) => {
+  try {
+    if (!supabaseFriends.isConfigured()) {
+      return res.status(503).json({ error: 'Friends require Supabase' });
+    }
+    const { user_id, friend_id, friend_email } = req.body || {};
+    const friendTarget =
+      friend_id != null && String(friend_id).trim() !== ''
+        ? String(friend_id).trim()
+        : friend_email != null && String(friend_email).trim() !== ''
+          ? String(friend_email).trim()
+          : null;
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!friendTarget) {
+      return res.status(400).json({ error: 'friend_id (or friend_email) is required' });
+    }
+    const row = await supabaseFriends.insertFriend({
+      user_id: user_id.trim(),
+      friend_id: friendTarget
+    });
+    res.status(201).json(row);
+  } catch (error) {
+    console.error('Error adding friend:', error);
+    const msg = error.message || String(error);
+    const code = error.code;
+    if (code === '23505' || /duplicate|unique/i.test(msg)) {
+      return res.status(409).json({ error: 'That friend is already in your list.' });
+    }
+    res.status(500).json({ error: msg || 'Failed to add friend' });
+  }
+});
+
+app.delete('/api/friends/:id', async (req, res) => {
+  try {
+    if (!supabaseFriends.isConfigured()) {
+      return res.status(503).json({ error: 'Friends require Supabase' });
+    }
+    const { id } = req.params;
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const ok = await supabaseFriends.deleteFriendForUser(id, userId.trim());
+    if (!ok) {
+      return res.status(404).json({ error: 'Friend entry not found' });
+    }
+    res.json({ message: 'Removed' });
+  } catch (error) {
+    console.error('Error deleting friend:', error);
+    res.status(500).json({ error: error.message || 'Failed to remove friend' });
   }
 });
 
