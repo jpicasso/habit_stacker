@@ -14,6 +14,7 @@ const supabaseGoals = require('./supabase-goals');
 const supabaseTemporary = require('./supabase-temporary');
 const supabaseEvents = require('./supabase-events');
 const supabaseFriends = require('./supabase-friends');
+const supabaseGroups = require('./supabase-groups');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -60,6 +61,9 @@ if (useSupabaseEvents) {
 }
 if (supabaseFriends.isConfigured()) {
   console.log('Friends API using Supabase');
+}
+if (supabaseGroups.isConfigured()) {
+  console.log('Groups API using Supabase');
 }
 
 // API Routes
@@ -360,6 +364,191 @@ app.delete('/api/friends/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting friend:', error);
     res.status(500).json({ error: error.message || 'Failed to remove friend' });
+  }
+});
+
+// --- Groups API (Supabase `group_members` + `groups` tables) ---
+
+app.get('/api/groups/members', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { group_name } = req.query;
+    if (!group_name || !group_name.trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    const members = await supabaseGroups.getGroupMembers(group_name.trim());
+    res.json(members);
+  } catch (error) {
+    console.error('Error fetching group members:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch group members' });
+  }
+});
+
+app.get('/api/groups/details', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { group_name } = req.query;
+    if (!group_name || !group_name.trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    const details = await supabaseGroups.getGroupDetails(group_name.trim());
+    if (!details) return res.status(404).json({ error: 'Group not found' });
+    res.json(details);
+  } catch (error) {
+    console.error('Error fetching group details:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch group details' });
+  }
+});
+
+app.put('/api/groups/update', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_name, visibility, admins, members, invited_members } = req.body || {};
+    if (!user_id || !user_id.trim()) return res.status(400).json({ error: 'user_id is required' });
+    if (!group_name || !group_name.trim()) return res.status(400).json({ error: 'group_name is required' });
+    const details = await supabaseGroups.getGroupDetails(group_name.trim());
+    if (!details) return res.status(404).json({ error: 'Group not found' });
+    const result = await supabaseGroups.updateGroup({
+      group_name: group_name.trim(),
+      visibility: visibility || null,
+      admins: Array.isArray(admins) ? admins : [],
+      members: Array.isArray(members) ? members : [],
+      invited_members: Array.isArray(invited_members) ? invited_members : [],
+      owner: details.owner
+    });
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating group:', error);
+    res.status(500).json({ error: error.message || 'Failed to update group' });
+  }
+});
+
+app.delete('/api/groups/delete', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_name } = req.body || {};
+    if (!user_id || !user_id.trim()) return res.status(400).json({ error: 'user_id is required' });
+    if (!group_name || !group_name.trim()) return res.status(400).json({ error: 'group_name is required' });
+    await supabaseGroups.deleteGroup(group_name.trim(), user_id.trim());
+    res.json({ message: 'Group deleted' });
+  } catch (error) {
+    console.error('Error deleting group:', error);
+    const status = error.status || 500;
+    res.status(status).json({ error: error.message || 'Failed to delete group' });
+  }
+});
+
+app.post('/api/groups/leave', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_name } = req.body || {};
+    if (!user_id || !user_id.trim()) return res.status(400).json({ error: 'user_id is required' });
+    if (!group_name || !group_name.trim()) return res.status(400).json({ error: 'group_name is required' });
+    await supabaseGroups.leaveGroup(group_name.trim(), user_id.trim());
+    res.json({ message: 'Left group' });
+  } catch (error) {
+    console.error('Error leaving group:', error);
+    res.status(500).json({ error: error.message || 'Failed to leave group' });
+  }
+});
+
+app.post('/api/groups', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const { user_id, group_name, visibility, admins, invited_members } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!group_name || typeof group_name !== 'string' || !group_name.trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    if (!visibility || typeof visibility !== 'string' || !visibility.trim()) {
+      return res.status(400).json({ error: 'visibility is required' });
+    }
+    const result = await supabaseGroups.createGroup({
+      group_name: group_name.trim(),
+      visibility: visibility.trim(),
+      owner: user_id.trim(),
+      admins: Array.isArray(admins) ? admins : [],
+      invited_members: Array.isArray(invited_members) ? invited_members : []
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error creating group:', error);
+    if (error.code === '23505' || (error.message || '').toLowerCase().includes('duplicate')) {
+      return res.status(409).json({ error: 'A group with that name already exists.' });
+    }
+    res.status(500).json({ error: error.message || 'Failed to create group' });
+  }
+});
+
+app.get('/api/groups', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseGroups.listGroupsForUser(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch groups' });
+  }
+});
+
+app.get('/api/groups/invites', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseGroups.listInvitesForUser(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching group invites:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch group invites' });
+  }
+});
+
+app.patch('/api/groups/:id', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { id } = req.params;
+    const { user_id, action } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (action !== 'accept' && action !== 'reject') {
+      return res.status(400).json({ error: 'action must be accept or reject' });
+    }
+    const ok = await supabaseGroups.respondToGroupInvite(id, user_id.trim(), action);
+    if (!ok) {
+      return res.status(404).json({ error: 'Invite not found or not allowed' });
+    }
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    console.error('Error responding to group invite:', error);
+    res.status(500).json({ error: error.message || 'Failed to update invite' });
   }
 });
 

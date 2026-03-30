@@ -95,21 +95,204 @@ if (window.location.search.includes('code=') && window.location.search.includes(
 /** Max characters before "..." in Who / Shared / Owner columns (e.g. john.p...). */
 var SHARED_OWNER_MAX_CHARS = 6;
 
+/** Currently active filter pill: 'all' | 'me' | 'megan' */
+var currentEventsFilter = 'all';
+
+/** Cached raw task list and user email from the last fetch */
+var cachedTasks = null;
+var cachedUserEmail = null;
+
+/** Megan's email used by the Megan filter */
+var MEGAN_EMAIL = 'mdonahey@alumni.princeton.edu';
+
+/** Emails of members in the currently selected group (populated on group pill click) */
+var currentGroupMembers = [];
+
+/** Date filter state: type = '' | 'before' | 'after' | 'between' */
+var activeDateFilter = { type: '', date1: '', date2: '' };
+
+/** Who filter: array of strings the user has added as tags */
+var activeWhoFilter = [];
+
+/** Type filter: '' = all, otherwise exact match against event_type */
+var activeTypeFilter = '';
+
+/**
+ * Returns true if the comma/newline-separated `field` value contains `email`.
+ */
+function fieldContainsEmail(field, email) {
+  if (!field || !email) return false;
+  return String(field).toLowerCase().split(/[\s,;]+/).some(e => e.trim() === email.toLowerCase());
+}
+
+/**
+ * Applies the active filter to the full task list and returns matching tasks.
+ *
+ * all   – shared includes user  OR  owner === user
+ * me    – (who includes user AND shared includes user)
+ *          OR (who is blank AND owner === user)
+ * megan – who includes MEGAN_EMAIL  AND  (shared includes user OR owner === user)
+ */
+function applyEventsFilter(tasks, filter, userEmail) {
+  const email = (userEmail || '').toLowerCase().trim();
+
+  const sharedHasUser  = t => fieldContainsEmail(t.shared, email);
+  const ownerIsUser    = t => (t.owner || '').toLowerCase().trim() === email;
+  const whoHasUser     = t => fieldContainsEmail(t.who, email);
+  const whoIsBlank     = t => !t.who || String(t.who).trim() === '';
+  const whoHasMegan    = t => fieldContainsEmail(t.who, MEGAN_EMAIL);
+
+  if (filter === 'me') {
+    return tasks.filter(t =>
+      whoHasUser(t) && (sharedHasUser(t) || ownerIsUser(t))
+    );
+  }
+  if (filter === 'megan') {
+    return tasks.filter(t =>
+      whoHasMegan(t) && (sharedHasUser(t) || ownerIsUser(t))
+    );
+  }
+  if (filter === 'group_members') {
+    // Show events where 'who' contains any member of the selected group
+    return tasks.filter(t =>
+      currentGroupMembers.some(m => fieldContainsEmail(t.who, m))
+    );
+  }
+  // 'all'
+  return tasks.filter(t => sharedHasUser(t) || ownerIsUser(t));
+}
+
+/**
+ * Applies the active date filter to a task list.
+ * Compares event_date (YYYY-MM-DD string) against the chosen criteria.
+ */
+function applyDateFilter(tasks) {
+  const { type, date1, date2 } = activeDateFilter;
+  if (!type || !date1) return tasks;
+  return tasks.filter(t => {
+    if (!t.event_date) return false;
+    const d = String(t.event_date).slice(0, 10);
+    if (type === 'before')  return d < date1;
+    if (type === 'after')   return d > date1;
+    if (type === 'between') return date2 ? (d >= date1 && d <= date2) : d >= date1;
+    return true;
+  });
+}
+
+/**
+ * Applies the active type filter against task.event_type (case-insensitive exact match).
+ */
+function applyTypeFilter(tasks) {
+  if (!activeTypeFilter) return tasks;
+  const t = activeTypeFilter.toLowerCase();
+  return tasks.filter(task =>
+    task.event_type != null && String(task.event_type).trim().toLowerCase() === t
+  );
+}
+
+/**
+ * Applies the active who filter (array of search strings).
+ * Shows events where task.who contains ANY of the entered strings (case-insensitive substring).
+ */
+function applyWhoFilter(tasks) {
+  if (!activeWhoFilter.length) return tasks;
+  return tasks.filter(t => {
+    if (!t.who) return false;
+    const who = String(t.who).toLowerCase();
+    return activeWhoFilter.some(f => who.includes(f.toLowerCase()));
+  });
+}
+
+/**
+ * Master render: applies pill filter → date filter → who filter → renders rows.
+ * Call this instead of renderTaskRows(applyEventsFilter(...)) everywhere.
+ */
+function renderWithAllFilters() {
+  if (!cachedTasks || !cachedUserEmail) return;
+  let filtered = applyEventsFilter(cachedTasks, currentEventsFilter, cachedUserEmail);
+  filtered = applyDateFilter(filtered);
+  filtered = applyTypeFilter(filtered);
+  filtered = applyWhoFilter(filtered);
+  renderTaskRows(filtered);
+}
+
+/** Renders the who-filter tag chips. */
+function renderWhoFilterTags() {
+  const tagsEl = document.getElementById('who-filter-tags');
+  if (!tagsEl) return;
+  if (!activeWhoFilter.length) { tagsEl.innerHTML = ''; return; }
+  tagsEl.innerHTML = activeWhoFilter.map((f, i) =>
+    `<span class="badge badge-secondary d-inline-flex align-items-center mr-1 mb-1" style="font-size:0.85em;padding:0.35em 0.6em;">` +
+    escapeHtml(f) +
+    `<button type="button" data-who-index="${i}" class="who-tag-remove ml-1 p-0 border-0 bg-transparent text-white" style="line-height:1;font-size:1em;" aria-label="Remove">&times;</button>` +
+    `</span>`
+  ).join('');
+}
+
+/** Renders a (pre-filtered) task array into the table. */
+function renderTaskRows(tasks) {
+  const emptyEl  = document.getElementById('tasks-empty');
+  const tableEl  = document.getElementById('tasks-table');
+  const tbodyEl  = document.getElementById('tasks-tbody');
+
+  tbodyEl.innerHTML = '';
+
+  if (!tasks.length) {
+    tableEl.style.display = 'none';
+    emptyEl.textContent = 'No events match this filter.';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  tableEl.style.display = 'table';
+
+  tasks.forEach(task => {
+    const eventDate  = task.event_date ? formatDateOnly(task.event_date) : 'Not set';
+    const name       = task.event != null ? String(task.event) : task.task != null ? String(task.task) : '';
+    const sharedPlain = plainTextShared(task.shared);
+    const sharedHtml  = sharedPlain === '' ? '—' : truncateEllipsisHtml(sharedPlain, SHARED_OWNER_MAX_CHARS);
+    const sharedTitleAttr = sharedPlain !== '' ? ' title="' + escapeAttr(sharedPlain) + '"' : '';
+    const ownerPlain  = task.owner != null ? String(task.owner) : '';
+    const ownerHtml   = ownerPlain === '' ? '' : truncateEllipsisHtml(ownerPlain, SHARED_OWNER_MAX_CHARS);
+    const ownerTitleAttr  = ownerPlain !== '' ? ' title="' + escapeAttr(ownerPlain) + '"' : '';
+    const whoPlain    = task.who != null && String(task.who).trim() !== '' ? String(task.who).trim() : '';
+    const whoHtml     = whoPlain === '' ? '—' : truncateEllipsisHtml(whoPlain, SHARED_OWNER_MAX_CHARS);
+    const whoTitleAttr = whoPlain !== '' ? ' title="' + escapeAttr(whoPlain) + '"' : '';
+
+    const row = document.createElement('tr');
+    row.className = 'events-table-row';
+    row.style.cursor = 'pointer';
+    row.dataset.eventId = String(task.id);
+    row.setAttribute('title', 'Click to view or edit');
+    const eventType = task.event_type != null && String(task.event_type).trim() !== ''
+      ? escapeHtml(String(task.event_type).trim())
+      : '<span class="text-muted">—</span>';
+    row.innerHTML = `
+        <td><strong>${escapeHtml(name)}</strong></td>
+        <td><small>${eventDate}</small></td>
+        <td><small>${eventType}</small></td>
+        <td class="events-col-who"${whoTitleAttr}><small>${whoHtml}</small></td>
+        <td class="events-col-shared"${sharedTitleAttr}><small>${sharedHtml}</small></td>
+        <td class="events-col-owner"${ownerTitleAttr}><small>${ownerHtml}</small></td>
+      `;
+    tbodyEl.appendChild(row);
+  });
+}
+
 // Event Management Functions
 async function loadTasks() {
   const loadingEl = document.getElementById('tasks-loading');
-  const errorEl = document.getElementById('tasks-error');
-  const emptyEl = document.getElementById('tasks-empty');
-  const tableEl = document.getElementById('tasks-table');
-  const tbodyEl = document.getElementById('tasks-tbody');
+  const errorEl   = document.getElementById('tasks-error');
+  const emptyEl   = document.getElementById('tasks-empty');
+  const tableEl   = document.getElementById('tasks-table');
 
   try {
     loadingEl.style.display = 'block';
-    errorEl.style.display = 'none';
-    emptyEl.style.display = 'none';
-    tableEl.style.display = 'none';
+    errorEl.style.display   = 'none';
+    emptyEl.style.display   = 'none';
+    tableEl.style.display   = 'none';
 
-    // Get the current logged-in user's email
     let currentUserEmail = null;
     try {
       if (window.auth0) {
@@ -117,20 +300,21 @@ async function loadTasks() {
         if (isAuthenticated) {
           const user = await window.auth0.getUser();
           currentUserEmail = user?.email || null;
-          console.log('Current user email:', currentUserEmail);
         }
       }
     } catch (authError) {
       console.error('Error getting current user:', authError);
     }
 
-    // If user is not authenticated, don't show any events
     if (!currentUserEmail) {
       loadingEl.style.display = 'none';
       emptyEl.textContent = 'Please log in to view your events.';
       emptyEl.style.display = 'block';
       return;
     }
+
+    // Load group pills in parallel — don't block the events fetch
+    loadGroupPills(currentUserEmail);
 
     const response = await fetch(
       '/api/events?user_id=' + encodeURIComponent(currentUserEmail)
@@ -142,57 +326,22 @@ async function loadTasks() {
       errorEl.style.display = 'block';
       return;
     }
-    if (!response.ok) {
-      throw new Error('Failed to fetch events');
-    }
+    if (!response.ok) throw new Error('Failed to fetch events');
 
     const tasks = await response.json();
-
     loadingEl.style.display = 'none';
 
+    // Cache for filter re-renders
+    cachedTasks     = tasks;
+    cachedUserEmail = currentUserEmail;
+
     if (!tasks.length) {
-      emptyEl.textContent = 'No events yet. Add one below.';
+      emptyEl.textContent = 'No events yet. Click "+ Add Event" to create one.';
       emptyEl.style.display = 'block';
       return;
     }
 
-    tableEl.style.display = 'table';
-    tbodyEl.innerHTML = '';
-
-    tasks.forEach(task => {
-      const eventDate = task.event_date ? formatDateOnly(task.event_date) : 'Not set';
-      const name = task.event != null ? String(task.event) : task.task != null ? String(task.task) : '';
-      const sharedPlain = plainTextShared(task.shared);
-      const sharedHtml =
-        sharedPlain === '' ? '—' : truncateEllipsisHtml(sharedPlain, SHARED_OWNER_MAX_CHARS);
-      const sharedTitleAttr =
-        sharedPlain !== '' ? ' title="' + escapeAttr(sharedPlain) + '"' : '';
-      const ownerPlain = task.owner != null ? String(task.owner) : '';
-      const ownerHtml =
-        ownerPlain === '' ? '' : truncateEllipsisHtml(ownerPlain, SHARED_OWNER_MAX_CHARS);
-      const ownerTitleAttr =
-        ownerPlain !== '' ? ' title="' + escapeAttr(ownerPlain) + '"' : '';
-      const row = document.createElement('tr');
-      row.className = 'events-table-row';
-      row.style.cursor = 'pointer';
-      row.dataset.eventId = String(task.id);
-      row.setAttribute('title', 'Click to view or edit');
-      const whoPlain =
-        task.who != null && String(task.who).trim() !== '' ? String(task.who).trim() : '';
-      const whoHtml =
-        whoPlain === '' ? '—' : truncateEllipsisHtml(whoPlain, SHARED_OWNER_MAX_CHARS);
-      const whoTitleAttr =
-        whoPlain !== '' ? ' title="' + escapeAttr(whoPlain) + '"' : '';
-      row.innerHTML = `
-          <td><strong>${escapeHtml(name)}</strong></td>
-          <td><small>${eventDate}</small></td>
-          <td class="events-col-who"${whoTitleAttr}><small>${whoHtml}</small></td>
-          <td class="events-col-shared"${sharedTitleAttr}><small>${sharedHtml}</small></td>
-          <td class="events-col-owner"${ownerTitleAttr}><small>${ownerHtml}</small></td>
-          <td><small>${formatCopiedCell(task.copied)}</small></td>
-        `;
-      tbodyEl.appendChild(row);
-    });
+    renderWithAllFilters();
   } catch (error) {
     console.error('Error loading events:', error);
     loadingEl.style.display = 'none';
@@ -201,26 +350,196 @@ async function loadTasks() {
   }
 }
 
-async function addTaskForm(event) {
-  event.preventDefault();
+// Use event delegation on the pills container so dynamically-added group pills work automatically
+document.addEventListener('DOMContentLoaded', () => {
+  const pillsContainer = document.getElementById('events-filter-pills');
+  if (pillsContainer) {
+    pillsContainer.addEventListener('click', async e => {
+      const btn = e.target.closest('.events-filter-btn');
+      if (!btn) return;
+      const rawFilter = btn.dataset.filter;
 
-  const taskInput = document.getElementById('task-input');
-  const whoInput = document.getElementById('who-input');
-  const sharedInput = document.getElementById('shared-input');
+      // Update active styles across all pills
+      pillsContainer.querySelectorAll('.events-filter-btn').forEach(b => {
+        b.classList.remove('btn-primary', 'btn-secondary');
+        b.classList.add(b.classList.contains('events-filter-group-btn') ? 'btn-outline-secondary' : 'btn-outline-primary');
+      });
+      btn.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+      btn.classList.add(btn.classList.contains('events-filter-group-btn') ? 'btn-secondary' : 'btn-primary');
+
+      // Group pills: fetch members first, then filter by 'who' containing any of them
+      if (rawFilter && rawFilter.startsWith('group:')) {
+        const groupName = rawFilter.slice('group:'.length);
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/groups/members?group_name=' + encodeURIComponent(groupName));
+          currentGroupMembers = res.ok ? await res.json() : [];
+        } catch (err) {
+          console.error('Error fetching group members:', err);
+          currentGroupMembers = [];
+        }
+        btn.disabled = false;
+        currentEventsFilter = 'group_members';
+      } else {
+        currentGroupMembers = [];
+        currentEventsFilter = rawFilter;
+      }
+
+      renderWithAllFilters();
+    });
+  }
+
+  // ── Date filter ──────────────────────────────────────────────────
+  const dateTypeEl = document.getElementById('date-filter-type');
+  const date1El    = document.getElementById('date-filter-1');
+  const date2El    = document.getElementById('date-filter-2');
+  const dateAndEl  = document.getElementById('date-filter-and');
+
+  function syncDateFilterUI() {
+    const type = dateTypeEl ? dateTypeEl.value : '';
+    if (date1El)   date1El.style.display   = type ? 'inline-block' : 'none';
+    if (dateAndEl) dateAndEl.style.display  = type === 'between' ? 'inline' : 'none';
+    if (date2El)   date2El.style.display    = type === 'between' ? 'inline-block' : 'none';
+    if (!type && date1El) date1El.value = '';
+    if (type !== 'between' && date2El) date2El.value = '';
+  }
+
+  if (dateTypeEl) {
+    dateTypeEl.addEventListener('change', () => {
+      syncDateFilterUI();
+      activeDateFilter.type  = dateTypeEl.value;
+      activeDateFilter.date1 = date1El ? date1El.value : '';
+      activeDateFilter.date2 = date2El ? date2El.value : '';
+      renderWithAllFilters();
+    });
+  }
+  if (date1El) {
+    date1El.addEventListener('change', () => {
+      activeDateFilter.date1 = date1El.value;
+      renderWithAllFilters();
+    });
+  }
+  if (date2El) {
+    date2El.addEventListener('change', () => {
+      activeDateFilter.date2 = date2El.value;
+      renderWithAllFilters();
+    });
+  }
+
+  // ── Who filter ───────────────────────────────────────────────────
+  const whoInputEl = document.getElementById('who-filter-input');
+  const whoAddBtn  = document.getElementById('who-filter-add');
+  const whoTagsEl  = document.getElementById('who-filter-tags');
+
+  function addWhoTag() {
+    const val = whoInputEl ? whoInputEl.value.trim() : '';
+    if (!val) return;
+    if (!activeWhoFilter.includes(val)) {
+      activeWhoFilter.push(val);
+      renderWhoFilterTags();
+      renderWithAllFilters();
+    }
+    if (whoInputEl) whoInputEl.value = '';
+  }
+
+  if (whoAddBtn) whoAddBtn.addEventListener('click', addWhoTag);
+  if (whoInputEl) {
+    whoInputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addWhoTag(); }
+    });
+  }
+  if (whoTagsEl) {
+    whoTagsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.who-tag-remove');
+      if (!btn) return;
+      const idx = parseInt(btn.dataset.whoIndex, 10);
+      if (!isNaN(idx)) {
+        activeWhoFilter.splice(idx, 1);
+        renderWhoFilterTags();
+        renderWithAllFilters();
+      }
+    });
+  }
+
+  // ── Type filter ──────────────────────────────────────────────────
+  const typeFilterEl = document.getElementById('type-filter');
+  if (typeFilterEl) {
+    typeFilterEl.addEventListener('change', () => {
+      activeTypeFilter = typeFilterEl.value;
+      renderWithAllFilters();
+    });
+  }
+
+  // ── Clear all advanced filters ───────────────────────────────────
+  const clearBtn = document.getElementById('clear-adv-filters-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      activeDateFilter = { type: '', date1: '', date2: '' };
+      activeWhoFilter  = [];
+      activeTypeFilter = '';
+      if (dateTypeEl)  dateTypeEl.value  = '';
+      if (date1El)     date1El.value     = '';
+      if (date2El)     date2El.value     = '';
+      if (typeFilterEl) typeFilterEl.value = '';
+      syncDateFilterUI();
+      renderWhoFilterTags();
+      renderWithAllFilters();
+    });
+  }
+});
+
+/**
+ * Fetches the groups the logged-in user belongs to (member / admin / owner)
+ * and appends a pill button for each one.
+ */
+async function loadGroupPills(userEmail) {
+  if (!userEmail) return;
+  try {
+    const res = await fetch('/api/groups?user_id=' + encodeURIComponent(userEmail));
+    if (!res.ok) return;
+    const groups = await res.json();
+    if (!groups.length) return;
+
+    const pillsContainer = document.getElementById('events-filter-pills');
+    if (!pillsContainer) return;
+
+    // Remove any previously added group pills (e.g. on reload)
+    pillsContainer.querySelectorAll('.events-filter-group-btn').forEach(b => b.remove());
+
+    groups.forEach(group => {
+      const name = group.group_name || '';
+      if (!name) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-sm btn-outline-secondary events-filter-btn events-filter-group-btn mr-1';
+      btn.style.cssText = 'border-radius: 2rem;';
+      btn.dataset.filter = 'group:' + name;
+      // 👥 icon signals this is a group pill
+      btn.innerHTML = '<span aria-hidden="true" style="opacity:0.7;font-size:0.85em;">👥</span> ' + escapeHtml(name);
+      btn.title = 'Group: ' + name;
+      pillsContainer.appendChild(btn);
+    });
+  } catch (e) {
+    console.error('Error loading group pills:', e);
+  }
+}
+
+async function addTaskForm() {
+  const taskInput      = document.getElementById('task-input');
+  const whoInput       = document.getElementById('who-input');
+  const sharedInput    = document.getElementById('shared-input');
   const eventDateInput = document.getElementById('event-date');
-  const submitButton = event.target.querySelector('button[type="submit"]');
+  const submitButton   = document.getElementById('add-event-submit');
 
-  const task = taskInput.value.trim();
-  const whoVal = whoInput && whoInput.value.trim() !== '' ? whoInput.value.trim() : undefined;
-  const sharedVal =
-    sharedInput && sharedInput.value.trim() !== '' ? sharedInput.value.trim() : undefined;
+  const task      = taskInput.value.trim();
+  const whoVal    = whoInput && whoInput.value.trim() !== '' ? whoInput.value.trim() : undefined;
+  const sharedVal = sharedInput && sharedInput.value.trim() !== '' ? sharedInput.value.trim() : undefined;
   const eventDate = eventDateInput.value;
 
   if (!task) {
     alert('Please enter an event name');
     return;
   }
-
   if (!eventDate) {
     alert('Please select an event date');
     return;
@@ -228,32 +547,28 @@ async function addTaskForm(event) {
 
   try {
     submitButton.disabled = true;
-    submitButton.textContent = 'Adding...';
+    submitButton.textContent = 'Adding…';
 
-    // Get the Auth0 user
     let userId = null;
     try {
       if (window.auth0) {
         const isAuthenticated = await window.auth0.isAuthenticated();
         if (isAuthenticated) {
           const user = await window.auth0.getUser();
-          // Use email as user_id, fallback to nickname or sub if email is not available
           userId = user?.email || user?.nickname || user?.sub || null;
-          console.log('User ID for new event:', userId);
         }
       }
     } catch (authError) {
       console.error('Error getting Auth0 user:', authError);
-      // Continue without user_id if there's an error
     }
 
     const postBody = { event: task, event_date: eventDate, user_id: userId };
     if (whoVal !== undefined) postBody.who = whoVal;
+    if (sharedVal !== undefined) postBody.shared = sharedVal;
+
     const response = await fetch('/api/events', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postBody)
     });
 
@@ -261,23 +576,21 @@ async function addTaskForm(event) {
       alert('Events require Supabase. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
       return;
     }
-    if (!response.ok) {
-      throw new Error('Failed to add event');
-    }
+    if (!response.ok) throw new Error('Failed to add event');
 
-    // Clear form
-    taskInput.value = '';
+    // Clear form and close modal
+    taskInput.value      = '';
     eventDateInput.value = '';
-    if (whoInput) whoInput.value = '';
+    if (whoInput)    whoInput.value    = '';
     if (sharedInput) sharedInput.value = '';
+    if (window.jQuery) window.jQuery('#addEventModal').modal('hide');
 
-    // Reload events
     await loadTasks();
   } catch (error) {
     console.error('Error adding event:', error);
     alert('Failed to add event. Please try again.');
   } finally {
-    submitButton.disabled = false;
+    submitButton.disabled    = false;
     submitButton.textContent = 'Add Event';
   }
 }
@@ -579,9 +892,9 @@ updateContentVisibility = function(isAuthenticated) {
 
 // Set up form handler
 document.addEventListener('DOMContentLoaded', () => {
-  const taskForm = document.getElementById('task-form');
-  if (taskForm) {
-    taskForm.addEventListener('submit', addTaskForm);
+  const addSubmitBtn = document.getElementById('add-event-submit');
+  if (addSubmitBtn) {
+    addSubmitBtn.addEventListener('click', addTaskForm);
   }
   const tbody = document.getElementById('tasks-tbody');
   if (tbody) {
