@@ -178,6 +178,7 @@ app.post('/api/events', async (req, res) => {
       event: String(event).trim(),
       event_date,
       owner: user_id.trim(),
+      who: who != null ? who : undefined,
       shared: shared != null ? shared : null,
       copied: copied !== undefined ? copied : undefined
     });
