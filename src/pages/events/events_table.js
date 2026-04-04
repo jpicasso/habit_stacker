@@ -118,11 +118,75 @@ var activeWhoFilter = [];
 var activeTypeFilter = '';
 
 /**
+ * Display name shown on profiles.html — used to filter events (who column).
+ * Set in applyProfileHeaderFromData; null on other pages.
+ */
+var cachedProfileNameForFilter = null;
+
+/** Profile subject email (profiles page) — used with who + owner branch. */
+var cachedProfileEmailForFilter = null;
+
+/** Supabase `profiles` row for the current user (profiles page); null if none / other pages. */
+var cachedProfileRow = null;
+
+/** Last Auth0 user object from loadTasks (for profile modal). */
+var cachedAuthUser = null;
+
+/**
  * Returns true if the comma/newline-separated `field` value contains `email`.
  */
 function fieldContainsEmail(field, email) {
   if (!field || !email) return false;
   return String(field).toLowerCase().split(/[\s,;]+/).some(e => e.trim() === email.toLowerCase());
+}
+
+/**
+ * True if `who` references the profile name (substring, or email token match when name looks like email).
+ */
+function whoFieldReferencesProfileName(who, profileName) {
+  if (!who || !profileName) return false;
+  const p = String(profileName).trim();
+  if (!p) return false;
+  const w = String(who);
+  if (p.includes('@')) {
+    return fieldContainsEmail(w, p) || w.toLowerCase().includes(p.toLowerCase());
+  }
+  return w.toLowerCase().includes(p.toLowerCase());
+}
+
+/**
+ * Profiles page:
+ * - `who` includes profile display name AND `shared` lists the logged-in user, OR
+ * - `who` includes the profile person's email AND `owner` is the logged-in user.
+ */
+function applyProfilePageEventFilter(tasks, profileName, profileEmail, viewerEmail) {
+  const viewer = (viewerEmail || '').toLowerCase().trim();
+  const name = (profileName || '').trim();
+  const profileEm = (profileEmail || '').trim();
+  if (!viewer) return [];
+  if (!name && !profileEm) return [];
+
+  return tasks.filter(t => {
+    const whoHasName = name && whoFieldReferencesProfileName(t.who, name);
+    const whoHasProfileEmail =
+      profileEm && whoFieldReferencesProfileName(t.who, profileEm);
+    const sharedHasViewer = fieldContainsEmail(t.shared, viewer);
+    const ownerIsViewer = (t.owner || '').toLowerCase().trim() === viewer;
+
+    return (whoHasName && sharedHasViewer) || (whoHasProfileEmail && ownerIsViewer);
+  });
+}
+
+/** Auth0 user → single line display name for profile header and who-column matching. */
+function profileDisplayNameFromUser(user) {
+  if (!user) return '';
+  if (user.name && String(user.name).trim()) return String(user.name).trim();
+  if (user.nickname && String(user.nickname).trim()) return String(user.nickname).trim();
+  const g = user.given_name;
+  const f = user.family_name;
+  if (g || f) return [g, f].filter(Boolean).join(' ').trim();
+  if (user.email) return user.email.split('@')[0] || user.email;
+  return '';
 }
 
 /**
@@ -209,7 +273,17 @@ function applyWhoFilter(tasks) {
  */
 function renderWithAllFilters() {
   if (!cachedTasks || !cachedUserEmail) return;
-  let filtered = applyEventsFilter(cachedTasks, currentEventsFilter, cachedUserEmail);
+  let filtered;
+  if (document.getElementById('profile-display-name')) {
+    filtered = applyProfilePageEventFilter(
+      cachedTasks,
+      cachedProfileNameForFilter,
+      cachedProfileEmailForFilter,
+      cachedUserEmail
+    );
+  } else {
+    filtered = applyEventsFilter(cachedTasks, currentEventsFilter, cachedUserEmail);
+  }
   filtered = applyDateFilter(filtered);
   filtered = applyTypeFilter(filtered);
   filtered = applyWhoFilter(filtered);
@@ -288,24 +362,158 @@ var PROFILE_AVATAR_PLACEHOLDER =
   );
 
 /**
- * Fills profile header (photo, email) when `#profile-user-email` / `#profile-user-photo` exist.
+ * Fetches `profiles` row for the logged-in user (profiles page only).
  */
-function fillProfileHeader(user) {
+async function fetchProfileForPage(userEmail) {
+  if (!document.getElementById('profile-display-name') || !userEmail) return null;
+  try {
+    const res = await fetch('/api/profile?user_id=' + encodeURIComponent(userEmail));
+    if (res.status === 503) return null;
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error('Error loading profile:', e);
+    return null;
+  }
+}
+
+/**
+ * Updates profile header from Auth0 user + optional Supabase `profiles` row.
+ */
+function applyProfileHeaderFromData(user, profileRow) {
+  const nameEl = document.getElementById('profile-display-name');
+  const handleEl = document.getElementById('profile-user-handle');
   const emailEl = document.getElementById('profile-user-email');
   const imgEl = document.getElementById('profile-user-photo');
-  if (!emailEl && !imgEl) return;
+  const locEl = document.getElementById('profile-location-line');
+  cachedProfileNameForFilter = null;
+  cachedProfileEmailForFilter = null;
+  if (!nameEl && !emailEl && !imgEl) return;
   if (!user) {
+    cachedProfileRow = null;
+    if (nameEl) nameEl.textContent = '';
+    if (handleEl) handleEl.textContent = '';
     if (emailEl) emailEl.textContent = '';
+    if (locEl) locEl.textContent = 'Location: —';
     if (imgEl) {
       imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
       imgEl.alt = '';
     }
     return;
   }
+  const displayName =
+    profileRow && profileRow.name != null && String(profileRow.name).trim() !== ''
+      ? String(profileRow.name).trim()
+      : profileDisplayNameFromUser(user) || (user.email || '');
+  cachedProfileNameForFilter = displayName;
+  cachedProfileEmailForFilter = (user.email || '').trim() || null;
+  if (nameEl) nameEl.textContent = displayName;
+  if (handleEl) {
+    const h =
+      profileRow && profileRow.handles != null && String(profileRow.handles).trim() !== ''
+        ? String(profileRow.handles).trim()
+        : '';
+    handleEl.textContent = h ? '@' + h.replace(/^@+/, '') : '—';
+  }
   if (emailEl) emailEl.textContent = user.email || '';
   if (imgEl) {
     imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
-    imgEl.alt = user.name ? String(user.name) : '';
+    imgEl.alt = displayName;
+  }
+  if (locEl) {
+    const loc =
+      profileRow && profileRow.location != null && String(profileRow.location).trim() !== ''
+        ? String(profileRow.location).trim()
+        : '—';
+    locEl.textContent = 'Location: ' + loc;
+  }
+}
+
+function populateEditProfileModal() {
+  const nameEl = document.getElementById('edit-profile-name');
+  const handleEl = document.getElementById('edit-profile-handle');
+  const emailEl = document.getElementById('edit-profile-email');
+  const locationEl = document.getElementById('edit-profile-location');
+  const errEl = document.getElementById('edit-profile-error');
+  if (!nameEl || !handleEl || !emailEl || !locationEl || !cachedAuthUser) return;
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+  const user = cachedAuthUser;
+  const row = cachedProfileRow;
+  nameEl.value =
+    row && row.name != null && String(row.name).trim() !== ''
+      ? String(row.name).trim()
+      : profileDisplayNameFromUser(user) || '';
+  handleEl.value =
+    row && row.handles != null ? String(row.handles).replace(/^@+/, '') : '';
+  emailEl.value = cachedUserEmail || user.email || '';
+  locationEl.value = row && row.location != null ? String(row.location) : '';
+}
+
+async function submitEditProfileForm() {
+  const nameEl = document.getElementById('edit-profile-name');
+  const handleEl = document.getElementById('edit-profile-handle');
+  const locationEl = document.getElementById('edit-profile-location');
+  const errEl = document.getElementById('edit-profile-error');
+  const submitBtn = document.getElementById('edit-profile-submit');
+  if (!nameEl || !cachedUserEmail || !submitBtn) return;
+  const n = nameEl.value.trim();
+  const h = handleEl.value.trim();
+  const l = locationEl.value.trim();
+  if (!n || !h || !l) {
+    if (errEl) {
+      errEl.textContent = 'Name, handle, and location are required.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: cachedUserEmail,
+        name: n,
+        handles: h,
+        location: l
+      })
+    });
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (e) {
+      /* ignore */
+    }
+    if (res.status === 503) {
+      if (errEl) {
+        errEl.textContent = data.error || 'Profiles require Supabase.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    if (!res.ok) {
+      if (errEl) {
+        errEl.textContent = data.error || 'Failed to save profile.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    cachedProfileRow = data;
+    applyProfileHeaderFromData(cachedAuthUser, cachedProfileRow);
+    renderWithAllFilters();
+    if (window.jQuery) window.jQuery('#editProfileModal').modal('hide');
+  } catch (e) {
+    console.error(e);
+    if (errEl) {
+      errEl.textContent = 'Failed to save profile.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    submitBtn.disabled = false;
   }
 }
 
@@ -336,14 +544,25 @@ async function loadTasks() {
       console.error('Error getting current user:', authError);
     }
 
-    fillProfileHeader(authUser);
+    cachedAuthUser = authUser || null;
+    let profileRow = null;
+    if (document.getElementById('profile-display-name') && currentUserEmail) {
+      profileRow = await fetchProfileForPage(currentUserEmail);
+      cachedProfileRow = profileRow;
+    } else {
+      cachedProfileRow = null;
+    }
+    applyProfileHeaderFromData(authUser, profileRow);
 
     if (!currentUserEmail) {
+      cachedUserEmail = null;
       loadingEl.style.display = 'none';
       emptyEl.textContent = 'Please log in to view your events.';
       emptyEl.style.display = 'block';
       return;
     }
+
+    cachedUserEmail = currentUserEmail;
 
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);
@@ -364,8 +583,7 @@ async function loadTasks() {
     loadingEl.style.display = 'none';
 
     // Cache for filter re-renders
-    cachedTasks     = tasks;
-    cachedUserEmail = currentUserEmail;
+    cachedTasks = tasks;
 
     if (!tasks.length) {
       emptyEl.textContent = 'No events yet. Click "+ Add Event" to create one.';
@@ -521,6 +739,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (profileEditBtn) {
     profileEditBtn.addEventListener('click', () => {
       // Hook for future photo upload / account settings
+    });
+  }
+
+  const editProfileModalEl = document.getElementById('editProfileModal');
+  if (editProfileModalEl && window.jQuery) {
+    window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
+      populateEditProfileModal();
+    });
+  }
+  const editProfileSubmit = document.getElementById('edit-profile-submit');
+  if (editProfileSubmit) {
+    editProfileSubmit.addEventListener('click', function() {
+      submitEditProfileForm();
     });
   }
 

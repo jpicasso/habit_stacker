@@ -16,6 +16,7 @@ const supabaseEvents = require('./supabase-events');
 const supabaseFriends = require('./supabase-friends');
 const supabaseGroups = require('./supabase-groups');
 const supabaseContacts = require('./supabase-contacts');
+const supabaseProfiles = require('./supabase-profiles');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -65,6 +66,9 @@ if (supabaseFriends.isConfigured()) {
 }
 if (supabaseGroups.isConfigured()) {
   console.log('Groups API using Supabase');
+}
+if (supabaseProfiles.isConfigured()) {
+  console.log('Profiles API using Supabase');
 }
 
 // API Routes
@@ -472,6 +476,61 @@ app.delete('/api/contacts', async (req, res) => {
     const status = error.status || 500;
     console.error('Error deleting contact:', error);
     res.status(status).json({ error: error.message || 'Failed to delete contact' });
+  }
+});
+
+// --- Profiles API (Supabase `profiles` table: email, name, handles, location) ---
+
+app.get('/api/profile', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const row = await supabaseProfiles.getProfileByEmail(userId.trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch profile' });
+  }
+});
+
+app.put('/api/profile', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { user_id, name, location } = req.body || {};
+    const handles =
+      req.body && req.body.handles != null && req.body.handles !== ''
+        ? req.body.handles
+        : req.body && req.body.handle != null
+          ? req.body.handle
+          : null;
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    if (!handles || typeof handles !== 'string' || !handles.trim()) {
+      return res.status(400).json({ error: 'handles is required' });
+    }
+    if (!location || typeof location !== 'string' || !location.trim()) {
+      return res.status(400).json({ error: 'location is required' });
+    }
+    const row = await supabaseProfiles.upsertProfile(user_id.trim(), {
+      name: name.trim(),
+      handles: handles.trim(),
+      location: location.trim()
+    });
+    res.json(row);
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    res.status(500).json({ error: error.message || 'Failed to save profile' });
   }
 });
 
