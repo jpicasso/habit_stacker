@@ -372,6 +372,166 @@ async function leaveGroup(groupName, userId) {
 }
 
 /**
+ * Builds a connections map for the logged-in user.
+ *
+ * "Relevant groups" are those where:
+ *   a) the user is an active member (member/blind member/admin) AND the group
+ *      visibility is "Members only", OR
+ *   b) the user is the owner of the group (any visibility).
+ *
+ * Returns an object keyed by lowercase member email:
+ *   { "other@example.com": ["Group A", "Group B"], ... }
+ *
+ * The logged-in user themselves are excluded from the result.
+ */
+function isMembersOnlyVisibility(visibility) {
+  if (visibility == null) return false;
+  return String(visibility).trim().toLowerCase() === 'members only';
+}
+
+async function getConnectionsForUser(userId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeEmail(userId);
+  if (!uid) return {};
+
+  // 1) Groups the user actively belongs to (member / blind member / admin)
+  const { data: userMemberRows, error: e1 } = await supabase
+    .from('group_members')
+    .select('group_name')
+    .ilike('member', uid)
+    .in('status', MEMBER_STATUSES);
+  if (e1) throw e1;
+
+  const userGroupNames = [...new Set((userMemberRows || []).map(r => r.group_name))];
+
+  // 2) Groups the user owns (always relevant, even if group row was missing from step 3 before)
+  const { data: ownedRows, error: eOwned } = await supabase
+    .from('groups')
+    .select('group_name')
+    .ilike('owner', uid);
+  if (eOwned) throw eOwned;
+  const ownedGroupNames = [...new Set((ownedRows || []).map(r => r.group_name))];
+
+  // 3) Visibility for groups the user is a member of — pick "Members only"
+  let memberOnlyGroupNames = [];
+  if (userGroupNames.length) {
+    const { data: groupRows, error: e2 } = await supabase
+      .from('groups')
+      .select('group_name, visibility')
+      .in('group_name', userGroupNames);
+    if (e2) throw e2;
+    memberOnlyGroupNames = (groupRows || [])
+      .filter(g => isMembersOnlyVisibility(g.visibility))
+      .map(g => g.group_name);
+  }
+
+  // Union: owned groups + members-only groups user belongs to
+  const relevantGroupNames = [...new Set([...ownedGroupNames, ...memberOnlyGroupNames])];
+  if (!relevantGroupNames.length) return {};
+
+  // 4) All active members of those groups
+  const { data: allMemberRows, error: e3 } = await supabase
+    .from('group_members')
+    .select('group_name, member')
+    .in('group_name', relevantGroupNames)
+    .in('status', MEMBER_STATUSES);
+  if (e3) throw e3;
+
+  // Canonical group rows — only use real `groups.group_name` values (never owner email as a "group" tag)
+  const { data: groupMetaRows, error: eMeta } = await supabase
+    .from('groups')
+    .select('group_name, owner')
+    .in('group_name', relevantGroupNames);
+  if (eMeta) throw eMeta;
+  const groupMetaByNorm = new Map();
+  for (const g of groupMetaRows || []) {
+    const key = normalizeEmail(g.group_name);
+    if (!key) continue;
+    groupMetaByNorm.set(key, g);
+  }
+
+  // Build map: normalised member email → [group names from `groups` table]
+  const connectionsMap = {};
+  for (const row of (allMemberRows || [])) {
+    const memberEmail = normalizeEmail(row.member);
+    if (memberEmail === uid) continue; // exclude self
+
+    const gnRaw = row.group_name != null ? String(row.group_name).trim() : '';
+    const gnNorm = normalizeEmail(gnRaw);
+    if (!gnNorm) continue;
+
+    const meta = groupMetaByNorm.get(gnNorm);
+    if (!meta) continue; // orphan group_members row with no matching groups row
+
+    // Skip misconfigured rows where group_name equals owner (shows email as a fake "group")
+    if (normalizeEmail(meta.owner) === gnNorm) continue;
+
+    const displayName = meta.group_name != null ? String(meta.group_name).trim() : gnRaw;
+    if (!displayName) continue;
+
+    if (!connectionsMap[memberEmail]) connectionsMap[memberEmail] = [];
+    if (!connectionsMap[memberEmail].includes(displayName)) {
+      connectionsMap[memberEmail].push(displayName);
+    }
+  }
+  return connectionsMap;
+}
+
+/**
+ * All rows from `groups` where owner matches userId (case-insensitive), ordered by group_name.
+ */
+async function listGroupsOwnedByUser(userId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeEmail(userId);
+  if (!uid) return [];
+
+  const { data, error } = await supabase
+    .from('groups')
+    .select('group_name, visibility')
+    .ilike('owner', uid)
+    .order('group_name', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Owner invites a member to their group (inserts group_members with status invited).
+ * Verifies userId is the group owner.
+ */
+async function inviteMemberAsOwner({ group_name, member, ownerUserId }) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeEmail(ownerUserId);
+  const gn = (group_name || '').trim();
+  const mem = normalizeEmail(member);
+  if (!gn || !mem) throw new Error('group_name and member are required');
+
+  const { data: g, error: gErr } = await supabase
+    .from('groups')
+    .select('owner')
+    .eq('group_name', gn)
+    .maybeSingle();
+  if (gErr) throw gErr;
+  if (!g) throw Object.assign(new Error('Group not found'), { status: 404 });
+  if (normalizeEmail(g.owner) !== uid) {
+    throw Object.assign(new Error('Only the group owner can invite from here'), { status: 403 });
+  }
+
+  const { error: insErr } = await supabase
+    .from('group_members')
+    .insert({ group_name: gn, member: mem, status: 'invited' });
+  if (insErr) {
+    if (insErr.code === '23505') {
+      throw Object.assign(new Error('That person is already in this group or has a pending invite'), { status: 409 });
+    }
+    throw insErr;
+  }
+  return { ok: true };
+}
+
+/**
  * Returns the email addresses of all 'member' and 'blind member' rows for a group.
  */
 async function getGroupMembers(groupName) {
@@ -396,5 +556,8 @@ module.exports = {
   updateGroup,
   deleteGroup,
   leaveGroup,
-  getGroupMembers
+  getGroupMembers,
+  getConnectionsForUser,
+  listGroupsOwnedByUser,
+  inviteMemberAsOwner
 };

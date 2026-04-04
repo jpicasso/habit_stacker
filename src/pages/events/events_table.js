@@ -280,6 +280,35 @@ function renderTaskRows(tasks) {
   });
 }
 
+/** SVG placeholder when Auth0 user has no picture (profiles page). */
+var PROFILE_AVATAR_PLACEHOLDER =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#dee2e6"/><circle cx="36" cy="27" r="11" fill="#adb5bd"/><path d="M12 60c4-10 14-16 24-16s20 6 24 16" fill="#adb5bd"/></svg>'
+  );
+
+/**
+ * Fills profile header (photo, email) when `#profile-user-email` / `#profile-user-photo` exist.
+ */
+function fillProfileHeader(user) {
+  const emailEl = document.getElementById('profile-user-email');
+  const imgEl = document.getElementById('profile-user-photo');
+  if (!emailEl && !imgEl) return;
+  if (!user) {
+    if (emailEl) emailEl.textContent = '';
+    if (imgEl) {
+      imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
+      imgEl.alt = '';
+    }
+    return;
+  }
+  if (emailEl) emailEl.textContent = user.email || '';
+  if (imgEl) {
+    imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+    imgEl.alt = user.name ? String(user.name) : '';
+  }
+}
+
 // Event Management Functions
 async function loadTasks() {
   const loadingEl = document.getElementById('tasks-loading');
@@ -294,17 +323,20 @@ async function loadTasks() {
     tableEl.style.display   = 'none';
 
     let currentUserEmail = null;
+    let authUser = null;
     try {
       if (window.auth0) {
         const isAuthenticated = await window.auth0.isAuthenticated();
         if (isAuthenticated) {
-          const user = await window.auth0.getUser();
-          currentUserEmail = user?.email || null;
+          authUser = await window.auth0.getUser();
+          currentUserEmail = authUser?.email || null;
         }
       }
     } catch (authError) {
       console.error('Error getting current user:', authError);
     }
+
+    fillProfileHeader(authUser);
 
     if (!currentUserEmail) {
       loadingEl.style.display = 'none';
@@ -467,6 +499,28 @@ document.addEventListener('DOMContentLoaded', () => {
     typeFilterEl.addEventListener('change', () => {
       activeTypeFilter = typeFilterEl.value;
       renderWithAllFilters();
+    });
+  }
+
+  // ── Profile page: section pills + photo edit (profiles.html only) ─
+  const profilePills = document.getElementById('profile-section-pills');
+  if (profilePills) {
+    profilePills.addEventListener('click', e => {
+      const btn = e.target.closest('.profile-section-btn');
+      if (!btn) return;
+      profilePills.querySelectorAll('.profile-section-btn').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-primary');
+      });
+      btn.classList.remove('btn-outline-primary');
+      btn.classList.add('btn-primary');
+      document.body.dataset.profileSection = btn.dataset.section || '';
+    });
+  }
+  const profileEditBtn = document.getElementById('profile-photo-edit-btn');
+  if (profileEditBtn) {
+    profileEditBtn.addEventListener('click', () => {
+      // Hook for future photo upload / account settings
     });
   }
 

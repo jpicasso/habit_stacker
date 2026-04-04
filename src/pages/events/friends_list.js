@@ -71,6 +71,25 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function escapeAttr(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/** Enriched rows for row-click modal (set in loadFriendsAndContacts). */
+let friendsListEntriesCache = [];
+
+/** Keys in connections API are lowercased emails; match friend/contact the same way. */
+function connectionLookupKey(entry) {
+  const raw = entry.lookupEmail != null && String(entry.lookupEmail).trim() !== ''
+    ? entry.lookupEmail
+    : entry.name;
+  return String(raw || '').trim().toLowerCase();
+}
+
 async function getLoggedInUserId() {
   try {
     if (window.auth0) {
@@ -143,64 +162,142 @@ async function loadIncomingRequests(email) {
   }
 }
 
-async function loadConnectedFriends(email) {
+async function loadFriendsAndContacts(email) {
   const loadingEl = document.getElementById('friends-loading');
-  const errorEl = document.getElementById('friends-error');
-  const emptyEl = document.getElementById('friends-empty');
-  const tableEl = document.getElementById('friends-table');
-  const tbodyEl = document.getElementById('friends-tbody');
+  const errorEl   = document.getElementById('friends-error');
+  const emptyEl   = document.getElementById('friends-empty');
+  const tableEl   = document.getElementById('friends-table');
+  const tbodyEl   = document.getElementById('friends-tbody');
 
   loadingEl.style.display = 'block';
-  errorEl.style.display = 'none';
-  emptyEl.style.display = 'none';
-  tableEl.style.display = 'none';
-  tbodyEl.innerHTML = '';
+  errorEl.style.display   = 'none';
+  emptyEl.style.display   = 'none';
+  tableEl.style.display   = 'none';
+  tbodyEl.innerHTML       = '';
 
   try {
-    const response = await fetch(
-      '/api/friends?user_id=' + encodeURIComponent(email)
-    );
-    if (response.status === 503) {
+    // Fetch friends, contacts, and group connections in parallel
+    const [friendsRes, contactsRes, connectionsRes] = await Promise.all([
+      fetch('/api/friends?user_id='     + encodeURIComponent(email)),
+      fetch('/api/contacts?user_id='    + encodeURIComponent(email)),
+      fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
+    ]);
+
+    if (friendsRes.status === 503) {
       loadingEl.style.display = 'none';
-      errorEl.textContent =
-        'Friends require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and create the friends table (user1, user2).';
+      errorEl.textContent = 'Friends require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
       errorEl.style.display = 'block';
       return;
     }
-    if (!response.ok) {
-      throw new Error('Failed to fetch friends');
+    if (!friendsRes.ok) throw new Error('Failed to fetch friends');
+
+    const friendRows      = await friendsRes.json();
+    const contactRows     = contactsRes.ok     ? await contactsRes.json()     : [];
+    // connectionsMap: { "lowercased_email": ["Group A", "Group B"] }
+    let connectionsMap = {};
+    if (connectionsRes.ok) {
+      connectionsMap = await connectionsRes.json();
+    } else {
+      console.warn(
+        'GET /api/groups/connections failed:',
+        connectionsRes.status,
+        await connectionsRes.text().catch(() => '')
+      );
     }
 
-    const rows = await response.json();
     loadingEl.style.display = 'none';
 
-    if (!rows.length) {
+    // Build unified row list
+    const entries = [];
+
+    friendRows.forEach(row => {
+      const name = row.other_user != null
+        ? String(row.other_user)
+        : row.friend_email != null
+          ? String(row.friend_email)
+          : '';
+      const notes =
+        row.private_notes != null ? String(row.private_notes) : '';
+      entries.push({
+        name,
+        lookupEmail: name,
+        type: 'friend',
+        id: String(row.id),
+        notes
+      });
+    });
+
+    contactRows.forEach(row => {
+      const name = row.name != null ? String(row.name) : '';
+      const emailCol = row.email != null ? String(row.email).trim() : '';
+      const notes =
+        row.notes != null
+          ? String(row.notes)
+          : row.private_notes != null
+            ? String(row.private_notes)
+            : '';
+      entries.push({
+        name,
+        lookupEmail: emailCol || (name.includes('@') ? name : ''),
+        type: 'contact',
+        id: String(row.id),
+        notes
+      });
+    });
+
+    if (!entries.length) {
       emptyEl.style.display = 'block';
       return;
     }
 
+    // Sort: friends first, then contacts, alphabetically within each group
+    entries.sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'friend' ? -1 : 1;
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
+    friendsListEntriesCache = entries.map(entry => ({
+      ...entry,
+      groupsList: connectionsMap[connectionLookupKey(entry)] || []
+    }));
+
     tableEl.style.display = 'table';
-    rows.forEach((row) => {
+    friendsListEntriesCache.forEach((entry, idx) => {
       const tr = document.createElement('tr');
-      tr.dataset.friendId = String(row.id);
-      const friendId =
-        row.other_user != null
-          ? String(row.other_user)
-          : row.friend_email != null
-            ? String(row.friend_email)
-            : '';
+      tr.classList.add('friends-table-row');
+      tr.dataset.entryIndex = String(idx);
+
+      const removeBtn = entry.type === 'friend'
+        ? `<button type="button" class="btn btn-sm btn-outline-danger friends-remove-btn mr-1" data-id="${escapeHtml(entry.id)}">Remove</button>`
+        : '';
+
+      const deleteBtn =
+        entry.type === 'contact'
+          ? `<button type="button" class="btn btn-sm btn-outline-danger friends-delete-btn" data-name="${escapeAttr(entry.name)}" data-contact-id="${escapeAttr(String(entry.id))}">Delete</button>`
+          : '';
+
+      const statusBadge = entry.type === 'friend'
+        ? `<span class="badge badge-primary">Friend</span>`
+        : `<span class="badge badge-secondary">Contact</span>`;
+
+      const sharedGroups = entry.groupsList;
+      const groupsCell = sharedGroups.length
+        ? sharedGroups.map(g => `<span class="badge badge-info mr-1">${escapeHtml(g)}</span>`).join('')
+        : '<span class="text-muted small">—</span>';
+
       tr.innerHTML = `
-        <td>${escapeHtml(friendId)}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-outline-danger friends-remove-btn" data-id="${escapeHtml(String(row.id))}">Remove</button>
-        </td>
+        <td>${escapeHtml(entry.name)}</td>
+        <td>${statusBadge}</td>
+        <td>${groupsCell}</td>
+        <td><div class="d-flex flex-wrap align-items-center">${removeBtn}${deleteBtn}</div></td>
       `;
+      if (entry.type === 'friend') tr.dataset.friendId = entry.id;
       tbodyEl.appendChild(tr);
     });
   } catch (err) {
     console.error(err);
     loadingEl.style.display = 'none';
-    errorEl.textContent = 'Failed to load friends. Please refresh the page.';
+    errorEl.textContent = 'Failed to load friends and contacts. Please refresh the page.';
     errorEl.style.display = 'block';
   }
 }
@@ -212,15 +309,15 @@ async function loadFriendsPage() {
     document.getElementById('friends-loading').style.display = 'none';
     document.getElementById('requests-empty').textContent = 'Please log in to view friend requests.';
     document.getElementById('requests-empty').style.display = 'block';
-    document.getElementById('friends-empty').textContent = 'Please log in to view your friends.';
+    document.getElementById('friends-empty').textContent = 'Please log in to view your friends and contacts.';
     document.getElementById('friends-empty').style.display = 'block';
     return;
   }
 
   document.getElementById('requests-empty').textContent = 'No pending friend requests.';
-  document.getElementById('friends-empty').textContent = 'No friends yet. Add someone below.';
+  document.getElementById('friends-empty').textContent = 'No friends or contacts yet.';
 
-  await Promise.all([loadIncomingRequests(email), loadConnectedFriends(email)]);
+  await Promise.all([loadIncomingRequests(email), loadFriendsAndContacts(email)]);
 }
 
 async function respondToRequest(id, action) {
@@ -251,55 +348,315 @@ async function respondToRequest(id, action) {
   }
 }
 
-async function addFriendSubmit(e) {
-  e.preventDefault();
-  const input = document.getElementById('friend-email-input');
-  const btn = e.target.querySelector('button[type="submit"]');
-  const email = input.value.trim();
-  if (!email) {
-    alert('Please enter an email address.');
+function syncAddFriendModalHints() {
+  const status = document.getElementById('af-status');
+  const nameInput = document.getElementById('af-name');
+  const hFriend = document.getElementById('af-name-hint-friend');
+  const hContact = document.getElementById('af-name-hint-contact');
+  const groupWrap = document.getElementById('af-group-wrap');
+  if (!status || !nameInput || !hFriend || !hContact) return;
+  if (status.value === 'friend') {
+    hFriend.classList.remove('d-none');
+    hContact.classList.add('d-none');
+    nameInput.setAttribute('type', 'email');
+    nameInput.setAttribute('autocomplete', 'email');
+    if (groupWrap) groupWrap.classList.remove('d-none');
+  } else {
+    hFriend.classList.add('d-none');
+    hContact.classList.remove('d-none');
+    nameInput.setAttribute('type', 'text');
+    nameInput.setAttribute('autocomplete', 'name');
+    if (groupWrap) groupWrap.classList.add('d-none');
+  }
+}
+
+async function loadOwnedGroupsIntoModal() {
+  const sel = document.getElementById('af-group');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">None</option>';
+  const userId = await getLoggedInUserId();
+  if (!userId) return;
+  try {
+    const res = await fetch('/api/groups/owned?user_id=' + encodeURIComponent(userId));
+    if (!res.ok) return;
+    const rows = await res.json();
+    rows.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.group_name;
+      opt.textContent = r.group_name;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function resetAddFriendModal() {
+  const form = document.getElementById('add-friend-modal-form');
+  if (form) form.reset();
+  const status = document.getElementById('af-status');
+  if (status) status.value = 'friend';
+  syncAddFriendModalHints();
+}
+
+async function addFriendModalSubmit() {
+  const nameInput = document.getElementById('af-name');
+  const statusEl = document.getElementById('af-status');
+  const notesInput = document.getElementById('af-notes');
+  const btn = document.getElementById('af-submit');
+
+  const name = nameInput && nameInput.value.trim();
+  const status = statusEl && statusEl.value;
+  const notes = notesInput && notesInput.value.trim();
+
+  if (!name) {
+    alert('Please enter a name.');
     return;
   }
 
   const userId = await getLoggedInUserId();
   if (!userId) {
-    alert('You must be logged in to add a friend.');
-    return;
-  }
-  if (email.toLowerCase() === String(userId).toLowerCase()) {
-    alert('Use a different email than your own account.');
+    alert('You must be logged in.');
     return;
   }
 
   try {
     btn.disabled = true;
-    btn.textContent = 'Adding...';
-    const response = await fetch('/api/friends', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, friend_id: email })
-    });
-    if (response.status === 503) {
-      alert('Friends require Supabase. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
-      return;
+    btn.textContent = 'Adding…';
+
+    if (status === 'friend') {
+      const email = name;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('For a friend, enter a valid email address.');
+        return;
+      }
+      if (email.toLowerCase() === String(userId).toLowerCase()) {
+        alert('Use a different email than your own account.');
+        return;
+      }
+      const response = await fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          friend_id: email,
+          private_notes: notes || undefined
+        })
+      });
+      if (response.status === 503) {
+        alert('Friends require Supabase. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
+        return;
+      }
+      if (response.status === 409) {
+        const j = await response.json().catch(() => ({}));
+        alert(j.error || 'That friend is already in your list.');
+        return;
+      }
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to add friend');
+      }
+
+      if (groupName) {
+        const inv = await fetch('/api/groups/invite-member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            group_name: groupName,
+            member: email
+          })
+        });
+        if (!inv.ok && inv.status !== 409) {
+          const j = await inv.json().catch(() => ({}));
+          alert(
+            j.error ||
+              'Friend request saved, but the group invite could not be sent.'
+          );
+        }
+      }
+    } else {
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          name,
+          private_notes: notes || undefined
+        })
+      });
+      if (response.status === 503) {
+        alert('Contacts require Supabase.');
+        return;
+      }
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to add contact');
+      }
     }
-    if (response.status === 409) {
-      const j = await response.json().catch(() => ({}));
-      alert(j.error || 'That friend is already in your list.');
-      return;
-    }
-    if (!response.ok) {
-      const j = await response.json().catch(() => ({}));
-      throw new Error(j.error || 'Failed to add friend');
-    }
-    input.value = '';
+
+    resetAddFriendModal();
+    if (window.jQuery) window.jQuery('#addFriendModal').modal('hide');
     await loadFriendsPage();
   } catch (err) {
     console.error(err);
-    alert(err.message || 'Failed to add friend. Please try again.');
+    alert(err.message || 'Something went wrong. Please try again.');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Add friend';
+    btn.textContent = 'Add';
+  }
+}
+
+async function deleteContactFromTable(btn) {
+  if (
+    !confirm(
+      "Are you sure you want to delete this contact? It can't be undone."
+    )
+  ) {
+    return;
+  }
+
+  const userId = await getLoggedInUserId();
+  if (!userId) {
+    alert('You must be logged in.');
+    return;
+  }
+
+  const name = btn.dataset.name || '';
+  const contactId = btn.dataset.contactId || '';
+
+  try {
+    let url =
+      '/api/contacts?user_id=' + encodeURIComponent(userId);
+    if (contactId) {
+      url += '&id=' + encodeURIComponent(contactId);
+    } else if (name) {
+      url += '&name=' + encodeURIComponent(name);
+    } else {
+      alert('Nothing to delete.');
+      return;
+    }
+
+    const response = await fetch(url, { method: 'DELETE' });
+    if (response.status === 503) {
+      alert('Contacts require Supabase.');
+      return;
+    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to delete');
+    }
+    if (result.deleted === 0) {
+      alert('No matching contact was found for this name.');
+    }
+    await loadFriendsPage();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Could not delete. Please try again.');
+  }
+}
+
+function openRowDetailModal(index) {
+  const entry = friendsListEntriesCache[index];
+  if (!entry) return;
+  const nameEl = document.getElementById('row-detail-name');
+  const statusEl = document.getElementById('row-detail-status');
+  const groupsEl = document.getElementById('row-detail-groups');
+  const notesEl = document.getElementById('row-detail-notes');
+  const modal = document.getElementById('rowDetailModal');
+  if (!nameEl || !statusEl || !groupsEl || !notesEl || !modal) return;
+
+  nameEl.value = entry.name || '';
+  nameEl.readOnly = entry.type !== 'contact';
+  nameEl.classList.toggle('bg-light', entry.type !== 'contact');
+  statusEl.value = entry.type === 'friend' ? 'Friend' : 'Contact';
+  groupsEl.value =
+    entry.groupsList && entry.groupsList.length
+      ? entry.groupsList.join(', ')
+      : '—';
+  notesEl.value = entry.notes || '';
+  modal.dataset.entryIndex = String(index);
+  if (window.jQuery) window.jQuery('#rowDetailModal').modal('show');
+}
+
+async function rowDetailSubmit() {
+  const modal = document.getElementById('rowDetailModal');
+  const nameEl = document.getElementById('row-detail-name');
+  const notesEl = document.getElementById('row-detail-notes');
+  const btn = document.getElementById('row-detail-submit');
+  if (!modal || !nameEl || !notesEl || !btn) return;
+
+  const idx = parseInt(modal.dataset.entryIndex, 10);
+  if (isNaN(idx)) return;
+  const entry = friendsListEntriesCache[idx];
+  if (!entry) return;
+
+  const userId = await getLoggedInUserId();
+  if (!userId) {
+    alert('You must be logged in.');
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    if (entry.type === 'contact') {
+      const name = nameEl.value.trim();
+      if (!name) {
+        alert('Name cannot be empty.');
+        return;
+      }
+      const response = await fetch(
+        '/api/contacts/' + encodeURIComponent(entry.id),
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            name,
+            notes: notesEl.value
+          })
+        }
+      );
+      if (response.status === 503) {
+        alert('Contacts require Supabase.');
+        return;
+      }
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to save');
+      }
+    } else {
+      const response = await fetch(
+        '/api/friends/' + encodeURIComponent(entry.id),
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            private_notes: notesEl.value
+          })
+        }
+      );
+      if (response.status === 503) {
+        alert('Friends require Supabase.');
+        return;
+      }
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to save');
+      }
+    }
+
+    if (window.jQuery) window.jQuery('#rowDetailModal').modal('hide');
+    await loadFriendsPage();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Could not save. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit';
   }
 }
 
@@ -336,17 +693,45 @@ updateContentVisibility = function (isAuthenticated) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('add-friend-form');
-  if (form) {
-    form.addEventListener('submit', addFriendSubmit);
+  const addModal = document.getElementById('addFriendModal');
+  if (addModal) {
+    addModal.addEventListener('show.bs.modal', () => {
+      resetAddFriendModal();
+      loadOwnedGroupsIntoModal();
+    });
   }
+  const afStatus = document.getElementById('af-status');
+  if (afStatus) {
+    afStatus.addEventListener('change', syncAddFriendModalHints);
+  }
+  const afSubmit = document.getElementById('af-submit');
+  if (afSubmit) {
+    afSubmit.addEventListener('click', addFriendModalSubmit);
+  }
+  syncAddFriendModalHints();
   const tbody = document.getElementById('friends-tbody');
   if (tbody) {
     tbody.addEventListener('click', (e) => {
+      const del = e.target.closest('.friends-delete-btn');
+      if (del) {
+        deleteContactFromTable(del);
+        return;
+      }
       const b = e.target.closest('.friends-remove-btn');
-      if (!b || !b.dataset.id) return;
-      removeFriend(b.dataset.id);
+      if (b && b.dataset.id) {
+        removeFriend(b.dataset.id);
+        return;
+      }
+      const tr = e.target.closest('tr.friends-table-row');
+      if (!tr) return;
+      const idx = parseInt(tr.dataset.entryIndex, 10);
+      if (isNaN(idx)) return;
+      openRowDetailModal(idx);
     });
+  }
+  const rowDetailBtn = document.getElementById('row-detail-submit');
+  if (rowDetailBtn) {
+    rowDetailBtn.addEventListener('click', rowDetailSubmit);
   }
   const reqTbody = document.getElementById('requests-tbody');
   if (reqTbody) {

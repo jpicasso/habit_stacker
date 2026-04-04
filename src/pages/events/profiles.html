@@ -1,0 +1,266 @@
+---
+title: 'Private'
+course: 'Courses'
+aboutNav: true
+---
+
+{{> navbar}}
+
+<style>
+  #tasks-table.events-table th.events-col-who,
+  #tasks-table.events-table td.events-col-who,
+  #tasks-table.events-table th.events-col-shared,
+  #tasks-table.events-table td.events-col-shared,
+  #tasks-table.events-table th.events-col-owner,
+  #tasks-table.events-table td.events-col-owner {
+    width: 5em;
+    max-width: 5em;
+    box-sizing: border-box;
+  }
+
+  .profile-page-header .profile-avatar-wrap {
+    flex-shrink: 0;
+  }
+
+  .profile-page-header .profile-avatar-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+    background: #e9ecef;
+  }
+
+  .profile-page-header #profile-photo-edit-btn {
+    bottom: -2px;
+    right: -2px;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+</style>
+
+<main class="main main--interior">
+  <div class="i-section mb-4">
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            {{> events-accord}}
+        </div>
+        </nav>
+        <section class="col-md-9 ml-sm-auto col-lg-10 content">
+          <!-- Protected content (hidden by default) -->
+          <div id="private-content" style="display: none;">
+            <!-- Event Management Section -->
+            <div class="mt-5">
+            
+          <!-- View / edit event (opened by clicking a table row) -->
+          <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editEventModalLabel">Event</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="edit-task-form" onsubmit="return false;">
+                    <input type="hidden" id="edit-task-id">
+                    <div class="form-group">
+                      <label for="edit-task-input">Event *</label>
+                      <input type="text" class="form-control" id="edit-task-input" placeholder="Event name" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-event-date">Event date *</label>
+                      <input type="date" class="form-control" id="edit-event-date" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-who">Who</label>
+                      <input type="text" class="form-control" id="edit-who" placeholder="Who">
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-shared">Shared</label>
+                      <textarea class="form-control" id="edit-shared" rows="3" placeholder="People or list this event is shared with"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-owner">Owner</label>
+                      <input type="text" class="form-control" id="edit-owner" placeholder="Owner user id">
+                    </div>
+                    <div class="form-group">
+                      <label for="edit-copied">Copied</label>
+                      <select class="form-control" id="edit-copied">
+                        <option value="">—</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                  <button type="button" class="btn btn-danger" id="edit-event-delete">Delete</button>
+                  <div>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="edit-event-submit">Submit</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+              <!-- Profile header (profiles page only) -->
+              <div class="profile-page-header mb-4">
+                <div class="d-flex align-items-start">
+                  <div class="profile-avatar-wrap mr-3 position-relative">
+                    <img id="profile-user-photo" class="rounded-circle profile-avatar-img" width="72" height="72" alt="">
+                    <button type="button" id="profile-photo-edit-btn" class="btn btn-sm btn-light border shadow-sm position-absolute" aria-label="Edit profile photo">Edit</button>
+                  </div>
+                  <div class="flex-grow-1 min-w-0 pt-1">
+                    <div id="profile-user-email" class="h5 mb-2 text-break font-weight-normal"></div>
+                    <div class="text-muted small mb-1">Connections: Me</div>
+                    <div class="text-muted small mb-3">Location: Palo Alto, CA</div>
+                    <div class="mb-3 d-flex flex-wrap align-items-center" id="profile-section-pills" role="tablist" aria-label="Profile sections">
+                      <button type="button" class="btn btn-sm btn-primary profile-section-btn mr-1 mb-1" data-section="notes" style="border-radius: 2rem;">My notes</button>
+                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="work" style="border-radius: 2rem;">Work</button>
+                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="family" style="border-radius: 2rem;">Family</button>
+                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="interests" style="border-radius: 2rem;">Interests</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced filters (no "Who" on profiles) -->
+              <div id="events-advanced-filters" class="mb-3 px-3 py-2 bg-light rounded border">
+                <div class="d-flex flex-nowrap align-items-end flex-wrap">
+
+                  <!-- Date filter -->
+                  <div class="mr-3 mb-2">
+                    <div class="small font-weight-bold text-muted mb-1">Event Date</div>
+                    <div class="d-flex align-items-center flex-nowrap">
+                      <select id="date-filter-type" class="form-control form-control-sm mr-1" style="width: auto;">
+                        <option value="">Any date</option>
+                        <option value="before">Before</option>
+                        <option value="after">After</option>
+                        <option value="between">Between</option>
+                      </select>
+                      <input type="date" id="date-filter-1" class="form-control form-control-sm mr-1" style="width: auto; display: none;">
+                      <span id="date-filter-and" class="mr-1 text-muted small" style="display: none;">and</span>
+                      <input type="date" id="date-filter-2" class="form-control form-control-sm" style="width: auto; display: none;">
+                    </div>
+                  </div>
+
+                  <!-- Type filter -->
+                  <div class="mr-3 mb-2">
+                    <div class="small font-weight-bold text-muted mb-1">Type</div>
+                    <select id="type-filter" class="form-control form-control-sm" style="width: auto;">
+                      <option value="">All</option>
+                      <option value="Life">Life</option>
+                      <option value="Weekly">Weekly</option>
+                    </select>
+                  </div>
+
+                  <!-- Clear -->
+                  <div class="ml-auto mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-adv-filters-btn">Clear</button>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Add Event button -->
+              <div class="mb-3 text-right">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addEventModal">
+                  + Add Event
+                </button>
+              </div>
+
+              <!-- Events table -->
+              <div class="mb-4">
+                <div id="tasks-loading" class="text-center py-3">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+                <div id="tasks-error" class="alert alert-danger" style="display: none;"></div>
+                <div id="tasks-empty" class="alert alert-info" style="display: none;">No events yet. Click "+ Add Event" to create one.</div>
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover events-table" id="tasks-table" style="display: none;">
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th style="width: 130px;">Event Date</th>
+                        <th style="width: 100px;">Type</th>
+                        <th class="events-col-who">Who</th>
+                        <th class="events-col-shared">Shared</th>
+                        <th class="events-col-owner">Owner</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tasks-tbody">
+                      <!-- Events will be inserted here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <!-- Login required message (shown by default) -->
+          <div id="login-required-message" style="display: none;">
+            <h1 class="display-3 mb-3">Access Restricted</h1>
+            <div class="alert alert-warning" role="alert">
+              <h4 class="alert-heading">You must log in to see this page</h4>
+              <p>This page is only accessible to authenticated users. Please log in to continue.</p>
+              <hr>
+              <p class="mb-0">
+                <button class="btn btn-primary" onclick="handleLogin(); return false;">Log In</button>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Add Event Modal -->
+<div class="modal fade" id="addEventModal" tabindex="-1" role="dialog" aria-labelledby="addEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addEventModalLabel">Add New Event</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="task-form" novalidate>
+          <div class="form-group">
+            <label for="task-input">Event <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="task-input" placeholder="Enter event name" required>
+          </div>
+          <div class="form-group">
+            <label for="event-date">Event Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="event-date" required>
+          </div>
+          <div class="form-group">
+            <label for="who-input">Who</label>
+            <input type="text" class="form-control" id="who-input" placeholder="Who">
+          </div>
+          <div class="form-group">
+            <label for="shared-input">Shared</label>
+            <textarea class="form-control" id="shared-input" rows="3" placeholder="People or list this event is shared with"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="add-event-submit">Add Event</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script defer src="/events/events_table.js"></script>
+
+{{> main-site-footer }}

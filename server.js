@@ -15,6 +15,7 @@ const supabaseTemporary = require('./supabase-temporary');
 const supabaseEvents = require('./supabase-events');
 const supabaseFriends = require('./supabase-friends');
 const supabaseGroups = require('./supabase-groups');
+const supabaseContacts = require('./supabase-contacts');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -307,9 +308,11 @@ app.post('/api/friends', async (req, res) => {
     if (!friendTarget) {
       return res.status(400).json({ error: 'friend_id (or friend_email) is required' });
     }
+    const { private_notes } = req.body || {};
     const row = await supabaseFriends.insertFriend({
       user_id: user_id.trim(),
-      friend_id: friendTarget
+      friend_id: friendTarget,
+      private_notes
     });
     res.status(201).json(row);
   } catch (error) {
@@ -329,21 +332,28 @@ app.patch('/api/friends/:id', async (req, res) => {
       return res.status(503).json({ error: 'Friends require Supabase' });
     }
     const { id } = req.params;
-    const { user_id, action } = req.body || {};
+    const { user_id, action, private_notes } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
-    if (action !== 'accept' && action !== 'reject') {
-      return res.status(400).json({ error: 'action must be accept or reject' });
+    if (action === 'accept' || action === 'reject') {
+      const ok = await supabaseFriends.respondToInvite(id, user_id.trim(), action);
+      if (!ok) {
+        return res.status(404).json({ error: 'Request not found or not allowed' });
+      }
+      return res.json({ message: 'Updated' });
     }
-    const ok = await supabaseFriends.respondToInvite(id, user_id.trim(), action);
-    if (!ok) {
-      return res.status(404).json({ error: 'Request not found or not allowed' });
+    if (private_notes !== undefined) {
+      const ok = await supabaseFriends.updateFriendPrivateNotes(id, user_id.trim(), private_notes);
+      if (!ok) {
+        return res.status(404).json({ error: 'Friend entry not found' });
+      }
+      return res.json({ message: 'Updated' });
     }
-    res.json({ message: 'Updated' });
+    return res.status(400).json({ error: 'Send action (accept/reject) or private_notes' });
   } catch (error) {
-    console.error('Error responding to friend request:', error);
-    res.status(500).json({ error: error.message || 'Failed to update request' });
+    console.error('Error updating friend:', error);
+    res.status(500).json({ error: error.message || 'Failed to update friend' });
   }
 });
 
@@ -368,7 +378,166 @@ app.delete('/api/friends/:id', async (req, res) => {
   }
 });
 
+// --- Contacts API (Supabase `contacts` table) ---
+
+app.get('/api/contacts', async (req, res) => {
+  try {
+    if (!supabaseContacts.isConfigured()) {
+      return res.status(503).json({ error: 'Contacts require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseContacts.getContactsForOwner(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch contacts' });
+  }
+});
+
+app.post('/api/contacts', async (req, res) => {
+  try {
+    if (!supabaseContacts.isConfigured()) {
+      return res.status(503).json({ error: 'Contacts require Supabase' });
+    }
+    const { user_id, name, private_notes } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    const row = await supabaseContacts.insertContact({
+      name: name.trim(),
+      owner: user_id.trim(),
+      private_notes
+    });
+    res.status(201).json(row);
+  } catch (error) {
+    console.error('Error adding contact:', error);
+    res.status(500).json({ error: error.message || 'Failed to add contact' });
+  }
+});
+
+app.patch('/api/contacts/:id', async (req, res) => {
+  try {
+    if (!supabaseContacts.isConfigured()) {
+      return res.status(503).json({ error: 'Contacts require Supabase' });
+    }
+    const { id } = req.params;
+    const { user_id, name, notes } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (name === undefined && notes === undefined) {
+      return res.status(400).json({ error: 'Provide name and/or notes' });
+    }
+    await supabaseContacts.updateContactForOwner({
+      id,
+      ownerUserId: user_id.trim(),
+      name,
+      notes
+    });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error updating contact:', error);
+    res.status(status).json({ error: error.message || 'Failed to update contact' });
+  }
+});
+
+app.delete('/api/contacts', async (req, res) => {
+  try {
+    if (!supabaseContacts.isConfigured()) {
+      return res.status(503).json({ error: 'Contacts require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const id = req.query.id;
+    const name = req.query.name;
+    if (id != null && String(id).trim() !== '') {
+      const ok = await supabaseContacts.deleteContactByIdForOwner(String(id).trim(), userId.trim());
+      return res.json({ deleted: ok ? 1 : 0 });
+    }
+    if (name != null && String(name).trim() !== '') {
+      const n = await supabaseContacts.deleteContactsByOwnerAndName(userId.trim(), String(name).trim());
+      return res.json({ deleted: n });
+    }
+    return res.status(400).json({ error: 'Provide id or name' });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error deleting contact:', error);
+    res.status(status).json({ error: error.message || 'Failed to delete contact' });
+  }
+});
+
 // --- Groups API (Supabase `group_members` + `groups` tables) ---
+
+app.get('/api/groups/connections', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const connections = await supabaseGroups.getConnectionsForUser(userId.trim());
+    res.json(connections);
+  } catch (error) {
+    console.error('Error fetching connections:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch connections' });
+  }
+});
+
+app.get('/api/groups/owned', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseGroups.listGroupsOwnedByUser(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching owned groups:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch owned groups' });
+  }
+});
+
+app.post('/api/groups/invite-member', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_name, member } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!group_name || typeof group_name !== 'string' || !group_name.trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    if (!member || typeof member !== 'string' || !member.trim()) {
+      return res.status(400).json({ error: 'member (email) is required' });
+    }
+    await supabaseGroups.inviteMemberAsOwner({
+      group_name: group_name.trim(),
+      member: member.trim(),
+      ownerUserId: user_id.trim()
+    });
+    res.status(201).json({ message: 'Invited' });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error inviting member:', error);
+    res.status(status).json({ error: error.message || 'Failed to invite member' });
+  }
+});
 
 app.get('/api/groups/members', async (req, res) => {
   try {
@@ -485,6 +654,36 @@ app.post('/api/groups', async (req, res) => {
       admins: Array.isArray(admins) ? admins : [],
       invited_members: Array.isArray(invited_members) ? invited_members : []
     });
+
+    // "Only me": ensure each listed member appears as a friend or contact; otherwise add a contact row
+    const vis = visibility.trim();
+    if (
+      vis === 'Only me' &&
+      supabaseFriends.isConfigured() &&
+      supabaseContacts.isConfigured()
+    ) {
+      const owner = user_id.trim();
+      const ownerLower = owner.toLowerCase();
+      const members = Array.isArray(invited_members) ? invited_members : [];
+      for (const raw of members) {
+        const email = String(raw || '')
+          .trim()
+          .toLowerCase();
+        if (!email || email === ownerLower) continue;
+        try {
+          const isFriend = await supabaseFriends.hasAnyFriendshipWith(owner, email);
+          if (isFriend) continue;
+          const isContact = await supabaseContacts.hasContactForOwner(owner, email);
+          if (isContact) continue;
+          await supabaseContacts.insertContact({ name: email, owner });
+        } catch (ensureErr) {
+          if (ensureErr.code !== '23505') {
+            console.warn('Could not ensure contact for group member:', email, ensureErr.message);
+          }
+        }
+      }
+    }
+
     res.status(201).json(result);
   } catch (error) {
     console.error('Error creating group:', error);
