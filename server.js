@@ -534,11 +534,17 @@ app.get('/api/profile/work', async (req, res) => {
     if (!supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Profiles require Supabase' });
     }
+    // Prefer handle lookup; fall back to email (user_id)
+    const handle = req.query.handle;
     const userId = req.query.user_id;
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
+    let row = null;
+    if (handle && handle.trim()) {
+      row = await supabaseProfiles.getWorkProfileByHandle(handle.trim());
+    } else if (userId && userId.trim()) {
+      row = await supabaseProfiles.getWorkProfileByEmail(userId.trim());
+    } else {
+      return res.status(400).json({ error: 'handle or user_id query parameter is required' });
     }
-    const row = await supabaseProfiles.getWorkProfileByEmail(userId.trim());
     res.json(row);
   } catch (error) {
     console.error('Error fetching work profile:', error);
@@ -564,6 +570,82 @@ app.put('/api/profile/work', async (req, res) => {
   } catch (error) {
     console.error('Error saving work profile:', error);
     res.status(500).json({ error: error.message || 'Failed to save work profile' });
+  }
+});
+
+app.get('/api/profile/family', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const handle = req.query.handle;
+    if (!handle || !handle.trim()) {
+      return res.status(400).json({ error: 'handle query parameter is required' });
+    }
+    const row = await supabaseProfiles.getFamilyProfileByHandle(handle.trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching family profile:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch family profile' });
+  }
+});
+
+app.put('/api/profile/family', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { user_id, ...familyFields } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const row = await supabaseProfiles.upsertFamilyProfile(user_id.trim(), familyFields);
+    res.json(row);
+  } catch (error) {
+    console.error('Error saving family profile:', error);
+    res.status(500).json({ error: error.message || 'Failed to save family profile' });
+  }
+});
+
+app.get('/api/profile/interests', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const handle = req.query.handle;
+    if (!handle || !handle.trim()) {
+      return res.status(400).json({ error: 'handle query parameter is required' });
+    }
+    const row = await supabaseProfiles.getInterestsProfileByHandle(handle.trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching interests:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch interests' });
+  }
+});
+
+app.put('/api/profile/interests', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { user_id, ...interestFields } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const row = await supabaseProfiles.upsertInterestsProfile(user_id.trim(), interestFields);
+    res.json(row);
+  } catch (error) {
+    console.error('Error saving interests:', error);
+    res.status(500).json({ error: error.message || 'Failed to save interests' });
   }
 });
 

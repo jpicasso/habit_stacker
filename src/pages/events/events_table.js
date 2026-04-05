@@ -769,7 +769,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       btn.classList.remove('btn-outline-primary');
       btn.classList.add('btn-primary');
-      document.body.dataset.profileSection = btn.dataset.section || '';
+      const section = btn.dataset.section || 'notes';
+      document.body.dataset.profileSection = section;
+      showProfileSection(section);
     });
   }
   const profileEditBtn = document.getElementById('profile-photo-edit-btn');
@@ -789,6 +791,45 @@ document.addEventListener('DOMContentLoaded', () => {
   if (editProfileSubmit) {
     editProfileSubmit.addEventListener('click', function() {
       submitEditProfileForm();
+    });
+  }
+
+  const editWorkModalEl = document.getElementById('editWorkModal');
+  if (editWorkModalEl && window.jQuery) {
+    window.jQuery(editWorkModalEl).on('show.bs.modal', function() {
+      populateEditWorkModal();
+    });
+  }
+  const editWorkSubmit = document.getElementById('edit-work-submit');
+  if (editWorkSubmit) {
+    editWorkSubmit.addEventListener('click', function() {
+      submitEditWorkForm();
+    });
+  }
+
+  const editFamilyModalEl = document.getElementById('editFamilyModal');
+  if (editFamilyModalEl && window.jQuery) {
+    window.jQuery(editFamilyModalEl).on('show.bs.modal', function() {
+      populateEditFamilyModal();
+    });
+  }
+  const editFamilySubmit = document.getElementById('edit-family-submit');
+  if (editFamilySubmit) {
+    editFamilySubmit.addEventListener('click', function() {
+      submitEditFamilyForm();
+    });
+  }
+
+  const editInterestsModalEl = document.getElementById('editInterestsModal');
+  if (editInterestsModalEl && window.jQuery) {
+    window.jQuery(editInterestsModalEl).on('show.bs.modal', function() {
+      populateEditInterestsModal();
+    });
+  }
+  const editInterestsSubmit = document.getElementById('edit-interests-submit');
+  if (editInterestsSubmit) {
+    editInterestsSubmit.addEventListener('click', function() {
+      submitEditInterestsForm();
     });
   }
 
@@ -1202,6 +1243,399 @@ async function deleteEventFromModal() {
   }
 }
 
+// ── Work & Education section (profiles.html only) ────────────────────────────
+
+let cachedWorkRow = null;
+let workSectionLoaded = false;
+
+function showProfileSection(section) {
+  const notesEl     = document.getElementById('profile-section-notes');
+  const workEl      = document.getElementById('profile-section-work');
+  const familyEl    = document.getElementById('profile-section-family');
+  const interestsEl = document.getElementById('profile-section-interests');
+  if (notesEl)     notesEl.style.display     = section === 'notes'     ? '' : 'none';
+  if (workEl)      workEl.style.display      = section === 'work'      ? '' : 'none';
+  if (familyEl)    familyEl.style.display    = section === 'family'    ? '' : 'none';
+  if (interestsEl) interestsEl.style.display = section === 'interests' ? '' : 'none';
+  if (section === 'work'      && !workSectionLoaded)      loadWorkSection();
+  if (section === 'family'    && !familySectionLoaded)    loadFamilySection();
+  if (section === 'interests' && !interestsSectionLoaded) loadInterestsSection();
+}
+
+/** Format a YYYY-MM-DD string as "Mon YYYY". */
+function fmtWorkDate(val, nullFallback) {
+  if (!val || String(val).trim() === '') return nullFallback != null ? nullFallback : '';
+  const parts = String(val).split('-');
+  if (parts.length < 2) return val;
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+  if (isNaN(d)) return val;
+  return d.toLocaleString('default', { month: 'short', year: 'numeric' });
+}
+
+function workEntryHtml(company, title, startDate, endDate, isCurrent) {
+  if (!company && !title) return '';
+  const parts = [
+    company ? escapeHtml(company) : '',
+    title   ? escapeHtml(title)   : '',
+    [fmtWorkDate(startDate, ''), isCurrent && !endDate ? 'Present' : fmtWorkDate(endDate, '')]
+      .filter(Boolean).join(' – ')
+  ].filter(Boolean).join(' · ');
+  return '<div class="small mb-1">' + parts + '</div>';
+}
+
+function eduEntryHtml(school, major, startDate, endDate) {
+  if (!school && !major) return '';
+  const parts = [
+    school ? escapeHtml(school) : '',
+    major  ? escapeHtml(major)  : '',
+    [fmtWorkDate(startDate, ''), fmtWorkDate(endDate, '')].filter(Boolean).join(' – ')
+  ].filter(Boolean).join(' · ');
+  return '<div class="small mb-1">' + parts + '</div>';
+}
+
+function renderWorkSection(row) {
+  const contentEl = document.getElementById('work-section-content');
+  if (!contentEl) return;
+  if (!row) {
+    contentEl.innerHTML = '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+    return;
+  }
+  let html = '';
+
+  const jobs = [
+    workEntryHtml(row.current_company, row.current_title, row.current_start_date, row.current_end_date, true),
+    ...[1,2,3,4,5,6,7].map(i =>
+      workEntryHtml(row['company'+i], row['title'+i], row['start_date'+i], row['end_date'+i], false))
+  ].join('');
+  if (jobs) {
+    html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2">Work</h6>' + jobs;
+  }
+
+  const edu = [1,2,3,4].map(i =>
+    eduEntryHtml(row['education'+i], row['major'+i], row['start_date_edu'+i], row['end_date_edu'+i])
+  ).join('');
+  if (edu) {
+    html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2 mt-3">Education</h6>' + edu;
+  }
+
+  contentEl.innerHTML = html ||
+    '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+}
+
+async function loadWorkSection() {
+  const loadingEl = document.getElementById('work-section-loading');
+  const errorEl   = document.getElementById('work-section-error');
+
+  const handle = cachedProfileRow && cachedProfileRow.handle
+    ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+    : '';
+
+  if (!handle) {
+    const contentEl = document.getElementById('work-section-content');
+    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    workSectionLoaded = true;
+    return;
+  }
+
+  try {
+    if (loadingEl) loadingEl.style.display = '';
+    if (errorEl)   errorEl.style.display   = 'none';
+
+    const res = await fetch('/api/profile/work?handle=' + encodeURIComponent(handle));
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const row = await res.json();
+    cachedWorkRow = row;
+    renderWorkSection(row);
+  } catch (err) {
+    console.error('Error loading work section:', err);
+    if (errorEl) { errorEl.textContent = 'Failed to load work data.'; errorEl.style.display = ''; }
+  } finally {
+    if (loadingEl) loadingEl.style.display = 'none';
+    workSectionLoaded = true;
+  }
+}
+
+function populateEditWorkModal() {
+  const row = cachedWorkRow || {};
+  const fields = [
+    'current_company','current_title','current_start_date','current_end_date',
+    'company1','title1','start_date1','end_date1',
+    'company2','title2','start_date2','end_date2',
+    'company3','title3','start_date3','end_date3',
+    'company4','title4','start_date4','end_date4',
+    'company5','title5','start_date5','end_date5',
+    'company6','title6','start_date6','end_date6',
+    'company7','title7','start_date7','end_date7',
+    'education1','major1','start_date_edu1','end_date_edu1',
+    'education2','major2','start_date_edu2','end_date_edu2',
+    'education3','major3','start_date_edu3','end_date_edu3',
+    'education4','major4','start_date_edu4','end_date_edu4'
+  ];
+  fields.forEach(key => {
+    const el = document.getElementById('ew-' + key);
+    if (el) el.value = row[key] != null ? String(row[key]) : '';
+  });
+  const errEl = document.getElementById('edit-work-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+}
+
+async function submitEditWorkForm() {
+  const errEl     = document.getElementById('edit-work-error');
+  const submitBtn = document.getElementById('edit-work-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+
+  const keys = [
+    'current_company','current_title','current_start_date','current_end_date',
+    'company1','title1','start_date1','end_date1',
+    'company2','title2','start_date2','end_date2',
+    'company3','title3','start_date3','end_date3',
+    'company4','title4','start_date4','end_date4',
+    'company5','title5','start_date5','end_date5',
+    'company6','title6','start_date6','end_date6',
+    'company7','title7','start_date7','end_date7',
+    'education1','major1','start_date_edu1','end_date_edu1',
+    'education2','major2','start_date_edu2','end_date_edu2',
+    'education3','major3','start_date_edu3','end_date_edu3',
+    'education4','major4','start_date_edu4','end_date_edu4'
+  ];
+  const workFields = {};
+  keys.forEach(key => {
+    const el = document.getElementById('ew-' + key);
+    workFields[key] = el ? el.value.trim() || null : null;
+  });
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/profile/work', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: cachedUserEmail, ...workFields })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to save');
+    cachedWorkRow = data;
+    workSectionLoaded = false;
+    renderWorkSection(data);
+    if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
+  } catch (err) {
+    console.error('Error saving work:', err);
+    if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+// ── Family section (profiles.html only) ──────────────────────────────────────
+
+let cachedFamilyRow = null;
+let familySectionLoaded = false;
+
+function renderFamilySection(row) {
+  const contentEl = document.getElementById('family-section-content');
+  if (!contentEl) return;
+  if (!row) {
+    contentEl.innerHTML = '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
+    return;
+  }
+
+  let html = '';
+  for (let i = 1; i <= 9; i++) {
+    const rel  = row['family_relationship' + i];
+    const name = row['family_name' + i];
+    if (!rel && !name) continue;
+    const parts = [
+      rel  ? '<span class="text-muted">' + escapeHtml(rel) + '</span>' : '',
+      name ? escapeHtml(name) : ''
+    ].filter(Boolean).join(' · ');
+    html += '<div class="small mb-1">' + parts + '</div>';
+  }
+
+  contentEl.innerHTML = html ||
+    '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
+}
+
+async function loadFamilySection() {
+  const loadingEl = document.getElementById('family-section-loading');
+  const errorEl   = document.getElementById('family-section-error');
+
+  const handle = cachedProfileRow && cachedProfileRow.handle
+    ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+    : '';
+
+  if (!handle) {
+    const contentEl = document.getElementById('family-section-content');
+    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    familySectionLoaded = true;
+    return;
+  }
+
+  try {
+    if (loadingEl) loadingEl.style.display = '';
+    if (errorEl)   errorEl.style.display   = 'none';
+
+    const res = await fetch('/api/profile/family?handle=' + encodeURIComponent(handle));
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const row = await res.json();
+    cachedFamilyRow = row;
+    renderFamilySection(row);
+  } catch (err) {
+    console.error('Error loading family section:', err);
+    if (errorEl) { errorEl.textContent = 'Failed to load family data.'; errorEl.style.display = ''; }
+  } finally {
+    if (loadingEl) loadingEl.style.display = 'none';
+    familySectionLoaded = true;
+  }
+}
+
+function populateEditFamilyModal() {
+  const row = cachedFamilyRow || {};
+  for (let i = 1; i <= 9; i++) {
+    const relEl  = document.getElementById('ef-family_relationship' + i);
+    const nameEl = document.getElementById('ef-family_name' + i);
+    if (relEl)  relEl.value  = row['family_relationship' + i] || '';
+    if (nameEl) nameEl.value = row['family_name' + i] || '';
+  }
+  const errEl = document.getElementById('edit-family-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+}
+
+async function submitEditFamilyForm() {
+  const errEl     = document.getElementById('edit-family-error');
+  const submitBtn = document.getElementById('edit-family-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+
+  const familyFields = {};
+  for (let i = 1; i <= 9; i++) {
+    const relEl  = document.getElementById('ef-family_relationship' + i);
+    const nameEl = document.getElementById('ef-family_name' + i);
+    familyFields['family_relationship' + i] = relEl  ? relEl.value.trim()  || null : null;
+    familyFields['family_name'         + i] = nameEl ? nameEl.value.trim() || null : null;
+  }
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/profile/family', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: cachedUserEmail, ...familyFields })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to save');
+    cachedFamilyRow = data;
+    familySectionLoaded = false;
+    renderFamilySection(data);
+    if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
+  } catch (err) {
+    console.error('Error saving family:', err);
+    if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+// ── Interests section (profiles.html only) ───────────────────────────────────
+
+let cachedInterestsRow = null;
+let interestsSectionLoaded = false;
+
+function renderInterestsSection(row) {
+  const contentEl = document.getElementById('interests-section-content');
+  if (!contentEl) return;
+  if (!row) {
+    contentEl.innerHTML = '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
+    return;
+  }
+
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const val = row['interest' + i];
+    if (!val) continue;
+    html += '<div class="small mb-1">' + escapeHtml(val) + '</div>';
+  }
+
+  contentEl.innerHTML = html ||
+    '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
+}
+
+async function loadInterestsSection() {
+  const loadingEl = document.getElementById('interests-section-loading');
+  const errorEl   = document.getElementById('interests-section-error');
+
+  const handle = cachedProfileRow && cachedProfileRow.handle
+    ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+    : '';
+
+  if (!handle) {
+    const contentEl = document.getElementById('interests-section-content');
+    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    interestsSectionLoaded = true;
+    return;
+  }
+
+  try {
+    if (loadingEl) loadingEl.style.display = '';
+    if (errorEl)   errorEl.style.display   = 'none';
+
+    const res = await fetch('/api/profile/interests?handle=' + encodeURIComponent(handle));
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const row = await res.json();
+    cachedInterestsRow = row;
+    renderInterestsSection(row);
+  } catch (err) {
+    console.error('Error loading interests:', err);
+    if (errorEl) { errorEl.textContent = 'Failed to load interests.'; errorEl.style.display = ''; }
+  } finally {
+    if (loadingEl) loadingEl.style.display = 'none';
+    interestsSectionLoaded = true;
+  }
+}
+
+function populateEditInterestsModal() {
+  const row = cachedInterestsRow || {};
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('ei-interest' + i);
+    if (el) el.value = row['interest' + i] || '';
+  }
+  const errEl = document.getElementById('edit-interests-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+}
+
+async function submitEditInterestsForm() {
+  const errEl     = document.getElementById('edit-interests-error');
+  const submitBtn = document.getElementById('edit-interests-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+
+  const interestFields = {};
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('ei-interest' + i);
+    interestFields['interest' + i] = el ? el.value.trim() || null : null;
+  }
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/profile/interests', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: cachedUserEmail, ...interestFields })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to save');
+    cachedInterestsRow = data;
+    interestsSectionLoaded = false;
+    renderInterestsSection(data);
+    if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
+  } catch (err) {
+    console.error('Error saving interests:', err);
+    if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+// ── Load events when content is visible ──────────────────────────────────────
 // Load events when content is visible
 const originalUpdateContentVisibility = updateContentVisibility;
 updateContentVisibility = function(isAuthenticated) {

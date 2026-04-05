@@ -121,6 +121,29 @@ const WORK_UPDATE_KEYS = [
 ];
 
 /**
+ * Fetch work/education fields by handle (the `handle` column in `profiles`).
+ * @returns {Promise<object|null>}
+ */
+async function getWorkProfileByHandle(handle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const h = String(handle || '').trim().replace(/^@+/, '');
+  if (!h) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(WORK_SELECT_FIELDS)
+    .eq('handle', h)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+/**
  * Fetch work/education fields by email.
  * @returns {Promise<object|null>}
  */
@@ -171,10 +194,136 @@ async function upsertWorkProfile(email, workFields) {
   return data;
 }
 
+const FAMILY_SELECT_FIELDS = [
+  'family_relationship1', 'family_name1',
+  'family_relationship2', 'family_name2',
+  'family_relationship3', 'family_name3',
+  'family_relationship4', 'family_name4',
+  'family_relationship5', 'family_name5',
+  'family_relationship6', 'family_name6',
+  'family_relationship7', 'family_name7',
+  'family_relationship8', 'family_name8',
+  'family_relationship9', 'family_name9'
+].join(', ');
+
+const FAMILY_UPDATE_KEYS = [
+  'family_relationship1', 'family_name1',
+  'family_relationship2', 'family_name2',
+  'family_relationship3', 'family_name3',
+  'family_relationship4', 'family_name4',
+  'family_relationship5', 'family_name5',
+  'family_relationship6', 'family_name6',
+  'family_relationship7', 'family_name7',
+  'family_relationship8', 'family_name8',
+  'family_relationship9', 'family_name9'
+];
+
+/**
+ * Fetch family fields by handle.
+ * @returns {Promise<object|null>}
+ */
+async function getFamilyProfileByHandle(handle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const h = String(handle || '').trim().replace(/^@+/, '');
+  if (!h) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(FAMILY_SELECT_FIELDS)
+    .eq('handle', h)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+/**
+ * Update family columns for the profile matching email.
+ * @returns {Promise<object>}
+ */
+async function upsertFamilyProfile(email, familyFields) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const e = normalizeEmail(email);
+  if (!e) throw new Error('email is required');
+
+  const update = {};
+  for (const key of FAMILY_UPDATE_KEYS) {
+    const val = familyFields[key];
+    update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(update)
+    .eq('email', e)
+    .select(FAMILY_SELECT_FIELDS)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+const INTERESTS_SELECT_FIELDS = 'interest1, interest2, interest3, interest4, interest5';
+const INTERESTS_UPDATE_KEYS   = ['interest1', 'interest2', 'interest3', 'interest4', 'interest5'];
+
+async function getInterestsProfileByHandle(handle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const h = String(handle || '').trim().replace(/^@+/, '');
+  if (!h) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(INTERESTS_SELECT_FIELDS)
+    .eq('handle', h)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+async function upsertInterestsProfile(email, interestFields) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const e = normalizeEmail(email);
+  if (!e) throw new Error('email is required');
+
+  const update = {};
+  for (const key of INTERESTS_UPDATE_KEYS) {
+    const val = interestFields[key];
+    update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(update)
+    .eq('email', e)
+    .select(INTERESTS_SELECT_FIELDS)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 module.exports = {
   isConfigured,
   getProfileByEmail,
   upsertProfile,
+  getWorkProfileByHandle,
   getWorkProfileByEmail,
-  upsertWorkProfile
+  upsertWorkProfile,
+  getFamilyProfileByHandle,
+  upsertFamilyProfile,
+  getInterestsProfileByHandle,
+  upsertInterestsProfile
 };
