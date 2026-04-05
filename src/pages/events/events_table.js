@@ -451,8 +451,29 @@ function applyProfileHeaderFromData(user, profileRow) {
   }
   if (emailEl) emailEl.textContent = user.email || '';
   if (imgEl) {
-    imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+    imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
     imgEl.alt = displayName;
+    // Load from Supabase storage bucket using handle
+    const h = profileRow && profileRow.handle
+      ? String(profileRow.handle).trim().replace(/^@+/, '')
+      : '';
+    if (h) {
+      fetch('/api/profile/photo?handle=' + encodeURIComponent(h))
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.url) {
+            const img = new Image();
+            img.onload  = () => { imgEl.src = data.url; };
+            img.onerror = () => { imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER; };
+            img.src = data.url;
+          } else {
+            imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+          }
+        })
+        .catch(() => { imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER; });
+    } else {
+      imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+    }
   }
   if (locEl) {
     const loc =
@@ -774,10 +795,57 @@ document.addEventListener('DOMContentLoaded', () => {
       showProfileSection(section);
     });
   }
-  const profileEditBtn = document.getElementById('profile-photo-edit-btn');
-  if (profileEditBtn) {
-    profileEditBtn.addEventListener('click', () => {
-      // Hook for future photo upload / account settings
+  const profileEditBtn  = document.getElementById('profile-photo-edit-btn');
+  const profilePhotoInput = document.getElementById('profile-photo-input');
+  if (profileEditBtn && profilePhotoInput) {
+    profileEditBtn.addEventListener('click', () => profilePhotoInput.click());
+
+    profilePhotoInput.addEventListener('change', async () => {
+      const file = profilePhotoInput.files && profilePhotoInput.files[0];
+      if (!file) return;
+
+      const handle = cachedProfileRow && cachedProfileRow.handle
+        ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+        : '';
+      if (!handle) {
+        alert('Save your profile (name & handle) before uploading a photo.');
+        return;
+      }
+
+      profileEditBtn.disabled = true;
+      profileEditBtn.textContent = '…';
+
+      try {
+        const imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = e => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const res = await fetch('/api/profile/photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            handle,
+            imageBase64,
+            contentType: file.type || 'image/jpeg'
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        // Bust the cache so the new image loads
+        const imgEl = document.getElementById('profile-user-photo');
+        if (imgEl && data.url) imgEl.src = data.url + '?t=' + Date.now();
+      } catch (err) {
+        console.error('Photo upload error:', err);
+        alert('Photo upload failed: ' + err.message);
+      } finally {
+        profileEditBtn.disabled = false;
+        profileEditBtn.textContent = 'Edit';
+        profilePhotoInput.value = '';
+      }
     });
   }
 

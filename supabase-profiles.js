@@ -315,6 +315,45 @@ async function upsertInterestsProfile(email, interestFields) {
   return data;
 }
 
+const PHOTO_BUCKET = 'profile_photos';
+
+/**
+ * Returns the public URL for a profile photo, or null if not configured.
+ * @param {string} handle
+ * @returns {string|null}
+ */
+function getProfilePhotoUrl(handle) {
+  if (!process.env.SUPABASE_URL || !handle) return null;
+  const h = String(handle).trim().replace(/^@+/, '');
+  if (!h) return null;
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${h}.jpeg`;
+}
+
+/**
+ * Upload (upsert) a profile photo.
+ * @param {string} handle
+ * @param {Buffer} imageBuffer
+ * @param {string} contentType  e.g. 'image/jpeg'
+ * @returns {Promise<string>} Public URL of the uploaded photo
+ */
+async function uploadProfilePhoto(handle, imageBuffer, contentType) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const h = String(handle).trim().replace(/^@+/, '');
+  if (!h) throw new Error('handle is required');
+
+  const path = `${h}.jpeg`;
+  const { error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, imageBuffer, {
+      contentType: contentType || 'image/jpeg',
+      upsert: true
+    });
+
+  if (error) throw error;
+  return getProfilePhotoUrl(h);
+}
+
 module.exports = {
   isConfigured,
   getProfileByEmail,
@@ -325,5 +364,7 @@ module.exports = {
   getFamilyProfileByHandle,
   upsertFamilyProfile,
   getInterestsProfileByHandle,
-  upsertInterestsProfile
+  upsertInterestsProfile,
+  getProfilePhotoUrl,
+  uploadProfilePhoto
 };

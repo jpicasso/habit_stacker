@@ -611,6 +611,41 @@ app.put('/api/profile/family', async (req, res) => {
   }
 });
 
+app.get('/api/profile/photo', async (req, res) => {
+  const handle = req.query.handle;
+  if (!handle || !handle.trim()) {
+    return res.status(400).json({ error: 'handle query parameter is required' });
+  }
+  const url = supabaseProfiles.getProfilePhotoUrl(handle.trim());
+  res.json({ url });
+});
+
+app.post('/api/profile/photo', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { handle, imageBase64, contentType } = req.body || {};
+    if (!handle || !handle.trim()) {
+      return res.status(400).json({ error: 'handle is required' });
+    }
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'imageBase64 is required' });
+    }
+    const base64Data = imageBase64.replace(/^data:[^;]+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    const url = await supabaseProfiles.uploadProfilePhoto(
+      handle.trim(),
+      buffer,
+      contentType || 'image/jpeg'
+    );
+    res.json({ url });
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload photo' });
+  }
+});
+
 app.get('/api/profile/interests', async (req, res) => {
   try {
     if (!supabaseProfiles.isConfigured()) {
