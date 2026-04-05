@@ -479,7 +479,7 @@ app.delete('/api/contacts', async (req, res) => {
   }
 });
 
-// --- Profiles API (Supabase `profiles` table: email, name, handles, location) ---
+// --- Profiles API (Supabase `profiles` table) ---
 
 app.get('/api/profile', async (req, res) => {
   try {
@@ -494,6 +494,10 @@ app.get('/api/profile', async (req, res) => {
     res.json(row);
   } catch (error) {
     console.error('Error fetching profile:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
     res.status(500).json({ error: error.message || 'Failed to fetch profile' });
   }
 });
@@ -503,34 +507,63 @@ app.put('/api/profile', async (req, res) => {
     if (!supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Profiles require Supabase' });
     }
-    const { user_id, name, location } = req.body || {};
-    const handles =
-      req.body && req.body.handles != null && req.body.handles !== ''
-        ? req.body.handles
-        : req.body && req.body.handle != null
-          ? req.body.handle
-          : null;
+    const { user_id, name, handle, location } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
     if (!name || typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ error: 'name is required' });
     }
-    if (!handles || typeof handles !== 'string' || !handles.trim()) {
-      return res.status(400).json({ error: 'handles is required' });
-    }
-    if (!location || typeof location !== 'string' || !location.trim()) {
-      return res.status(400).json({ error: 'location is required' });
+    if (!handle || typeof handle !== 'string' || !handle.trim()) {
+      return res.status(400).json({ error: 'handle is required' });
     }
     const row = await supabaseProfiles.upsertProfile(user_id.trim(), {
       name: name.trim(),
-      handles: handles.trim(),
-      location: location.trim()
+      handle: handle.trim(),
+      location: location ? location.trim() : null
     });
     res.json(row);
   } catch (error) {
     console.error('Error saving profile:', error);
     res.status(500).json({ error: error.message || 'Failed to save profile' });
+  }
+});
+
+app.get('/api/profile/work', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const row = await supabaseProfiles.getWorkProfileByEmail(userId.trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching work profile:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch work profile' });
+  }
+});
+
+app.put('/api/profile/work', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { user_id, ...workFields } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    const row = await supabaseProfiles.upsertWorkProfile(user_id.trim(), workFields);
+    res.json(row);
+  } catch (error) {
+    console.error('Error saving work profile:', error);
+    res.status(500).json({ error: error.message || 'Failed to save work profile' });
   }
 });
 

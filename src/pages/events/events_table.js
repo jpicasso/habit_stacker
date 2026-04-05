@@ -362,19 +362,53 @@ var PROFILE_AVATAR_PLACEHOLDER =
   );
 
 /**
- * Fetches `profiles` row for the logged-in user (profiles page only).
+ * Fetch a profile row by email, automatically falling back to the dotless
+ * Gmail variant (john.picasso@ → johnpicasso@) if the first lookup returns null.
+ * @returns {Promise<object|null>}
  */
-async function fetchProfileForPage(userEmail) {
-  if (!document.getElementById('profile-display-name') || !userEmail) return null;
+async function fetchProfileByEmail(userEmail) {
+  if (!userEmail) return null;
   try {
     const res = await fetch('/api/profile?user_id=' + encodeURIComponent(userEmail));
-    if (res.status === 503) return null;
-    if (!res.ok) return null;
-    return await res.json();
+    if (res.status === 503 || !res.ok) return null;
+    const row = await res.json();
+    if (row) return row;
+
+    // Try dotless variant (Gmail treats john.doe@ and johndoe@ as the same inbox)
+    const dotless = userEmail.replace(/\.(?=[^@]*@)/g, '');
+    if (dotless === userEmail) return null;
+    const res2 = await fetch('/api/profile?user_id=' + encodeURIComponent(dotless));
+    if (!res2.ok) return null;
+    return await res2.json();
   } catch (e) {
     console.error('Error loading profile:', e);
     return null;
   }
+}
+
+/**
+ * Fetches `profiles` row for the logged-in user (profiles page only).
+ */
+async function fetchProfileForPage(userEmail) {
+  if (!document.getElementById('profile-display-name') || !userEmail) return null;
+  return fetchProfileByEmail(userEmail);
+}
+
+/**
+ * Fetches the handle from `profiles` by email and writes it to #profile-user-handle.
+ */
+async function fetchAndDisplayHandle(userEmail) {
+  const handleEl = document.getElementById('profile-user-handle');
+  if (!handleEl || !userEmail) return;
+
+  const row = await fetchProfileByEmail(userEmail);
+
+    if (!row) {
+      handleEl.innerHTML = '<span class="text-warning" style="cursor:pointer;" data-toggle="modal" data-target="#editProfileModal">Set up your profile ›</span>';
+      return;
+    }
+    const handle = row.handle;
+    handleEl.textContent = handle ? '@' + String(handle).replace(/^@+/, '') : '';
 }
 
 /**
@@ -410,8 +444,8 @@ function applyProfileHeaderFromData(user, profileRow) {
   if (nameEl) nameEl.textContent = displayName;
   if (handleEl) {
     const h =
-      profileRow && profileRow.handles != null && String(profileRow.handles).trim() !== ''
-        ? String(profileRow.handles).trim()
+      profileRow && profileRow.handle != null && String(profileRow.handle).trim() !== ''
+        ? String(profileRow.handle).trim()
         : '';
     handleEl.textContent = h ? '@' + h.replace(/^@+/, '') : '—';
   }
@@ -447,7 +481,7 @@ function populateEditProfileModal() {
       ? String(row.name).trim()
       : profileDisplayNameFromUser(user) || '';
   handleEl.value =
-    row && row.handles != null ? String(row.handles).replace(/^@+/, '') : '';
+    row && row.handle != null ? String(row.handle).replace(/^@+/, '') : '';
   emailEl.value = cachedUserEmail || user.email || '';
   locationEl.value = row && row.location != null ? String(row.location) : '';
 }
@@ -478,7 +512,7 @@ async function submitEditProfileForm() {
       body: JSON.stringify({
         user_id: cachedUserEmail,
         name: n,
-        handles: h,
+        handle: h,
         location: l
       })
     });
@@ -563,6 +597,9 @@ async function loadTasks() {
     }
 
     cachedUserEmail = currentUserEmail;
+
+    // Fetch and display handle from profiles table
+    fetchAndDisplayHandle(currentUserEmail);
 
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);

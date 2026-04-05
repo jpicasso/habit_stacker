@@ -1,12 +1,7 @@
 /**
- * User profiles in Supabase (`profiles`).
- *
- *   create table if not exists public.profiles (
- *     email text primary key,
- *     name text not null,
- *     handles text not null,
- *     location text not null
- *   );
+ * User profiles in Supabase (`profiles` table).
+ * Column names match the actual DDL:
+ *   id, name, handle, email, location, current_company, current_title, ...
  */
 
 let client = null;
@@ -27,8 +22,20 @@ function normalizeEmail(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
 }
 
+function isSchemaError(error) {
+  if (!error) return false;
+  const code = error.code || '';
+  const msg  = (error.message || '').toLowerCase();
+  return (
+    code === '42P01' || code === '42703' || code === 'PGRST200' ||
+    /relation .* does not exist/i.test(msg) ||
+    /column .* does not exist/i.test(msg) ||
+    /does not exist/i.test(msg)
+  );
+}
+
 /**
- * @returns {Promise<object|null>} Row or null if missing.
+ * @returns {Promise<object|null>} Row with `handle` field, or null.
  */
 async function getProfileByEmail(email) {
   const supabase = getClient();
@@ -38,42 +45,36 @@ async function getProfileByEmail(email) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('email, name, handles, location')
+    .select('id, email, name, handle, location')
     .eq('email', e)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
   return data || null;
 }
 
 /**
- * Insert or update by email without relying on ON CONFLICT (works even if `email`
- * has no UNIQUE/PK in Postgres — avoids "no unique constraint matching ON CONFLICT").
- *
- * @returns {Promise<object>} Saved row
+ * Insert or update by email (no ON CONFLICT needed).
+ * @returns {Promise<object>}
  */
-async function upsertProfile(email, { name, handles, location }) {
+async function upsertProfile(email, { name, handle, location }) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
 
   const e = normalizeEmail(email);
   if (!e) throw new Error('email is required');
 
-  const row = {
-    email: e,
-    name: String(name != null ? name : '').trim(),
-    handles: String(handles != null ? handles : '').trim(),
-    location: String(location != null ? location : '').trim()
-  };
-
   const existing = await getProfileByEmail(e);
 
   if (existing) {
     const { data, error } = await supabase
       .from('profiles')
-      .update({ name: row.name, handles: row.handles, location: row.location })
+      .update({ name, handle, location })
       .eq('email', e)
-      .select('email, name, handles, location')
+      .select('id, email, name, handle, location')
       .single();
     if (error) throw error;
     return data;
@@ -81,8 +82,89 @@ async function upsertProfile(email, { name, handles, location }) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert(row)
-    .select('email, name, handles, location')
+    .insert({ email: e, name, handle, location })
+    .select('id, email, name, handle, location')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+const WORK_SELECT_FIELDS = [
+  'current_company', 'current_title', 'current_start_date', 'current_end_date',
+  'company1', 'title1', 'start_date1', 'end_date1',
+  'company2', 'title2', 'start_date2', 'end_date2',
+  'company3', 'title3', 'start_date3', 'end_date3',
+  'company4', 'title4', 'start_date4', 'end_date4',
+  'company5', 'title5', 'start_date5', 'end_date5',
+  'company6', 'title6', 'start_date6', 'end_date6',
+  'company7', 'title7', 'start_date7', 'end_date7',
+  'education1', 'major1', 'start_date_edu1', 'end_date_edu1',
+  'education2', 'major2', 'start_date_edu2', 'end_date_edu2',
+  'education3', 'major3', 'start_date_edu3', 'end_date_edu3',
+  'education4', 'major4', 'start_date_edu4', 'end_date_edu4'
+].join(', ');
+
+const WORK_UPDATE_KEYS = [
+  'current_company', 'current_title', 'current_start_date', 'current_end_date',
+  'company1', 'title1', 'start_date1', 'end_date1',
+  'company2', 'title2', 'start_date2', 'end_date2',
+  'company3', 'title3', 'start_date3', 'end_date3',
+  'company4', 'title4', 'start_date4', 'end_date4',
+  'company5', 'title5', 'start_date5', 'end_date5',
+  'company6', 'title6', 'start_date6', 'end_date6',
+  'company7', 'title7', 'start_date7', 'end_date7',
+  'education1', 'major1', 'start_date_edu1', 'end_date_edu1',
+  'education2', 'major2', 'start_date_edu2', 'end_date_edu2',
+  'education3', 'major3', 'start_date_edu3', 'end_date_edu3',
+  'education4', 'major4', 'start_date_edu4', 'end_date_edu4'
+];
+
+/**
+ * Fetch work/education fields by email.
+ * @returns {Promise<object|null>}
+ */
+async function getWorkProfileByEmail(email) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const e = normalizeEmail(email);
+  if (!e) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(WORK_SELECT_FIELDS)
+    .eq('email', e)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+/**
+ * Update work/education columns for the profile matching email.
+ * @returns {Promise<object>}
+ */
+async function upsertWorkProfile(email, workFields) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const e = normalizeEmail(email);
+  if (!e) throw new Error('email is required');
+
+  const update = {};
+  for (const key of WORK_UPDATE_KEYS) {
+    const val = workFields[key];
+    update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(update)
+    .eq('email', e)
+    .select(WORK_SELECT_FIELDS)
     .single();
 
   if (error) throw error;
@@ -92,5 +174,7 @@ async function upsertProfile(email, { name, handles, location }) {
 module.exports = {
   isConfigured,
   getProfileByEmail,
-  upsertProfile
+  upsertProfile,
+  getWorkProfileByEmail,
+  upsertWorkProfile
 };
