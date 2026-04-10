@@ -427,6 +427,220 @@ async function uploadProfilePhoto(handle, imageBuffer, contentType) {
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${newPath}`;
 }
 
+const CONTACT_PHOTO_BUCKET = 'contact_photos';
+
+/** Lowercase contact display name with all spaces removed (e.g. "Megan Picasso Test" → "meganpicassotest"). */
+function contactNameToFileSlug(contactName) {
+  return String(contactName || '')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+}
+
+/**
+ * Files: `{ownersHandle}_{contactSlug}.{ext}` in bucket `contact_photos`, e.g. johnpicasso_meganpicassotest.png
+ * @returns {Promise<string|null>}
+ */
+async function getContactPhotoUrlForContact(ownersHandle, contactName) {
+  const supabase = getClient();
+  if (!supabase || !process.env.SUPABASE_URL || !ownersHandle || !contactName) return null;
+  const oh = String(ownersHandle).trim().replace(/^@+/, '').toLowerCase();
+  const slug = contactNameToFileSlug(contactName);
+  if (!oh || !slug) return null;
+
+  const prefix = `${oh}_${slug}`;
+
+  const { data, error } = await supabase.storage
+    .from(CONTACT_PHOTO_BUCKET)
+    .list('', { search: prefix });
+
+  if (error || !data || data.length === 0) return null;
+
+  const found = data.find(f => {
+    const name = f.name.toLowerCase();
+    const dotIdx = name.lastIndexOf('.');
+    if (dotIdx === -1) return false;
+    const base = name.slice(0, dotIdx);
+    return base === prefix && PHOTO_EXTS.includes(name.slice(dotIdx + 1));
+  });
+
+  if (!found) return null;
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${CONTACT_PHOTO_BUCKET}/${found.name}`;
+}
+
+/**
+ * Upload contact photo; path `{ownersHandle}_{slug}.{ext}`. Removes other extensions for same stem.
+ * @returns {Promise<string>} public URL
+ */
+async function uploadContactPhoto(ownersHandle, contactName, imageBuffer, contentType) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const oh = String(ownersHandle).trim().replace(/^@+/, '').toLowerCase();
+  const slug = contactNameToFileSlug(contactName);
+  if (!oh || !slug) throw new Error('owners_handle and contact_name are required');
+
+  const ext = MIME_TO_EXT[contentType] || 'jpg';
+  const prefix = `${oh}_${slug}`;
+  const newPath = `${prefix}.${ext}`;
+
+  const { data: existing } = await supabase.storage
+    .from(CONTACT_PHOTO_BUCKET)
+    .list('', { search: prefix });
+
+  if (existing && existing.length > 0) {
+    const toDelete = existing
+      .filter(f => {
+        const name = f.name.toLowerCase();
+        const dotIdx = name.lastIndexOf('.');
+        if (dotIdx === -1) return false;
+        const base = name.slice(0, dotIdx);
+        const oldExt = name.slice(dotIdx + 1);
+        return base === prefix && PHOTO_EXTS.includes(oldExt) && f.name.toLowerCase() !== newPath;
+      })
+      .map(f => f.name);
+    if (toDelete.length > 0) {
+      await supabase.storage.from(CONTACT_PHOTO_BUCKET).remove(toDelete);
+    }
+  }
+
+  const { error } = await supabase.storage
+    .from(CONTACT_PHOTO_BUCKET)
+    .upload(newPath, imageBuffer, {
+      contentType: contentType || 'image/jpeg',
+      upsert: true
+    });
+
+  if (error) throw error;
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${CONTACT_PHOTO_BUCKET}/${newPath}`;
+}
+
+/** Identity + work columns from `contact_details` (one row per owner + contact). */
+const CONTACT_DETAILS_COLUMNS = [
+  'contact_name', 'contact_handle', 'work_email', 'personal_email', 'cell', 'other_phone', 'my_notes',
+  'current_company', 'current_title', 'current_start_date', 'current_end_date',
+  'company1', 'title1', 'start_date1', 'end_date1',
+  'company2', 'title2', 'start_date2', 'end_date2',
+  'company3', 'title3', 'start_date3', 'end_date3',
+  'company4', 'title4', 'start_date4', 'end_date4',
+  'company5', 'title5', 'start_date5', 'end_date5',
+  'company6', 'title6', 'start_date6', 'end_date6',
+  'company7', 'title7', 'start_date7', 'end_date7',
+  'education1', 'major1', 'start_date_edu1', 'end_date_edu1',
+  'education2', 'major2', 'start_date_edu2', 'end_date_edu2',
+  'education3', 'major3', 'start_date_edu3', 'end_date_edu3',
+  'education4', 'major4', 'start_date_edu4', 'end_date_edu4',
+  'family_relationship1', 'family_name1',
+  'family_relationship2', 'family_name2',
+  'family_relationship3', 'family_name3',
+  'family_relationship4', 'family_name4',
+  'family_relationship5', 'family_name5',
+  'family_relationship6', 'family_name6',
+  'family_relationship7', 'family_name7',
+  'family_relationship8', 'family_name8',
+  'family_relationship9', 'family_name9',
+  'interest1', 'interest2', 'interest3', 'interest4', 'interest5'
+];
+
+const CONTACT_DETAILS_WORK_FIELDS = CONTACT_DETAILS_COLUMNS.join(', ');
+
+const CONTACT_DETAILS_PATCHABLE = new Set(CONTACT_DETAILS_COLUMNS);
+
+/**
+ * Fetch work fields from `contact_details` for a given owner + contact name.
+ * @param {string} ownersHandle  e.g. johnpicasso (matches `owners_handle`)
+ * @param {string} contactName   e.g. Megan Picasso (matches `contact_name`)
+ * @returns {Promise<object|null>}
+ */
+async function getContactDetailsWork(ownersHandle, contactName) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
+  const cn = String(contactName || '').trim();
+  if (!oh || !cn) return null;
+
+  const { data, error } = await supabase
+    .from('contact_details')
+    .select(CONTACT_DETAILS_WORK_FIELDS)
+    .eq('owners_handle', oh)
+    .eq('contact_name', cn)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+/**
+ * Update or insert a `contact_details` row. Caller must pass the current row's `contact_name`
+ * as `lookupContactName` (URL / query key). Patch may include a new `contact_name`.
+ * @param {string} userEmail  Logged-in user's email (must own `owners_handle`).
+ * @param {string} ownersHandle
+ * @param {string} lookupContactName  Existing `contact_name` used to find the row.
+ * @param {object} patch  Column updates (allowed columns only).
+ */
+async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, patch) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
+  const lookupCn = String(lookupContactName || '').trim();
+  if (!oh || !lookupCn) {
+    throw new Error('owners_handle and lookup_contact_name are required');
+  }
+
+  const profile = await getProfileByEmail(String(userEmail || '').trim());
+  if (!profile || !profile.handle) {
+    throw new Error('Forbidden');
+  }
+  const profileHandle = String(profile.handle).trim().replace(/^@+/, '');
+  if (profileHandle !== oh) {
+    throw new Error('Forbidden');
+  }
+
+  const filtered = {};
+  for (const key of Object.keys(patch || {})) {
+    if (!CONTACT_DETAILS_PATCHABLE.has(key)) continue;
+    let v = patch[key];
+    if (v === undefined) continue;
+    if (v === '') v = null;
+    filtered[key] = v;
+  }
+
+  const existing = await getContactDetailsWork(oh, lookupCn);
+
+  if (existing) {
+    if (Object.keys(filtered).length === 0) {
+      return existing;
+    }
+    const { data, error } = await supabase
+      .from('contact_details')
+      .update(filtered)
+      .eq('owners_handle', oh)
+      .eq('contact_name', lookupCn)
+      .select(CONTACT_DETAILS_WORK_FIELDS)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || null;
+  }
+
+  const insertRow = {
+    owners_handle: oh,
+    contact_name: lookupCn,
+    ...filtered
+  };
+
+  const { data: inserted, error: insErr } = await supabase
+    .from('contact_details')
+    .insert(insertRow)
+    .select(CONTACT_DETAILS_WORK_FIELDS)
+    .maybeSingle();
+
+  if (insErr) throw insErr;
+  return inserted || null;
+}
+
 module.exports = {
   isConfigured,
   getProfileByEmail,
@@ -440,5 +654,9 @@ module.exports = {
   getInterestsProfileByHandle,
   upsertInterestsProfile,
   getProfilePhotoUrl,
-  uploadProfilePhoto
+  uploadProfilePhoto,
+  getContactPhotoUrlForContact,
+  uploadContactPhoto,
+  getContactDetailsWork,
+  upsertContactDetails
 };

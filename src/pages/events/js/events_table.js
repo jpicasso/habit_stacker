@@ -274,7 +274,7 @@ function applyWhoFilter(tasks) {
 function renderWithAllFilters() {
   if (!cachedTasks || !cachedUserEmail) return;
   let filtered;
-  if (document.getElementById('profile-display-name')) {
+  if (hasProfileOrContactHeader()) {
     filtered = applyProfilePageEventFilter(
       cachedTasks,
       cachedProfileNameForFilter,
@@ -308,6 +308,7 @@ function renderTaskRows(tasks) {
   const emptyEl  = document.getElementById('tasks-empty');
   const tableEl  = document.getElementById('tasks-table');
   const tbodyEl  = document.getElementById('tasks-tbody');
+  if (!tbodyEl || !tableEl || !emptyEl) return;
 
   tbodyEl.innerHTML = '';
 
@@ -373,6 +374,31 @@ function getProfileHandleFromUrl() {
   return match ? decodeURIComponent(match[1]).replace(/^@+/, '') : null;
 }
 
+/** Contact record page (`contact.html`) loads work from `contact_details`, not `profiles`. */
+function isContactDetailsWorkPage() {
+  return window.location.pathname.toLowerCase().includes('contact.html');
+}
+
+/** True if this page uses the profile header (profiles) or contact header (contact.html). */
+function hasProfileOrContactHeader() {
+  return !!(
+    document.getElementById('profile-display-name') ||
+    document.getElementById('contact-display-name')
+  );
+}
+
+/**
+ * Contact name for `contact_details.contact_name` (query `contact_name` or `contact`, or #contact-page-contact-name).
+ */
+function getContactNameForContactDetailsPage() {
+  const q = new URLSearchParams(window.location.search);
+  const fromQuery = q.get('contact_name') || q.get('contact');
+  if (fromQuery && String(fromQuery).trim()) return String(fromQuery).trim();
+  const el = document.getElementById('contact-page-contact-name');
+  if (el && el.value && String(el.value).trim()) return String(el.value).trim();
+  return '';
+}
+
 /**
  * Fetch a profile row by handle from /api/profile/by-handle.
  * @returns {Promise<object|null>}
@@ -394,6 +420,23 @@ async function fetchProfileByHandle(handle) {
  * based on whether the viewer owns this profile.
  */
 function applyProfileEditVisibility(own) {
+  if (isContactDetailsWorkPage()) {
+    const show = !!own;
+    [
+      'contact-name-edit-btn',
+      'my-notes-section-edit-btn',
+      'work-section-edit-btn',
+      'education-section-edit-btn',
+      'family-section-edit-btn',
+      'interests-section-edit-btn'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = show ? '' : 'none';
+    });
+    const contactPhotoBtn = document.getElementById('contact-photo-edit-btn');
+    if (contactPhotoBtn) contactPhotoBtn.style.display = show ? '' : 'none';
+    return;
+  }
   const controls = [
     document.getElementById('profile-name-edit-btn'),
     document.getElementById('profile-photo-edit-btn'),
@@ -404,6 +447,148 @@ function applyProfileEditVisibility(own) {
   controls.forEach(el => {
     if (el) el.style.display = own ? '' : 'none';
   });
+}
+
+/**
+ * contact.html: fill header from `contact_details` (owner handle + contact_name query).
+ * Sets cachedWorkRow (and family/interests caches) when a row is returned so tabs can reuse it.
+ */
+async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
+  const nameEl = document.getElementById('contact-display-name');
+  const cellEl = document.getElementById('contact-cell');
+  const otherPhoneEl = document.getElementById('contact-other-phone');
+  const workEmailEl = document.getElementById('contact-work-email');
+  const personalEmailEl = document.getElementById('contact-personal-email');
+  const publicHandleEl = document.getElementById('contact-public-handle');
+  const imgEl = document.getElementById('contact-user-photo');
+
+  const ownersHandle =
+    ownerProfileRow && ownerProfileRow.handle
+      ? String(ownerProfileRow.handle).trim().replace(/^@+/, '')
+      : '';
+  const contactName = getContactNameForContactDetailsPage();
+
+  cachedProfileNameForFilter = contactName || null;
+  cachedProfileEmailForFilter = null;
+
+  if (!ownersHandle) {
+    if (nameEl) nameEl.textContent = '—';
+    if (cellEl) cellEl.textContent = '';
+    if (otherPhoneEl) otherPhoneEl.textContent = '';
+    if (workEmailEl) workEmailEl.textContent = '';
+    if (personalEmailEl) personalEmailEl.textContent = '';
+    if (publicHandleEl) publicHandleEl.textContent = '';
+    if (imgEl) {
+      imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
+      imgEl.alt = '';
+    }
+    cachedWorkRow = null;
+    cachedFamilyRow = null;
+    cachedInterestsRow = null;
+    return;
+  }
+
+  if (!contactName) {
+    if (nameEl) nameEl.textContent = '—';
+    if (cellEl) cellEl.textContent = '';
+    if (otherPhoneEl) otherPhoneEl.textContent = '';
+    if (workEmailEl) {
+      workEmailEl.textContent = '';
+    }
+    if (personalEmailEl) personalEmailEl.textContent = '';
+    if (publicHandleEl) publicHandleEl.textContent = '';
+    if (imgEl) {
+      imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
+      imgEl.alt = '';
+    }
+    cachedWorkRow = null;
+    cachedFamilyRow = null;
+    cachedInterestsRow = null;
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      '/api/contact-details/work?owners_handle=' +
+        encodeURIComponent(ownersHandle) +
+        '&contact_name=' +
+        encodeURIComponent(contactName)
+    );
+    const row = res.ok ? await res.json() : null;
+    cachedWorkRow = row;
+    cachedFamilyRow = row;
+    cachedInterestsRow = row;
+
+    const displayName =
+      row && row.contact_name != null && String(row.contact_name).trim() !== ''
+        ? String(row.contact_name).trim()
+        : contactName;
+    if (nameEl) nameEl.textContent = displayName;
+
+    if (cellEl) {
+      const c = row && row.cell != null ? String(row.cell).trim() : '';
+      cellEl.textContent = c ? 'Cell: ' + c : '';
+    }
+    if (otherPhoneEl) {
+      const o = row && row.other_phone != null ? String(row.other_phone).trim() : '';
+      otherPhoneEl.textContent = o ? 'Other phone: ' + o : '';
+    }
+
+    if (workEmailEl) {
+      const w = row && row.work_email != null ? String(row.work_email).trim() : '';
+      workEmailEl.textContent = w ? 'Work: ' + w : '';
+    }
+    if (personalEmailEl) {
+      const p = row && row.personal_email != null ? String(row.personal_email).trim() : '';
+      personalEmailEl.textContent = p ? 'Personal: ' + p : '';
+    }
+
+    if (publicHandleEl) {
+      const ch =
+        row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
+          ? String(row.contact_handle).trim().replace(/^@+/, '')
+          : '';
+      publicHandleEl.textContent = ch ? 'Public handle: @' + ch : 'Public handle: —';
+    }
+
+    if (imgEl) {
+      imgEl.alt = displayName;
+      imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
+      const photoContactName =
+        row && row.contact_name != null && String(row.contact_name).trim() !== ''
+          ? String(row.contact_name).trim()
+          : contactName;
+      fetch(
+        '/api/contact-photo?owners_handle=' +
+          encodeURIComponent(ownersHandle) +
+          '&contact_name=' +
+          encodeURIComponent(photoContactName)
+      )
+        .then(r => (r.ok ? r.json() : null))
+        .then(data => {
+          if (data && data.url) {
+            const img = new Image();
+            img.onload = () => {
+              imgEl.src = data.url;
+            };
+            img.onerror = () => {
+              imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
+            };
+            img.src = data.url;
+          }
+        })
+        .catch(() => {});
+    }
+  } catch (e) {
+    console.error('applyContactDetailsPageHeader:', e);
+    if (nameEl) nameEl.textContent = contactName;
+    if (cellEl) cellEl.textContent = '';
+    if (otherPhoneEl) otherPhoneEl.textContent = '';
+    if (publicHandleEl) publicHandleEl.textContent = '';
+    cachedWorkRow = null;
+    cachedFamilyRow = null;
+    cachedInterestsRow = null;
+  }
 }
 
 /**
@@ -435,7 +620,7 @@ async function fetchProfileByEmail(userEmail) {
  * Fetches `profiles` row for the logged-in user (profiles page only).
  */
 async function fetchProfileForPage(userEmail) {
-  if (!document.getElementById('profile-display-name') || !userEmail) return null;
+  if (!hasProfileOrContactHeader() || !userEmail) return null;
   return fetchProfileByEmail(userEmail);
 }
 
@@ -543,12 +728,16 @@ function applyProfileHeaderFromData(user, profileRow) {
   }
 }
 
+function getEditProfileFormEl(suffix) {
+  return document.getElementById('edit-profile-' + suffix) || document.getElementById('edit-contact-' + suffix);
+}
+
 function populateEditProfileModal() {
-  const nameEl = document.getElementById('edit-profile-name');
-  const handleEl = document.getElementById('edit-profile-handle');
-  const emailEl = document.getElementById('edit-profile-email');
-  const locationEl = document.getElementById('edit-profile-location');
-  const errEl = document.getElementById('edit-profile-error');
+  const nameEl = getEditProfileFormEl('name');
+  const handleEl = getEditProfileFormEl('handle');
+  const emailEl = getEditProfileFormEl('email');
+  const locationEl = getEditProfileFormEl('location');
+  const errEl = getEditProfileFormEl('error');
   if (!nameEl || !handleEl || !emailEl || !locationEl || !cachedAuthUser) return;
   if (errEl) {
     errEl.style.display = 'none';
@@ -567,12 +756,12 @@ function populateEditProfileModal() {
 }
 
 async function submitEditProfileForm() {
-  const nameEl = document.getElementById('edit-profile-name');
-  const handleEl = document.getElementById('edit-profile-handle');
-  const locationEl = document.getElementById('edit-profile-location');
-  const errEl = document.getElementById('edit-profile-error');
+  const nameEl = getEditProfileFormEl('name');
+  const handleEl = getEditProfileFormEl('handle');
+  const locationEl = getEditProfileFormEl('location');
+  const errEl = getEditProfileFormEl('error');
   const submitBtn = document.getElementById('edit-profile-submit');
-  if (!nameEl || !cachedUserEmail || !submitBtn) return;
+  if (!nameEl || !handleEl || !locationEl || !cachedUserEmail || !submitBtn) return;
   const n = nameEl.value.trim();
   const h = handleEl.value.trim();
   const l = locationEl.value.trim();
@@ -619,7 +808,10 @@ async function submitEditProfileForm() {
     cachedProfileRow = data;
     applyProfileHeaderFromData(cachedAuthUser, cachedProfileRow);
     renderWithAllFilters();
-    if (window.jQuery) window.jQuery('#editProfileModal').modal('hide');
+    if (window.jQuery) {
+      window.jQuery('#editProfileModal').modal('hide');
+      window.jQuery('#editContactDetailsModal').modal('hide');
+    }
   } catch (e) {
     console.error(e);
     if (errEl) {
@@ -637,12 +829,15 @@ async function loadTasks() {
   const errorEl   = document.getElementById('tasks-error');
   const emptyEl   = document.getElementById('tasks-empty');
   const tableEl   = document.getElementById('tasks-table');
+  const hasEventsUI = !!(loadingEl && errorEl && emptyEl && tableEl);
 
   try {
-    loadingEl.style.display = 'block';
-    errorEl.style.display   = 'none';
-    emptyEl.style.display   = 'none';
-    tableEl.style.display   = 'none';
+    if (hasEventsUI) {
+      loadingEl.style.display = 'block';
+      errorEl.style.display   = 'none';
+      emptyEl.style.display   = 'none';
+      tableEl.style.display   = 'none';
+    }
 
     let currentUserEmail = null;
     let authUser = null;
@@ -662,9 +857,23 @@ async function loadTasks() {
 
     if (!currentUserEmail) {
       cachedUserEmail = null;
-      loadingEl.style.display = 'none';
-      emptyEl.textContent = 'Please log in to view your events.';
-      emptyEl.style.display = 'block';
+      if (hasEventsUI) {
+        loadingEl.style.display = 'none';
+        emptyEl.textContent = 'Please log in to view your events.';
+        emptyEl.style.display = 'block';
+      }
+      if (isContactDetailsWorkPage()) {
+        [
+          'contact-cell',
+          'contact-other-phone',
+          'contact-work-email',
+          'contact-personal-email',
+          'contact-public-handle'
+        ].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '';
+        });
+      }
       applyProfileHeaderFromData(authUser, null);
       return;
     }
@@ -672,7 +881,7 @@ async function loadTasks() {
     cachedUserEmail = currentUserEmail;
 
     let profileRow = null;
-    if (document.getElementById('profile-display-name')) {
+    if (hasProfileOrContactHeader()) {
       const urlHandle = getProfileHandleFromUrl();
       if (urlHandle) {
         // Viewing a profile page accessed by handle URL (e.g. /events/@meganpicasso)
@@ -697,14 +906,25 @@ async function loadTasks() {
       cachedProfileRow = null;
       isOwnProfile = true;
     }
-    applyProfileHeaderFromData(authUser, profileRow);
-    applyProfileEditVisibility(isOwnProfile);
+    if (isContactDetailsWorkPage()) {
+      await applyContactDetailsPageHeader(authUser, cachedProfileRow);
+      applyProfileEditVisibility(isOwnProfile);
+    } else {
+      applyProfileHeaderFromData(authUser, profileRow);
+      applyProfileEditVisibility(isOwnProfile);
+      if (!getProfileHandleFromUrl()) fetchAndDisplayHandle(currentUserEmail);
+    }
 
-    // Fetch and display handle from profiles table (skip if already set from URL handle load)
-    if (!getProfileHandleFromUrl()) fetchAndDisplayHandle(currentUserEmail);
+    if (hasProfileOrContactHeader()) {
+      preloadProfileSubsectionsData();
+    }
 
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);
+
+    if (!hasEventsUI) {
+      return;
+    }
 
     const response = await fetch(
       '/api/events?user_id=' + encodeURIComponent(currentUserEmail)
@@ -733,9 +953,11 @@ async function loadTasks() {
     renderWithAllFilters();
   } catch (error) {
     console.error('Error loading events:', error);
-    loadingEl.style.display = 'none';
-    errorEl.textContent = 'Failed to load events. Please refresh the page.';
-    errorEl.style.display = 'block';
+    if (hasEventsUI) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent = 'Failed to load events. Please refresh the page.';
+      errorEl.style.display = 'block';
+    }
   }
 }
 
@@ -859,13 +1081,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Profile page: section pills + photo edit (profiles.html only) ─
-  const profilePills = document.getElementById('profile-section-pills');
-  if (profilePills) {
+  // ── Profile / contact page: section pills + photo edit ─
+  [
+    ['profile-section-pills', 'profile-section-btn'],
+    ['contact-section-pills', 'contact-section-btn']
+  ].forEach(([pillId, btnClass]) => {
+    const profilePills = document.getElementById(pillId);
+    if (!profilePills) return;
     profilePills.addEventListener('click', e => {
-      const btn = e.target.closest('.profile-section-btn');
+      const btn = e.target.closest('.' + btnClass);
       if (!btn) return;
-      profilePills.querySelectorAll('.profile-section-btn').forEach(b => {
+      profilePills.querySelectorAll('.' + btnClass).forEach(b => {
         b.classList.remove('btn-primary');
         b.classList.add('btn-outline-primary');
       });
@@ -875,7 +1101,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.dataset.profileSection = section;
       showProfileSection(section);
     });
-  }
+  });
+
   const profileEditBtn  = document.getElementById('profile-photo-edit-btn');
   const profilePhotoInput = document.getElementById('profile-photo-input');
   if (profileEditBtn && profilePhotoInput) {
@@ -916,7 +1143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Upload failed');
 
-        // Bust the cache so the new image loads
         const imgEl = document.getElementById('profile-user-photo');
         if (imgEl && data.url) imgEl.src = data.url + '?t=' + Date.now();
       } catch (err) {
@@ -930,16 +1156,99 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const editProfileModalEl = document.getElementById('editProfileModal');
-  if (editProfileModalEl && window.jQuery) {
-    window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
-      populateEditProfileModal();
+  const contactEditBtn = document.getElementById('contact-photo-edit-btn');
+  const contactPhotoInput = document.getElementById('contact-photo-input');
+  if (contactEditBtn && contactPhotoInput) {
+    contactEditBtn.addEventListener('click', () => contactPhotoInput.click());
+
+    contactPhotoInput.addEventListener('change', async () => {
+      const file = contactPhotoInput.files && contactPhotoInput.files[0];
+      if (!file) return;
+
+      const ownersHandle =
+        cachedProfileRow && cachedProfileRow.handle
+          ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+          : '';
+      const contactName =
+        getContactNameForContactDetailsPage() ||
+        (cachedWorkRow && cachedWorkRow.contact_name != null
+          ? String(cachedWorkRow.contact_name).trim()
+          : '');
+      if (!ownersHandle || !contactName) {
+        alert('Contact context (owner handle and contact name) is required to upload a photo.');
+        return;
+      }
+
+      contactEditBtn.disabled = true;
+      contactEditBtn.textContent = '…';
+
+      try {
+        const imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const res = await fetch('/api/contact-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            owners_handle: ownersHandle,
+            contact_name: contactName,
+            imageBase64,
+            contentType: file.type || 'image/jpeg'
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        const imgEl = document.getElementById('contact-user-photo');
+        if (imgEl && data.url) imgEl.src = data.url + '?t=' + Date.now();
+      } catch (err) {
+        console.error('Contact photo upload error:', err);
+        alert('Photo upload failed: ' + err.message);
+      } finally {
+        contactEditBtn.disabled = false;
+        contactEditBtn.textContent = 'Edit';
+        contactPhotoInput.value = '';
+      }
     });
   }
+
+  ['editProfileModal', 'editContactDetailsModal'].forEach(mid => {
+    const editProfileModalEl = document.getElementById(mid);
+    if (editProfileModalEl && window.jQuery) {
+      window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
+        if (mid === 'editContactDetailsModal') populateEditContactDetailsModal();
+        else populateEditProfileModal();
+      });
+    }
+  });
   const editProfileSubmit = document.getElementById('edit-profile-submit');
   if (editProfileSubmit) {
     editProfileSubmit.addEventListener('click', function() {
       submitEditProfileForm();
+    });
+  }
+
+  const editContactDetailsSubmit = document.getElementById('edit-contact-details-submit');
+  if (editContactDetailsSubmit) {
+    editContactDetailsSubmit.addEventListener('click', function() {
+      submitEditContactDetailsForm();
+    });
+  }
+
+  const editMyNotesModalEl = document.getElementById('editMyNotesModal');
+  if (editMyNotesModalEl && window.jQuery) {
+    window.jQuery(editMyNotesModalEl).on('show.bs.modal', function() {
+      populateEditMyNotesModal();
+    });
+  }
+  const editMyNotesSubmit = document.getElementById('edit-my-notes-submit');
+  if (editMyNotesSubmit) {
+    editMyNotesSubmit.addEventListener('click', function() {
+      submitEditMyNotesForm();
     });
   }
 
@@ -1397,17 +1706,28 @@ async function deleteEventFromModal() {
 let cachedWorkRow = null;
 let workSectionLoaded = false;
 
+/** Load work / family / interests when the profile or contact page shows those sections (all visible; pills scroll). */
+function preloadProfileSubsectionsData() {
+  if (!document.getElementById('work-section-content')) return;
+  if (!workSectionLoaded) loadWorkSection();
+  if (!familySectionLoaded) loadFamilySection();
+  if (!interestsSectionLoaded) loadInterestsSection();
+}
+
 function showProfileSection(section) {
-  const notesEl     = document.getElementById('profile-section-notes');
-  const workEl      = document.getElementById('profile-section-work');
-  const familyEl    = document.getElementById('profile-section-family');
-  const interestsEl = document.getElementById('profile-section-interests');
-  if (notesEl)     notesEl.style.display     = section === 'notes'     ? '' : 'none';
-  if (workEl)      workEl.style.display      = section === 'work'      ? '' : 'none';
-  if (familyEl)    familyEl.style.display    = section === 'family'    ? '' : 'none';
-  if (interestsEl) interestsEl.style.display = section === 'interests' ? '' : 'none';
-  if (section === 'work'      && !workSectionLoaded)      loadWorkSection();
-  if (section === 'family'    && !familySectionLoaded)    loadFamilySection();
+  const p = isContactDetailsWorkPage() ? 'contact' : 'profile';
+  const idMap = {
+    notes: p + '-section-notes',
+    work: p + '-section-work',
+    family: p + '-section-family',
+    interests: p + '-section-interests'
+  };
+  const target = document.getElementById(idMap[section] || idMap.notes);
+  if (target && typeof target.scrollIntoView === 'function') {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  if (section === 'work'      && !workSectionLoaded) loadWorkSection();
+  if (section === 'family'    && !familySectionLoaded) loadFamilySection();
   if (section === 'interests' && !interestsSectionLoaded) loadInterestsSection();
 }
 
@@ -1445,8 +1765,11 @@ function eduEntryHtml(school, major, startDate, endDate) {
 function renderWorkSection(row) {
   const contentEl = document.getElementById('work-section-content');
   if (!contentEl) return;
+  const emptyMsg = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>'
+    : '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
   if (!row) {
-    contentEl.innerHTML = '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+    contentEl.innerHTML = emptyMsg;
     return;
   }
   let html = '';
@@ -1457,32 +1780,184 @@ function renderWorkSection(row) {
       workEntryHtml(row['company'+i], row['title'+i], row['start_date'+i], row['end_date'+i], false))
   ].join('');
   if (jobs) {
-    html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2">Work</h6>' + jobs;
+    html += isContactDetailsWorkPage()
+      ? jobs
+      : '<h6 class="text-uppercase text-muted small font-weight-bold mb-2">Work</h6>' + jobs;
   }
 
-  const edu = [1,2,3,4].map(i =>
-    eduEntryHtml(row['education'+i], row['major'+i], row['start_date_edu'+i], row['end_date_edu'+i])
-  ).join('');
-  if (edu) {
-    html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2 mt-3">Education</h6>' + edu;
+  if (!isContactDetailsWorkPage()) {
+    const edu = [1,2,3,4].map(i =>
+      eduEntryHtml(row['education'+i], row['major'+i], row['start_date_edu'+i], row['end_date_edu'+i])
+    ).join('');
+    if (edu) {
+      html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2 mt-3">Education</h6>' + edu;
+    }
   }
 
-  contentEl.innerHTML = html ||
-    '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+  const bottomEmpty = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No work entries on this contact record.</p>'
+    : '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+  contentEl.innerHTML = html || bottomEmpty;
+}
+
+/** Education block on contact.html only; data from same `contact_details` row as work. */
+function renderEducationSection(row) {
+  const contentEl = document.getElementById('education-section-content');
+  if (!contentEl) return;
+  const emptyNoRow =
+    '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>';
+  const emptyNoEntries =
+    '<p class="text-muted small">No education entries on this contact record.</p>';
+  if (!row) {
+    contentEl.innerHTML = emptyNoRow;
+    return;
+  }
+  const edu = [1, 2, 3, 4]
+    .map(i =>
+      eduEntryHtml(
+        row['education' + i],
+        row['major' + i],
+        row['start_date_edu' + i],
+        row['end_date_edu' + i]
+      )
+    )
+    .join('');
+  contentEl.innerHTML = edu || emptyNoEntries;
+}
+
+/** My Private Notes (`contact_details.my_notes`) on contact.html only. */
+function renderMyNotesSection(row) {
+  const contentEl = document.getElementById('my-notes-section-content');
+  if (!contentEl) return;
+  if (!isContactDetailsWorkPage()) return;
+  const emptyNoRow =
+    '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>';
+  const emptyNoText = '<p class="text-muted small">No private notes yet. Click the pencil to add.</p>';
+  if (!row) {
+    contentEl.innerHTML = emptyNoRow;
+    return;
+  }
+  const raw = row.my_notes != null ? String(row.my_notes) : '';
+  if (!String(raw).trim()) {
+    contentEl.innerHTML = emptyNoText;
+    return;
+  }
+  contentEl.innerHTML =
+    '<div class="small text-body" style="white-space:pre-wrap;word-break:break-word;">' +
+    escapeHtml(raw) +
+    '</div>';
 }
 
 async function loadWorkSection() {
   const loadingEl = document.getElementById('work-section-loading');
   const errorEl   = document.getElementById('work-section-error');
+  const contentEl = document.getElementById('work-section-content');
+  const eduContentEl = document.getElementById('education-section-content');
+  const myNotesContentEl = document.getElementById('my-notes-section-content');
 
-  const handle = cachedProfileRow && cachedProfileRow.handle
+  const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
     : '';
 
-  if (!handle) {
-    const contentEl = document.getElementById('work-section-content');
-    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+  if (!ownersHandle) {
+    if (contentEl) {
+      contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    }
+    if (eduContentEl) {
+      eduContentEl.innerHTML =
+        '<p class="text-muted small">No handle set — save your profile first.</p>';
+    }
+    if (myNotesContentEl) {
+      myNotesContentEl.innerHTML =
+        '<p class="text-muted small">No handle set — save your profile first.</p>';
+    }
     workSectionLoaded = true;
+    return;
+  }
+
+  if (isContactDetailsWorkPage()) {
+    const contactName = getContactNameForContactDetailsPage();
+    if (!contactName) {
+      if (contentEl) {
+        contentEl.innerHTML =
+          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load work from <code>contact_details</code>, e.g. ' +
+          '<code>?contact_name=Megan%20Picasso</code>. You can also set <code>#contact-page-contact-name</code>.</p>';
+      }
+      if (eduContentEl) {
+        eduContentEl.innerHTML =
+          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load education from <code>contact_details</code>.</p>';
+      }
+      if (myNotesContentEl) {
+        myNotesContentEl.innerHTML =
+          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load notes from <code>contact_details</code>.</p>';
+      }
+      workSectionLoaded = true;
+      return;
+    }
+
+    if (cachedWorkRow) {
+      cachedFamilyRow = cachedWorkRow;
+      cachedInterestsRow = cachedWorkRow;
+      try {
+        if (loadingEl) loadingEl.style.display = '';
+        if (errorEl) errorEl.style.display = 'none';
+        renderWorkSection(cachedWorkRow);
+        renderEducationSection(cachedWorkRow);
+        renderMyNotesSection(cachedWorkRow);
+      } catch (err) {
+        console.error('Error loading work section (contact_details):', err);
+        if (errorEl) {
+          errorEl.textContent = 'Failed to load work data.';
+          errorEl.style.display = '';
+        }
+        if (eduContentEl) {
+          eduContentEl.innerHTML =
+            '<p class="text-muted small">Failed to load education data.</p>';
+        }
+        if (myNotesContentEl) {
+          myNotesContentEl.innerHTML =
+            '<p class="text-muted small">Failed to load notes.</p>';
+        }
+      } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+        workSectionLoaded = true;
+      }
+      return;
+    }
+
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl)   errorEl.style.display   = 'none';
+
+      const res = await fetch(
+        '/api/contact-details/work?owners_handle=' +
+          encodeURIComponent(ownersHandle) +
+          '&contact_name=' +
+          encodeURIComponent(contactName)
+      );
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      const row = await res.json();
+      cachedWorkRow = row;
+      cachedFamilyRow = row;
+      cachedInterestsRow = row;
+      renderWorkSection(row);
+      renderEducationSection(row);
+      renderMyNotesSection(row);
+    } catch (err) {
+      console.error('Error loading work section (contact_details):', err);
+      if (errorEl) { errorEl.textContent = 'Failed to load work data.'; errorEl.style.display = ''; }
+      if (eduContentEl) {
+        eduContentEl.innerHTML =
+          '<p class="text-muted small">Failed to load education data.</p>';
+      }
+      if (myNotesContentEl) {
+        myNotesContentEl.innerHTML =
+          '<p class="text-muted small">Failed to load notes.</p>';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      workSectionLoaded = true;
+    }
     return;
   }
 
@@ -1490,7 +1965,7 @@ async function loadWorkSection() {
     if (loadingEl) loadingEl.style.display = '';
     if (errorEl)   errorEl.style.display   = 'none';
 
-    const res = await fetch('/api/profile/work?handle=' + encodeURIComponent(handle));
+    const res = await fetch('/api/profile/work?handle=' + encodeURIComponent(ownersHandle));
     if (!res.ok) throw new Error('Server error ' + res.status);
     const row = await res.json();
     cachedWorkRow = row;
@@ -1528,6 +2003,186 @@ function populateEditWorkModal() {
   if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
 }
 
+function buildContactDetailsRequestBody(patch) {
+  const ownersHandle =
+    cachedProfileRow && cachedProfileRow.handle
+      ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+      : '';
+  const lookup = getContactNameForContactDetailsPage();
+  return {
+    user_id: cachedUserEmail,
+    owners_handle: ownersHandle,
+    lookup_contact_name: lookup,
+    ...patch
+  };
+}
+
+async function applySavedContactDetailsRow(data) {
+  if (!data) return;
+  const newCn =
+    data.contact_name != null && String(data.contact_name).trim() !== ''
+      ? String(data.contact_name).trim()
+      : '';
+  const prevLookup = getContactNameForContactDetailsPage();
+  if (newCn && newCn !== prevLookup) {
+    const u = new URL(window.location.href);
+    u.searchParams.set('contact_name', newCn);
+    window.history.replaceState({}, '', u);
+    const hid = document.getElementById('contact-page-contact-name');
+    if (hid) hid.value = newCn;
+  }
+  await applyContactDetailsPageHeader(cachedAuthUser, cachedProfileRow);
+  renderWorkSection(cachedWorkRow);
+  renderEducationSection(cachedWorkRow);
+  renderMyNotesSection(cachedWorkRow);
+  renderFamilySection(cachedFamilyRow);
+  renderInterestsSection(cachedInterestsRow);
+}
+
+function populateEditContactDetailsModal() {
+  const row = cachedWorkRow || {};
+  const pairs = [
+    ['cd-contact_name', 'contact_name'],
+    ['cd-contact_handle', 'contact_handle'],
+    ['cd-cell', 'cell'],
+    ['cd-other_phone', 'other_phone'],
+    ['cd-work_email', 'work_email'],
+    ['cd-personal_email', 'personal_email']
+  ];
+  pairs.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = row[key] != null ? String(row[key]) : '';
+  });
+  const errEl = document.getElementById('edit-contact-details-error');
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+}
+
+function populateEditMyNotesModal() {
+  const row = cachedWorkRow || {};
+  const ta = document.getElementById('emn-my_notes');
+  if (ta) ta.value = row.my_notes != null ? String(row.my_notes) : '';
+  const errEl = document.getElementById('edit-my-notes-error');
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+}
+
+async function submitEditMyNotesForm() {
+  const errEl = document.getElementById('edit-my-notes-error');
+  const submitBtn = document.getElementById('edit-my-notes-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+  if (!isContactDetailsWorkPage()) return;
+
+  const ownersHandle =
+    cachedProfileRow && cachedProfileRow.handle
+      ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+      : '';
+  const lookup = getContactNameForContactDetailsPage();
+  if (!ownersHandle || !lookup) {
+    if (errEl) {
+      errEl.textContent = 'Owner handle and contact name are required.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  const ta = document.getElementById('emn-my_notes');
+  const my_notes = ta ? ta.value.trim() || null : null;
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/contact-details', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildContactDetailsRequestBody({ my_notes }))
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to save');
+    await applySavedContactDetailsRow(data);
+    if (window.jQuery) window.jQuery('#editMyNotesModal').modal('hide');
+  } catch (err) {
+    console.error('Error saving private notes:', err);
+    if (errEl) {
+      errEl.textContent = err.message || 'Failed to save.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+async function submitEditContactDetailsForm() {
+  const errEl = document.getElementById('edit-contact-details-error');
+  const submitBtn = document.getElementById('edit-contact-details-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+  if (!isContactDetailsWorkPage()) return;
+
+  const ownersHandle =
+    cachedProfileRow && cachedProfileRow.handle
+      ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+      : '';
+  const lookup = getContactNameForContactDetailsPage();
+  if (!ownersHandle || !lookup) {
+    if (errEl) {
+      errEl.textContent = 'Owner handle and contact name are required.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  const nameInput = document.getElementById('cd-contact_name');
+  const n = nameInput ? String(nameInput.value).trim() : '';
+  if (!n) {
+    if (errEl) {
+      errEl.textContent = 'Display name is required.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  function fieldOrNull(id) {
+    const el = document.getElementById(id);
+    const v = el ? el.value.trim() : '';
+    return v || null;
+  }
+
+  const patch = {
+    contact_name: n,
+    contact_handle: fieldOrNull('cd-contact_handle'),
+    cell: fieldOrNull('cd-cell'),
+    other_phone: fieldOrNull('cd-other_phone'),
+    work_email: fieldOrNull('cd-work_email'),
+    personal_email: fieldOrNull('cd-personal_email')
+  };
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/contact-details', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildContactDetailsRequestBody(patch))
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to save');
+    await applySavedContactDetailsRow(data);
+    if (window.jQuery) window.jQuery('#editContactDetailsModal').modal('hide');
+  } catch (err) {
+    console.error('Error saving contact details:', err);
+    if (errEl) {
+      errEl.textContent = err.message || 'Failed to save.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
 async function submitEditWorkForm() {
   const errEl     = document.getElementById('edit-work-error');
   const submitBtn = document.getElementById('edit-work-submit');
@@ -1556,17 +2211,37 @@ async function submitEditWorkForm() {
   if (errEl) errEl.style.display = 'none';
   try {
     submitBtn.disabled = true;
-    const res = await fetch('/api/profile/work', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: cachedUserEmail, ...workFields })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Failed to save');
-    cachedWorkRow = data;
-    workSectionLoaded = false;
-    renderWorkSection(data);
-    if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
+    if (isContactDetailsWorkPage()) {
+      const ownersHandle =
+        cachedProfileRow && cachedProfileRow.handle
+          ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+          : '';
+      const lookup = getContactNameForContactDetailsPage();
+      if (!ownersHandle || !lookup) {
+        throw new Error('Owner handle and contact name are required.');
+      }
+      const res = await fetch('/api/contact-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildContactDetailsRequestBody(workFields))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      await applySavedContactDetailsRow(data);
+      if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
+    } else {
+      const res = await fetch('/api/profile/work', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: cachedUserEmail, ...workFields })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      cachedWorkRow = data;
+      workSectionLoaded = false;
+      renderWorkSection(data);
+      if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
+    }
   } catch (err) {
     console.error('Error saving work:', err);
     if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
@@ -1583,8 +2258,11 @@ let familySectionLoaded = false;
 function renderFamilySection(row) {
   const contentEl = document.getElementById('family-section-content');
   if (!contentEl) return;
+  const emptyNoRow = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No family info in <code>contact_details</code> for this contact.</p>'
+    : '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
   if (!row) {
-    contentEl.innerHTML = '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
+    contentEl.innerHTML = emptyNoRow;
     return;
   }
 
@@ -1600,37 +2278,104 @@ function renderFamilySection(row) {
     html += '<div class="small mb-1">' + parts + '</div>';
   }
 
-  contentEl.innerHTML = html ||
-    '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
+  const emptyNoEntries = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No family entries on this contact record.</p>'
+    : '<p class="text-muted small">No family info yet. Click the pencil to add.</p>';
+  contentEl.innerHTML = html || emptyNoEntries;
 }
 
 async function loadFamilySection() {
   const loadingEl = document.getElementById('family-section-loading');
   const errorEl   = document.getElementById('family-section-error');
+  const contentEl = document.getElementById('family-section-content');
 
-  const handle = cachedProfileRow && cachedProfileRow.handle
+  const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
     : '';
 
-  if (!handle) {
-    const contentEl = document.getElementById('family-section-content');
-    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+  if (!ownersHandle) {
+    if (contentEl) {
+      contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    }
     familySectionLoaded = true;
+    return;
+  }
+
+  if (isContactDetailsWorkPage()) {
+    const contactName = getContactNameForContactDetailsPage();
+    if (!contactName) {
+      if (contentEl) {
+        contentEl.innerHTML =
+          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load family from <code>contact_details</code>.</p>';
+      }
+      familySectionLoaded = true;
+      return;
+    }
+
+    if (cachedWorkRow) {
+      cachedFamilyRow = cachedWorkRow;
+      cachedInterestsRow = cachedWorkRow;
+      try {
+        if (loadingEl) loadingEl.style.display = '';
+        if (errorEl) errorEl.style.display = 'none';
+        renderFamilySection(cachedWorkRow);
+      } catch (err) {
+        console.error('Error loading family section (contact_details):', err);
+        if (errorEl) {
+          errorEl.textContent = 'Failed to load family data.';
+          errorEl.style.display = '';
+        }
+      } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+        familySectionLoaded = true;
+      }
+      return;
+    }
+
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl) errorEl.style.display = 'none';
+
+      const res = await fetch(
+        '/api/contact-details/work?owners_handle=' +
+          encodeURIComponent(ownersHandle) +
+          '&contact_name=' +
+          encodeURIComponent(contactName)
+      );
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      const row = await res.json();
+      cachedWorkRow = row;
+      cachedFamilyRow = row;
+      cachedInterestsRow = row;
+      renderFamilySection(row);
+    } catch (err) {
+      console.error('Error loading family section (contact_details):', err);
+      if (errorEl) {
+        errorEl.textContent = 'Failed to load family data.';
+        errorEl.style.display = '';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      familySectionLoaded = true;
+    }
     return;
   }
 
   try {
     if (loadingEl) loadingEl.style.display = '';
-    if (errorEl)   errorEl.style.display   = 'none';
+    if (errorEl) errorEl.style.display = 'none';
 
-    const res = await fetch('/api/profile/family?handle=' + encodeURIComponent(handle));
+    const res = await fetch('/api/profile/family?handle=' + encodeURIComponent(ownersHandle));
     if (!res.ok) throw new Error('Server error ' + res.status);
     const row = await res.json();
     cachedFamilyRow = row;
     renderFamilySection(row);
   } catch (err) {
     console.error('Error loading family section:', err);
-    if (errorEl) { errorEl.textContent = 'Failed to load family data.'; errorEl.style.display = ''; }
+    if (errorEl) {
+      errorEl.textContent = 'Failed to load family data.';
+      errorEl.style.display = '';
+    }
   } finally {
     if (loadingEl) loadingEl.style.display = 'none';
     familySectionLoaded = true;
@@ -1665,17 +2410,37 @@ async function submitEditFamilyForm() {
   if (errEl) errEl.style.display = 'none';
   try {
     submitBtn.disabled = true;
-    const res = await fetch('/api/profile/family', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: cachedUserEmail, ...familyFields })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Failed to save');
-    cachedFamilyRow = data;
-    familySectionLoaded = false;
-    renderFamilySection(data);
-    if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
+    if (isContactDetailsWorkPage()) {
+      const ownersHandle =
+        cachedProfileRow && cachedProfileRow.handle
+          ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+          : '';
+      const lookup = getContactNameForContactDetailsPage();
+      if (!ownersHandle || !lookup) {
+        throw new Error('Owner handle and contact name are required.');
+      }
+      const res = await fetch('/api/contact-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildContactDetailsRequestBody(familyFields))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      await applySavedContactDetailsRow(data);
+      if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
+    } else {
+      const res = await fetch('/api/profile/family', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: cachedUserEmail, ...familyFields })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      cachedFamilyRow = data;
+      familySectionLoaded = false;
+      renderFamilySection(data);
+      if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
+    }
   } catch (err) {
     console.error('Error saving family:', err);
     if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
@@ -1692,8 +2457,11 @@ let interestsSectionLoaded = false;
 function renderInterestsSection(row) {
   const contentEl = document.getElementById('interests-section-content');
   if (!contentEl) return;
+  const emptyNoRow = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No interests in <code>contact_details</code> for this contact.</p>'
+    : '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
   if (!row) {
-    contentEl.innerHTML = '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
+    contentEl.innerHTML = emptyNoRow;
     return;
   }
 
@@ -1704,37 +2472,103 @@ function renderInterestsSection(row) {
     html += '<div class="small mb-1">' + escapeHtml(val) + '</div>';
   }
 
-  contentEl.innerHTML = html ||
-    '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
+  const emptyNoEntries = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No interests on this contact record.</p>'
+    : '<p class="text-muted small">No interests yet. Click the pencil to add.</p>';
+  contentEl.innerHTML = html || emptyNoEntries;
 }
 
 async function loadInterestsSection() {
   const loadingEl = document.getElementById('interests-section-loading');
   const errorEl   = document.getElementById('interests-section-error');
+  const contentEl = document.getElementById('interests-section-content');
 
-  const handle = cachedProfileRow && cachedProfileRow.handle
+  const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
     : '';
 
-  if (!handle) {
-    const contentEl = document.getElementById('interests-section-content');
-    if (contentEl) contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+  if (!ownersHandle) {
+    if (contentEl) {
+      contentEl.innerHTML = '<p class="text-muted small">No handle set — save your profile first.</p>';
+    }
     interestsSectionLoaded = true;
+    return;
+  }
+
+  if (isContactDetailsWorkPage()) {
+    const contactName = getContactNameForContactDetailsPage();
+    if (!contactName) {
+      if (contentEl) {
+        contentEl.innerHTML =
+          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load interests from <code>contact_details</code>.</p>';
+      }
+      interestsSectionLoaded = true;
+      return;
+    }
+
+    if (cachedWorkRow) {
+      cachedInterestsRow = cachedWorkRow;
+      try {
+        if (loadingEl) loadingEl.style.display = '';
+        if (errorEl) errorEl.style.display = 'none';
+        renderInterestsSection(cachedWorkRow);
+      } catch (err) {
+        console.error('Error loading interests section (contact_details):', err);
+        if (errorEl) {
+          errorEl.textContent = 'Failed to load interests.';
+          errorEl.style.display = '';
+        }
+      } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+        interestsSectionLoaded = true;
+      }
+      return;
+    }
+
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl) errorEl.style.display = 'none';
+
+      const res = await fetch(
+        '/api/contact-details/work?owners_handle=' +
+          encodeURIComponent(ownersHandle) +
+          '&contact_name=' +
+          encodeURIComponent(contactName)
+      );
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      const row = await res.json();
+      cachedWorkRow = row;
+      cachedFamilyRow = row;
+      cachedInterestsRow = row;
+      renderInterestsSection(row);
+    } catch (err) {
+      console.error('Error loading interests section (contact_details):', err);
+      if (errorEl) {
+        errorEl.textContent = 'Failed to load interests.';
+        errorEl.style.display = '';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      interestsSectionLoaded = true;
+    }
     return;
   }
 
   try {
     if (loadingEl) loadingEl.style.display = '';
-    if (errorEl)   errorEl.style.display   = 'none';
+    if (errorEl) errorEl.style.display = 'none';
 
-    const res = await fetch('/api/profile/interests?handle=' + encodeURIComponent(handle));
+    const res = await fetch('/api/profile/interests?handle=' + encodeURIComponent(ownersHandle));
     if (!res.ok) throw new Error('Server error ' + res.status);
     const row = await res.json();
     cachedInterestsRow = row;
     renderInterestsSection(row);
   } catch (err) {
     console.error('Error loading interests:', err);
-    if (errorEl) { errorEl.textContent = 'Failed to load interests.'; errorEl.style.display = ''; }
+    if (errorEl) {
+      errorEl.textContent = 'Failed to load interests.';
+      errorEl.style.display = '';
+    }
   } finally {
     if (loadingEl) loadingEl.style.display = 'none';
     interestsSectionLoaded = true;
@@ -1765,17 +2599,37 @@ async function submitEditInterestsForm() {
   if (errEl) errEl.style.display = 'none';
   try {
     submitBtn.disabled = true;
-    const res = await fetch('/api/profile/interests', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: cachedUserEmail, ...interestFields })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Failed to save');
-    cachedInterestsRow = data;
-    interestsSectionLoaded = false;
-    renderInterestsSection(data);
-    if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
+    if (isContactDetailsWorkPage()) {
+      const ownersHandle =
+        cachedProfileRow && cachedProfileRow.handle
+          ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+          : '';
+      const lookup = getContactNameForContactDetailsPage();
+      if (!ownersHandle || !lookup) {
+        throw new Error('Owner handle and contact name are required.');
+      }
+      const res = await fetch('/api/contact-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildContactDetailsRequestBody(interestFields))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      await applySavedContactDetailsRow(data);
+      if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
+    } else {
+      const res = await fetch('/api/profile/interests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: cachedUserEmail, ...interestFields })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      cachedInterestsRow = data;
+      interestsSectionLoaded = false;
+      renderInterestsSection(data);
+      if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
+    }
   } catch (err) {
     console.error('Error saving interests:', err);
     if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }

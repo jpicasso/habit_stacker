@@ -582,6 +582,80 @@ app.get('/api/profile/work', async (req, res) => {
   }
 });
 
+/** Work info for a saved contact: `contact_details` row keyed by owners_handle + contact_name */
+app.get('/api/contact-details/work', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const ownersHandle = req.query.owners_handle;
+    const contactName = req.query.contact_name;
+    if (!ownersHandle || !String(ownersHandle).trim()) {
+      return res.status(400).json({ error: 'owners_handle query parameter is required' });
+    }
+    if (!contactName || !String(contactName).trim()) {
+      return res.status(400).json({ error: 'contact_name query parameter is required' });
+    }
+    const row = await supabaseProfiles.getContactDetailsWork(
+      ownersHandle.trim(),
+      contactName.trim()
+    );
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching contact_details work:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch contact work' });
+  }
+});
+
+/** Update or insert a row in `contact_details` (owner must match logged-in profile). */
+app.put('/api/contact-details', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const body = req.body || {};
+    const user_id = body.user_id;
+    const owners_handle = body.owners_handle;
+    const lookup_contact_name =
+      body.lookup_contact_name != null && String(body.lookup_contact_name).trim() !== ''
+        ? String(body.lookup_contact_name).trim()
+        : '';
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!owners_handle || !String(owners_handle).trim()) {
+      return res.status(400).json({ error: 'owners_handle is required' });
+    }
+    if (!lookup_contact_name) {
+      return res.status(400).json({ error: 'lookup_contact_name is required' });
+    }
+    const {
+      user_id: _u,
+      owners_handle: _o,
+      lookup_contact_name: _l,
+      ...patch
+    } = body;
+    const row = await supabaseProfiles.upsertContactDetails(
+      user_id.trim(),
+      owners_handle.trim(),
+      lookup_contact_name,
+      patch
+    );
+    res.json(row);
+  } catch (error) {
+    console.error('Error saving contact_details:', error);
+    const msg = error.message || 'Failed to save contact';
+    if (msg === 'Forbidden') {
+      return res.status(403).json({ error: msg });
+    }
+    res.status(500).json({ error: msg });
+  }
+});
+
 app.put('/api/profile/work', async (req, res) => {
   try {
     if (!supabaseProfiles.isConfigured()) {
@@ -674,6 +748,61 @@ app.post('/api/profile/photo', async (req, res) => {
   } catch (error) {
     console.error('Error uploading profile photo:', error);
     res.status(500).json({ error: error.message || 'Failed to upload photo' });
+  }
+});
+
+/** Bucket `contact_photos`: `{owners_handle}_{contactNameSlug}.{ext}` */
+app.get('/api/contact-photo', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Supabase required' });
+    }
+    const ownersHandle = req.query.owners_handle;
+    const contactName = req.query.contact_name;
+    if (!ownersHandle || !String(ownersHandle).trim()) {
+      return res.status(400).json({ error: 'owners_handle is required' });
+    }
+    if (!contactName || !String(contactName).trim()) {
+      return res.status(400).json({ error: 'contact_name is required' });
+    }
+    const url = await supabaseProfiles.getContactPhotoUrlForContact(
+      ownersHandle.trim(),
+      contactName.trim()
+    );
+    res.json({ url: url || null });
+  } catch (error) {
+    console.error('Error fetching contact photo URL:', error);
+    res.json({ url: null });
+  }
+});
+
+app.post('/api/contact-photo', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Supabase required' });
+    }
+    const { owners_handle, contact_name, imageBase64, contentType } = req.body || {};
+    if (!owners_handle || !String(owners_handle).trim()) {
+      return res.status(400).json({ error: 'owners_handle is required' });
+    }
+    if (!contact_name || !String(contact_name).trim()) {
+      return res.status(400).json({ error: 'contact_name is required' });
+    }
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'imageBase64 is required' });
+    }
+    const base64Data = imageBase64.replace(/^data:[^;]+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    const url = await supabaseProfiles.uploadContactPhoto(
+      owners_handle.trim(),
+      contact_name.trim(),
+      buffer,
+      contentType || 'image/jpeg'
+    );
+    res.json({ url });
+  } catch (error) {
+    console.error('Error uploading contact photo:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload contact photo' });
   }
 });
 

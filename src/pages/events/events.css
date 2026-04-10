@@ -58,6 +58,97 @@
   color: #007bff;
 }
 
+/* Contact record page header (contact.html) */
+.contact-page-header .contact-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.contact-page-header .contact-avatar-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+  background: #e9ecef;
+}
+
+.contact-page-header #contact-photo-edit-btn {
+  bottom: -2px;
+  right: -2px;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.contact-page-header .contact-name-row {
+  gap: 0.35rem;
+}
+
+.contact-page-header #contact-name-edit-btn {
+  color: #6c757d;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.contact-page-header #contact-name-edit-btn:hover,
+.contact-page-header #contact-name-edit-btn:focus {
+  color: #007bff;
+}
+
+/* contact.html — dense vertical layout (font sizes unchanged) */
+main.contact-page-compact .contact-compact-line {
+  margin-bottom: 0.1rem;
+  line-height: 1.25;
+}
+
+main.contact-page-compact .contact-section-tight {
+  padding-top: 0.35rem;
+  margin-top: 0.35rem;
+  scroll-margin-top: 0.5rem;
+}
+
+main.contact-page-compact #contact-section-notes {
+  scroll-margin-top: 0.5rem;
+}
+
+main.contact-page-compact .contact-section-tight .alert {
+  margin-bottom: 0.35rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+main.contact-page-compact #work-section-content p,
+main.contact-page-compact #education-section-content p,
+main.contact-page-compact #family-section-content p,
+main.contact-page-compact #interests-section-content p {
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+main.contact-page-compact #work-section-content .small.mb-1,
+main.contact-page-compact #education-section-content .small.mb-1,
+main.contact-page-compact #family-section-content .small.mb-1,
+main.contact-page-compact #interests-section-content .small.mb-1 {
+  margin-bottom: 0.1rem !important;
+  line-height: 1.25;
+}
+
+main.contact-page-compact #work-section-content h6 {
+  margin-bottom: 0.2rem !important;
+  margin-top: 0.35rem !important;
+}
+
+main.contact-page-compact #work-section-content h6:first-child {
+  margin-top: 0 !important;
+}
+
+main.contact-page-compact #contact-section-pills .contact-section-btn {
+  margin-bottom: 0.15rem;
+}
+
+main.contact-page-compact #my-notes-section-content p {
+  margin-bottom: 0.25rem;
+}
+
 
 /* ------------------------------------------------------------
    Friends list
@@ -97,4 +188,14 @@
 
 #cg-group-name[readonly] {
   background-color: #f8f9fa;
+}
+
+/* Section anchors: pills scroll here without hiding under sticky UI */
+.profile-page-section {
+  scroll-margin-top: 1rem;
+}
+
+#profile-section-notes,
+#contact-section-notes {
+  scroll-margin-top: 1rem;
 }
