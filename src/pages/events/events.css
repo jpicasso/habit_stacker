@@ -1,0 +1,100 @@
+/* ============================================================
+   events.css — shared styles for all pages in /events/
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Events table column widths
+   (life_events, profiles, contact)
+   ------------------------------------------------------------ */
+#tasks-table.events-table th.events-col-who,
+#tasks-table.events-table td.events-col-who,
+#tasks-table.events-table th.events-col-shared,
+#tasks-table.events-table td.events-col-shared,
+#tasks-table.events-table th.events-col-owner,
+#tasks-table.events-table td.events-col-owner {
+  width: 5em;
+  max-width: 5em;
+  box-sizing: border-box;
+}
+
+
+/* ------------------------------------------------------------
+   Profile page header
+   (profiles, contact)
+   ------------------------------------------------------------ */
+.profile-page-header .profile-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.profile-page-header .profile-avatar-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+  background: #e9ecef;
+}
+
+.profile-page-header #profile-photo-edit-btn {
+  bottom: -2px;
+  right: -2px;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.profile-page-header .profile-name-row {
+  gap: 0.35rem;
+}
+
+.profile-page-header #profile-name-edit-btn {
+  color: #6c757d;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.profile-page-header #profile-name-edit-btn:hover,
+.profile-page-header #profile-name-edit-btn:focus {
+  color: #007bff;
+}
+
+
+/* ------------------------------------------------------------
+   Friends list
+   ------------------------------------------------------------ */
+#af-notes::placeholder {
+  color: #868e96;
+  opacity: 1;
+}
+
+#friends-tbody tr.friends-table-row {
+  cursor: pointer;
+}
+
+#friends-tbody tr.friends-table-row button {
+  cursor: pointer;
+}
+
+
+/* ------------------------------------------------------------
+   Groups list
+   ------------------------------------------------------------ */
+.groups-col-actions {
+  width: 220px;
+}
+
+.groups-col-admins {
+  width: 120px;
+}
+
+.groups-col-visibility {
+  width: 110px;
+}
+
+#groups-tbody tr {
+  cursor: pointer;
+}
+
+#cg-group-name[readonly] {
+  background-color: #f8f9fa;
+}

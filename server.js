@@ -479,6 +479,11 @@ app.delete('/api/contacts', async (req, res) => {
   }
 });
 
+// Serve the profiles page for a handle URL  e.g. /events/@meganpicasso  or  /events/@meganpicasso/profiles.html
+app.get(['/events/@:handle', '/events/@:handle/profiles.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'events', 'profiles.html'));
+});
+
 // --- Profiles API (Supabase `profiles` table) ---
 
 app.get('/api/profile', async (req, res) => {
@@ -494,6 +499,27 @@ app.get('/api/profile', async (req, res) => {
     res.json(row);
   } catch (error) {
     console.error('Error fetching profile:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch profile' });
+  }
+});
+
+app.get('/api/profile/by-handle', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const handle = req.query.handle;
+    if (!handle || !handle.trim()) {
+      return res.status(400).json({ error: 'handle query parameter is required' });
+    }
+    const row = await supabaseProfiles.getProfileByHandle(handle.trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching profile by handle:', error);
     const msg = (error.message || '').toLowerCase();
     if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
       return res.json(null);
@@ -612,12 +638,17 @@ app.put('/api/profile/family', async (req, res) => {
 });
 
 app.get('/api/profile/photo', async (req, res) => {
-  const handle = req.query.handle;
-  if (!handle || !handle.trim()) {
-    return res.status(400).json({ error: 'handle query parameter is required' });
+  try {
+    const handle = req.query.handle;
+    if (!handle || !handle.trim()) {
+      return res.status(400).json({ error: 'handle query parameter is required' });
+    }
+    const url = await supabaseProfiles.getProfilePhotoUrl(handle.trim());
+    res.json({ url: url || null });
+  } catch (error) {
+    console.error('Error fetching profile photo URL:', error);
+    res.json({ url: null });
   }
-  const url = supabaseProfiles.getProfilePhotoUrl(handle.trim());
-  res.json({ url });
 });
 
 app.post('/api/profile/photo', async (req, res) => {

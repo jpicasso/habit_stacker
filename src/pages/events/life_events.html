@@ -6,18 +6,7 @@ aboutNav: true
 
 {{> navbar}}
 
-<style>
-  #tasks-table.events-table th.events-col-who,
-  #tasks-table.events-table td.events-col-who,
-  #tasks-table.events-table th.events-col-shared,
-  #tasks-table.events-table td.events-col-shared,
-  #tasks-table.events-table th.events-col-owner,
-  #tasks-table.events-table td.events-col-owner {
-    width: 5em;
-    max-width: 5em;
-    box-sizing: border-box;
-  }
-</style>
+<link rel="stylesheet" href="/events/events.css">
 
 <main class="main main--interior">
   <div class="i-section mb-4">
@@ -240,6 +229,6 @@ aboutNav: true
   </div>
 </div>
 
-<script defer src="/events/events_table.js"></script>
+<script defer src="/events/js/events_table.js"></script>
 
 {{> main-site-footer }}

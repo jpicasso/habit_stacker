@@ -361,6 +361,51 @@ var PROFILE_AVATAR_PLACEHOLDER =
     '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#dee2e6"/><circle cx="36" cy="27" r="11" fill="#adb5bd"/><path d="M12 60c4-10 14-16 24-16s20 6 24 16" fill="#adb5bd"/></svg>'
   );
 
+/** Whether the logged-in user is viewing their own profile page. */
+var isOwnProfile = true;
+
+/**
+ * Parse the handle out of URLs like /events/@meganpicasso or /events/@meganpicasso/profiles.html.
+ * Returns the bare handle string (no @), or null if not present.
+ */
+function getProfileHandleFromUrl() {
+  const match = window.location.pathname.match(/\/events\/@([^\/]+)/);
+  return match ? decodeURIComponent(match[1]).replace(/^@+/, '') : null;
+}
+
+/**
+ * Fetch a profile row by handle from /api/profile/by-handle.
+ * @returns {Promise<object|null>}
+ */
+async function fetchProfileByHandle(handle) {
+  if (!handle) return null;
+  try {
+    const res = await fetch('/api/profile/by-handle?handle=' + encodeURIComponent(handle));
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error('Error loading profile by handle:', e);
+    return null;
+  }
+}
+
+/**
+ * Show or hide profile edit controls (pencil icons, photo edit button)
+ * based on whether the viewer owns this profile.
+ */
+function applyProfileEditVisibility(own) {
+  const controls = [
+    document.getElementById('profile-name-edit-btn'),
+    document.getElementById('profile-photo-edit-btn'),
+    document.getElementById('work-section-edit-btn'),
+    document.getElementById('family-section-edit-btn'),
+    document.getElementById('interests-section-edit-btn')
+  ];
+  controls.forEach(el => {
+    if (el) el.style.display = own ? '' : 'none';
+  });
+}
+
 /**
  * Fetch a profile row by email, automatically falling back to the dotless
  * Gmail variant (john.picasso@ → johnpicasso@) if the first lookup returns null.
@@ -435,46 +480,60 @@ function applyProfileHeaderFromData(user, profileRow) {
     }
     return;
   }
+  // When viewing someone else's profile, all display data comes from profileRow.
+  // When viewing own profile, fall back to Auth0 user data if profileRow is missing.
+  const viewedHandle =
+    profileRow && profileRow.handle != null && String(profileRow.handle).trim() !== ''
+      ? String(profileRow.handle).trim().replace(/^@+/, '')
+      : '';
+
   const displayName =
     profileRow && profileRow.name != null && String(profileRow.name).trim() !== ''
       ? String(profileRow.name).trim()
-      : profileDisplayNameFromUser(user) || (user.email || '');
+      : (isOwnProfile ? profileDisplayNameFromUser(user) || (user.email || '') : '—');
+
+  // Email to display and use for event-filtering is always the profile owner's email.
+  // For own profile, prefer the live Auth0 email; fall back to stored row email.
+  const viewedEmail =
+    isOwnProfile
+      ? ((user && user.email) || (profileRow && profileRow.email) || '')
+      : ((profileRow && profileRow.email) || '');
+
   cachedProfileNameForFilter = displayName;
-  cachedProfileEmailForFilter = (user.email || '').trim() || null;
+  cachedProfileEmailForFilter = viewedEmail || null;
+
   if (nameEl) nameEl.textContent = displayName;
+
   if (handleEl) {
-    const h =
-      profileRow && profileRow.handle != null && String(profileRow.handle).trim() !== ''
-        ? String(profileRow.handle).trim()
-        : '';
-    handleEl.textContent = h ? '@' + h.replace(/^@+/, '') : '—';
+    handleEl.textContent = viewedHandle ? '@' + viewedHandle : '—';
   }
-  if (emailEl) emailEl.textContent = user.email || '';
+
+  if (emailEl) emailEl.textContent = viewedEmail;
+
   if (imgEl) {
     imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
     imgEl.alt = displayName;
-    // Load from Supabase storage bucket using handle
-    const h = profileRow && profileRow.handle
-      ? String(profileRow.handle).trim().replace(/^@+/, '')
-      : '';
-    if (h) {
-      fetch('/api/profile/photo?handle=' + encodeURIComponent(h))
+    // Photo fallback: own profile can fall back to Auth0 avatar; others get placeholder
+    const fallbackPhoto = isOwnProfile ? ((user && user.picture) || PROFILE_AVATAR_PLACEHOLDER) : PROFILE_AVATAR_PLACEHOLDER;
+    if (viewedHandle) {
+      fetch('/api/profile/photo?handle=' + encodeURIComponent(viewedHandle))
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data && data.url) {
             const img = new Image();
             img.onload  = () => { imgEl.src = data.url; };
-            img.onerror = () => { imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER; };
+            img.onerror = () => { imgEl.src = fallbackPhoto; };
             img.src = data.url;
           } else {
-            imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+            imgEl.src = fallbackPhoto;
           }
         })
-        .catch(() => { imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER; });
+        .catch(() => { imgEl.src = fallbackPhoto; });
     } else {
-      imgEl.src = user.picture || PROFILE_AVATAR_PLACEHOLDER;
+      imgEl.src = fallbackPhoto;
     }
   }
+
   if (locEl) {
     const loc =
       profileRow && profileRow.location != null && String(profileRow.location).trim() !== ''
@@ -600,27 +659,49 @@ async function loadTasks() {
     }
 
     cachedAuthUser = authUser || null;
-    let profileRow = null;
-    if (document.getElementById('profile-display-name') && currentUserEmail) {
-      profileRow = await fetchProfileForPage(currentUserEmail);
-      cachedProfileRow = profileRow;
-    } else {
-      cachedProfileRow = null;
-    }
-    applyProfileHeaderFromData(authUser, profileRow);
 
     if (!currentUserEmail) {
       cachedUserEmail = null;
       loadingEl.style.display = 'none';
       emptyEl.textContent = 'Please log in to view your events.';
       emptyEl.style.display = 'block';
+      applyProfileHeaderFromData(authUser, null);
       return;
     }
 
     cachedUserEmail = currentUserEmail;
 
-    // Fetch and display handle from profiles table
-    fetchAndDisplayHandle(currentUserEmail);
+    let profileRow = null;
+    if (document.getElementById('profile-display-name')) {
+      const urlHandle = getProfileHandleFromUrl();
+      if (urlHandle) {
+        // Viewing a profile page accessed by handle URL (e.g. /events/@meganpicasso)
+        profileRow = await fetchProfileByHandle(urlHandle);
+        cachedProfileRow = profileRow;
+        // Determine if the logged-in user owns this profile
+        if (profileRow && profileRow.email) {
+          const normalize = e => {
+            const [local, domain] = e.toLowerCase().split('@');
+            return (local || '').replace(/\./g, '') + '@' + (domain || '');
+          };
+          isOwnProfile = normalize(currentUserEmail) === normalize(profileRow.email);
+        } else {
+          isOwnProfile = false;
+        }
+      } else {
+        profileRow = await fetchProfileForPage(currentUserEmail);
+        cachedProfileRow = profileRow;
+        isOwnProfile = true;
+      }
+    } else {
+      cachedProfileRow = null;
+      isOwnProfile = true;
+    }
+    applyProfileHeaderFromData(authUser, profileRow);
+    applyProfileEditVisibility(isOwnProfile);
+
+    // Fetch and display handle from profiles table (skip if already set from URL handle load)
+    if (!getProfileHandleFromUrl()) fetchAndDisplayHandle(currentUserEmail);
 
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);

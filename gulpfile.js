@@ -43,8 +43,8 @@ function copyGoalsPageAssets() { // Goals Tracker JS/CSS under src/pages/goals �
     .pipe(gulp.dest('dist/goals'));
 }
 
-function copyEventsPageAssets() { // Life events page JS/CSS under src/pages/events → dist/events
-  return gulp.src('./src/pages/events/*.{js,css}').pipe(gulp.dest('dist/events'));
+function copyEventsPageAssets() { // Life events page JS/CSS under src/pages/events → dist/events (preserves js/ subdir)
+  return gulp.src('./src/pages/events/**/*.{js,css}', { base: './src/pages/events' }).pipe(gulp.dest('dist/events'));
 }
 
 function copySounds() { // Copy the sounds folder and its subfolders to /dist

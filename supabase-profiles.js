@@ -57,6 +57,29 @@ async function getProfileByEmail(email) {
 }
 
 /**
+ * Fetch a profile row by handle.
+ * @returns {Promise<object|null>}
+ */
+async function getProfileByHandle(handle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const h = String(handle || '').trim().replace(/^@+/, '');
+  if (!h) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, name, handle, location')
+    .eq('handle', h)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+/**
  * Insert or update by email (no ON CONFLICT needed).
  * @returns {Promise<object>}
  */
@@ -316,47 +339,98 @@ async function upsertInterestsProfile(email, interestFields) {
 }
 
 const PHOTO_BUCKET = 'profile_photos';
+const PHOTO_EXTS   = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
+const MIME_TO_EXT  = {
+  'image/jpeg': 'jpg',
+  'image/jpg':  'jpg',
+  'image/png':  'png',
+  'image/webp': 'webp',
+  'image/gif':  'gif',
+  'image/avif': 'avif',
+};
 
 /**
- * Returns the public URL for a profile photo, or null if not configured.
+ * Searches the profile_photos bucket for any file named <handle>.<ext>
+ * (jpg, jpeg, png, webp, gif, avif) and returns its public URL, or null.
  * @param {string} handle
- * @returns {string|null}
+ * @returns {Promise<string|null>}
  */
-function getProfilePhotoUrl(handle) {
-  if (!process.env.SUPABASE_URL || !handle) return null;
-  const h = String(handle).trim().replace(/^@+/, '');
+async function getProfilePhotoUrl(handle) {
+  const supabase = getClient();
+  if (!supabase || !process.env.SUPABASE_URL || !handle) return null;
+  const h = String(handle).trim().replace(/^@+/, '').toLowerCase();
   if (!h) return null;
-  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${h}.jpeg`;
+
+  const { data, error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .list('', { search: h });
+
+  if (error || !data || data.length === 0) return null;
+
+  const found = data.find(f => {
+    const name = f.name.toLowerCase();
+    const dotIdx = name.lastIndexOf('.');
+    if (dotIdx === -1) return false;
+    return name.slice(0, dotIdx) === h && PHOTO_EXTS.includes(name.slice(dotIdx + 1));
+  });
+
+  if (!found) return null;
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${found.name}`;
 }
 
 /**
- * Upload (upsert) a profile photo.
+ * Upload (upsert) a profile photo using the correct extension for the MIME type.
+ * Any existing photo for this handle with a different extension is removed first.
  * @param {string} handle
  * @param {Buffer} imageBuffer
- * @param {string} contentType  e.g. 'image/jpeg'
+ * @param {string} contentType  e.g. 'image/png'
  * @returns {Promise<string>} Public URL of the uploaded photo
  */
 async function uploadProfilePhoto(handle, imageBuffer, contentType) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-  const h = String(handle).trim().replace(/^@+/, '');
+  const h = String(handle).trim().replace(/^@+/, '').toLowerCase();
   if (!h) throw new Error('handle is required');
 
-  const path = `${h}.jpeg`;
+  const ext     = MIME_TO_EXT[contentType] || 'jpg';
+  const newPath = `${h}.${ext}`;
+
+  // Remove stale files with other extensions so only one photo exists per handle
+  const { data: existing } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .list('', { search: h });
+
+  if (existing && existing.length > 0) {
+    const toDelete = existing
+      .filter(f => {
+        const name = f.name.toLowerCase();
+        const dotIdx = name.lastIndexOf('.');
+        if (dotIdx === -1) return false;
+        const base = name.slice(0, dotIdx);
+        const oldExt = name.slice(dotIdx + 1);
+        return base === h && PHOTO_EXTS.includes(oldExt) && f.name.toLowerCase() !== newPath;
+      })
+      .map(f => f.name);
+    if (toDelete.length > 0) {
+      await supabase.storage.from(PHOTO_BUCKET).remove(toDelete);
+    }
+  }
+
   const { error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .upload(path, imageBuffer, {
+    .upload(newPath, imageBuffer, {
       contentType: contentType || 'image/jpeg',
       upsert: true
     });
 
   if (error) throw error;
-  return getProfilePhotoUrl(h);
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${newPath}`;
 }
 
 module.exports = {
   isConfigured,
   getProfileByEmail,
+  getProfileByHandle,
   upsertProfile,
   getWorkProfileByHandle,
   getWorkProfileByEmail,
