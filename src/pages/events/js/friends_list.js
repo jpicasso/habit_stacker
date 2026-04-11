@@ -125,6 +125,22 @@ async function getLoggedInUserId() {
   return null;
 }
 
+/** Profile `handle` matches `contact_details.owners_handle` (see /api/contact-details/list). */
+async function fetchProfileHandle(userId) {
+  try {
+    const res = await fetch(
+      '/api/profile?user_id=' + encodeURIComponent(userId)
+    );
+    if (!res.ok) return null;
+    const row = await res.json();
+    if (!row || !row.handle) return null;
+    return String(row.handle).trim().replace(/^@+/, '');
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
 async function loadIncomingRequests(email) {
   const loadingEl = document.getElementById('requests-loading');
   if (!loadingEl) return;
@@ -207,13 +223,13 @@ async function loadFriendsAndContacts(email) {
 
     if (contactsOnly) {
       const [contactsRes, connectionsRes] = await Promise.all([
-        fetch('/api/contacts?user_id=' + encodeURIComponent(email)),
+        fetch('/api/contact-details/list?user_id=' + encodeURIComponent(email)),
         fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
       ]);
       if (contactsRes.status === 503) {
         loadingEl.style.display = 'none';
         errorEl.textContent =
-          'Contacts require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+          'Profiles require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
         errorEl.style.display = 'block';
         return;
       }
@@ -276,20 +292,26 @@ async function loadFriendsAndContacts(email) {
     });
 
     contactRows.forEach(row => {
-      const name = row.name != null ? String(row.name) : '';
-      const emailCol = row.email != null ? String(row.email).trim() : '';
-      const notes =
-        row.notes != null
-          ? String(row.notes)
-          : row.private_notes != null
-            ? String(row.private_notes)
-            : '';
+      const name =
+        row.contact_name != null ? String(row.contact_name).trim() : '';
+      const pe =
+        row.personal_email != null ? String(row.personal_email).trim() : '';
+      const we = row.work_email != null ? String(row.work_email).trim() : '';
+      const ch =
+        row.contact_handle != null ? String(row.contact_handle).trim() : '';
+      const notes = row.my_notes != null ? String(row.my_notes) : '';
       entries.push({
         name,
-        lookupEmail: emailCol || (name.includes('@') ? name : ''),
+        lookupEmail:
+          pe ||
+          we ||
+          (ch && !/\s/.test(ch) ? ch : '') ||
+          (name.includes('@') ? name : ''),
         type: 'contact',
-        id: String(row.id),
-        notes
+        id: name,
+        notes,
+        contactDetails: true,
+        lookupContactName: name
       });
     });
 
@@ -598,17 +620,26 @@ async function addFriendModalSubmit() {
         }
       }
     } else {
-      const response = await fetch('/api/contacts', {
-        method: 'POST',
+      const ownersHandle = await fetchProfileHandle(userId);
+      if (!ownersHandle) {
+        alert(
+          'Your profile needs a handle before you can add contacts. Update your profile first.'
+        );
+        return;
+      }
+      const response = await fetch('/api/contact-details', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          name,
-          private_notes: notes || undefined
+          owners_handle: ownersHandle,
+          lookup_contact_name: name,
+          contact_name: name,
+          my_notes: notes || undefined
         })
       });
       if (response.status === 503) {
-        alert('Contacts require Supabase.');
+        alert('Contact details require Supabase.');
         return;
       }
       if (!response.ok) {
@@ -650,8 +681,31 @@ async function deleteContactFromTable(btn) {
   const contactId = btn.dataset.contactId || '';
 
   try {
-    let url =
-      '/api/contacts?user_id=' + encodeURIComponent(userId);
+    if (isContactsListPage()) {
+      const contactName = (name || contactId || '').trim();
+      if (!contactName) {
+        alert('Nothing to delete.');
+        return;
+      }
+      const url =
+        '/api/contact-details?user_id=' +
+        encodeURIComponent(userId) +
+        '&contact_name=' +
+        encodeURIComponent(contactName);
+      const response = await fetch(url, { method: 'DELETE' });
+      if (response.status === 503) {
+        alert('Profiles require Supabase.');
+        return;
+      }
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete');
+      }
+      await loadFriendsPage();
+      return;
+    }
+
+    let url = '/api/contacts?user_id=' + encodeURIComponent(userId);
     if (contactId) {
       url += '&id=' + encodeURIComponent(contactId);
     } else if (name) {
@@ -727,7 +781,38 @@ async function rowDetailSubmit() {
     btn.disabled = true;
     btn.textContent = 'Saving…';
 
-    if (entry.type === 'contact') {
+    if (entry.type === 'contact' && entry.contactDetails) {
+      const ownersHandle = await fetchProfileHandle(userId);
+      if (!ownersHandle) {
+        alert('Your profile needs a handle before you can save.');
+        return;
+      }
+      const name = nameEl.value.trim();
+      if (!name) {
+        alert('Name cannot be empty.');
+        return;
+      }
+      const lookup = entry.lookupContactName || entry.name;
+      const response = await fetch('/api/contact-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          owners_handle: ownersHandle,
+          lookup_contact_name: lookup,
+          contact_name: name,
+          my_notes: notesEl.value
+        })
+      });
+      if (response.status === 503) {
+        alert('Contact details require Supabase.');
+        return;
+      }
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to save');
+      }
+    } else if (entry.type === 'contact') {
       const name = nameEl.value.trim();
       if (!name) {
         alert('Name cannot be empty.');

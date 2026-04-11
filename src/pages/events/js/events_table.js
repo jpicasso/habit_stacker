@@ -389,13 +389,18 @@ function hasProfileOrContactHeader() {
 
 /**
  * Contact name for `contact_details.contact_name` (query `contact_name` or `contact`, or #contact-page-contact-name).
+ * Normalized to match server lookup (trim, collapse spaces); `my_notes` and other fields load from that row via `/api/contact-details/work`.
  */
 function getContactNameForContactDetailsPage() {
   const q = new URLSearchParams(window.location.search);
   const fromQuery = q.get('contact_name') || q.get('contact');
-  if (fromQuery && String(fromQuery).trim()) return String(fromQuery).trim();
+  if (fromQuery && String(fromQuery).trim()) {
+    return String(fromQuery).trim().replace(/\s+/g, ' ');
+  }
   const el = document.getElementById('contact-page-contact-name');
-  if (el && el.value && String(el.value).trim()) return String(el.value).trim();
+  if (el && el.value && String(el.value).trim()) {
+    return String(el.value).trim().replace(/\s+/g, ' ');
+  }
   return '';
 }
 

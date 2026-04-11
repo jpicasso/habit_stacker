@@ -550,14 +550,31 @@ const CONTACT_DETAILS_PATCHABLE = new Set(CONTACT_DETAILS_COLUMNS);
  * @param {string} contactName   e.g. Megan Picasso (matches `contact_name`)
  * @returns {Promise<object|null>}
  */
+/** Normalize display name from URL or form (trim, collapse spaces). */
+function normalizeContactDetailName(s) {
+  return String(s || '')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Escape `%`, `_`, `\` so `ILIKE` matches the whole string literally (case-insensitive).
+ */
+function contactNameIlikeExactPattern(contactName) {
+  return normalizeContactDetailName(contactName)
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_');
+}
+
 async function getContactDetailsWork(ownersHandle, contactName) {
   const supabase = getClient();
   if (!supabase) return null;
   const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
-  const cn = String(contactName || '').trim();
+  const cn = normalizeContactDetailName(contactName);
   if (!oh || !cn) return null;
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('contact_details')
     .select(CONTACT_DETAILS_WORK_FIELDS)
     .eq('owners_handle', oh)
@@ -568,7 +585,75 @@ async function getContactDetailsWork(ownersHandle, contactName) {
     if (isSchemaError(error)) return null;
     throw error;
   }
+
+  if (data) return data;
+
+  // e.g. `?contact_name=aaron%20chalal` vs stored "Aaron Chalal"
+  const ilikePattern = contactNameIlikeExactPattern(cn);
+  ({ data, error } = await supabase
+    .from('contact_details')
+    .select(CONTACT_DETAILS_WORK_FIELDS)
+    .eq('owners_handle', oh)
+    .ilike('contact_name', ilikePattern)
+    .limit(1)
+    .maybeSingle());
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
   return data || null;
+}
+
+/**
+ * All `contact_details` rows for an owner (profile handle = `owners_handle`).
+ * @param {string} ownersHandle  e.g. johnpicasso
+ * @returns {Promise<Array<{ contact_name, my_notes?, personal_email?, work_email?, contact_handle? }>>}
+ */
+async function listContactDetailsByOwnersHandle(ownersHandle) {
+  const supabase = getClient();
+  if (!supabase) return [];
+  const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
+  if (!oh) return [];
+
+  const { data, error } = await supabase
+    .from('contact_details')
+    .select(
+      'contact_name, my_notes, personal_email, work_email, contact_handle'
+    )
+    .eq('owners_handle', oh)
+    .order('contact_name', { ascending: true });
+
+  if (error) {
+    if (isSchemaError(error)) return [];
+    throw error;
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Delete one `contact_details` row; caller must own `owners_handle` (via profile email).
+ */
+async function deleteContactDetailsForOwner(userEmail, contactName) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const profile = await getProfileByEmail(String(userEmail || '').trim());
+  if (!profile || !profile.handle) {
+    throw new Error('Forbidden');
+  }
+  const oh = String(profile.handle).trim().replace(/^@+/, '');
+  const cn = String(contactName || '').trim();
+  if (!cn) throw new Error('contact_name is required');
+
+  const { error } = await supabase
+    .from('contact_details')
+    .delete()
+    .eq('owners_handle', oh)
+    .eq('contact_name', cn);
+
+  if (error) throw error;
+  return true;
 }
 
 /**
@@ -658,5 +743,7 @@ module.exports = {
   getContactPhotoUrlForContact,
   uploadContactPhoto,
   getContactDetailsWork,
-  upsertContactDetails
+  upsertContactDetails,
+  listContactDetailsByOwnersHandle,
+  deleteContactDetailsForOwner
 };

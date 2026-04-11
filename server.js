@@ -611,6 +611,64 @@ app.get('/api/contact-details/work', async (req, res) => {
   }
 });
 
+/**
+ * List `contact_name` (and related fields) for the logged-in user's profile handle as `owners_handle`.
+ */
+app.get('/api/contact-details/list', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const profile = await supabaseProfiles.getProfileByEmail(userId.trim());
+    if (!profile || !profile.handle) {
+      return res.json([]);
+    }
+    const oh = String(profile.handle).trim().replace(/^@+/, '');
+    const rows = await supabaseProfiles.listContactDetailsByOwnersHandle(oh);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error listing contact_details:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json([]);
+    }
+    res.status(500).json({ error: error.message || 'Failed to list contacts' });
+  }
+});
+
+/** Delete one `contact_details` row (owner must match logged-in profile). */
+app.delete('/api/contact-details', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const userId = req.query.user_id;
+    const contactName = req.query.contact_name;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    if (!contactName || !String(contactName).trim()) {
+      return res.status(400).json({ error: 'contact_name query parameter is required' });
+    }
+    await supabaseProfiles.deleteContactDetailsForOwner(
+      userId.trim(),
+      String(contactName).trim()
+    );
+    res.json({ deleted: 1 });
+  } catch (error) {
+    console.error('Error deleting contact_details:', error);
+    const msg = error.message || '';
+    if (msg === 'Forbidden') {
+      return res.status(403).json({ error: msg });
+    }
+    res.status(500).json({ error: msg || 'Failed to delete contact' });
+  }
+});
+
 /** Update or insert a row in `contact_details` (owner must match logged-in profile). */
 app.put('/api/contact-details', async (req, res) => {
   try {
