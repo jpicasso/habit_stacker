@@ -79,6 +79,19 @@ function escapeAttr(text) {
     .replace(/>/g, '&gt;');
 }
 
+function isContactsListPage() {
+  return window.location.pathname.indexOf('contact_list') !== -1;
+}
+
+function isFriendsListPage() {
+  return window.location.pathname.indexOf('friends_list') !== -1;
+}
+
+function addModalDefaultSubmitLabel() {
+  if (isContactsListPage()) return 'Add contact';
+  return 'Add';
+}
+
 /** Enriched rows for row-click modal (set in loadFriendsAndContacts). */
 let friendsListEntriesCache = [];
 
@@ -88,6 +101,13 @@ function connectionLookupKey(entry) {
     ? entry.lookupEmail
     : entry.name;
   return String(raw || '').trim().toLowerCase();
+}
+
+/** contact.html loads a person by `contact_name` query (see events_table.js). */
+function contactPageHrefForListName(name) {
+  return (
+    '/events/contact.html?contact_name=' + encodeURIComponent(String(name || ''))
+  );
 }
 
 async function getLoggedInUserId() {
@@ -107,10 +127,12 @@ async function getLoggedInUserId() {
 
 async function loadIncomingRequests(email) {
   const loadingEl = document.getElementById('requests-loading');
+  if (!loadingEl) return;
   const errorEl = document.getElementById('requests-error');
   const emptyEl = document.getElementById('requests-empty');
   const tableEl = document.getElementById('requests-table');
   const tbodyEl = document.getElementById('requests-tbody');
+  if (!errorEl || !emptyEl || !tableEl || !tbodyEl) return;
 
   loadingEl.style.display = 'block';
   errorEl.style.display = 'none';
@@ -168,6 +190,7 @@ async function loadFriendsAndContacts(email) {
   const emptyEl   = document.getElementById('friends-empty');
   const tableEl   = document.getElementById('friends-table');
   const tbodyEl   = document.getElementById('friends-tbody');
+  if (!loadingEl || !errorEl || !emptyEl || !tableEl || !tbodyEl) return;
 
   loadingEl.style.display = 'block';
   errorEl.style.display   = 'none';
@@ -175,47 +198,72 @@ async function loadFriendsAndContacts(email) {
   tableEl.style.display   = 'none';
   tbodyEl.innerHTML       = '';
 
+  const contactsOnly = isContactsListPage();
+
   try {
-    // Fetch friends, contacts, and group connections in parallel
-    const [friendsRes, contactsRes, connectionsRes] = await Promise.all([
-      fetch('/api/friends?user_id='     + encodeURIComponent(email)),
-      fetch('/api/contacts?user_id='    + encodeURIComponent(email)),
-      fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
-    ]);
-
-    if (friendsRes.status === 503) {
-      loadingEl.style.display = 'none';
-      errorEl.textContent = 'Friends require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
-      errorEl.style.display = 'block';
-      return;
-    }
-    if (!friendsRes.ok) throw new Error('Failed to fetch friends');
-
-    const friendRows      = await friendsRes.json();
-    const contactRows     = contactsRes.ok     ? await contactsRes.json()     : [];
-    // connectionsMap: { "lowercased_email": ["Group A", "Group B"] }
+    let friendRows = [];
+    let contactRows = [];
     let connectionsMap = {};
-    if (connectionsRes.ok) {
-      connectionsMap = await connectionsRes.json();
+
+    if (contactsOnly) {
+      const [contactsRes, connectionsRes] = await Promise.all([
+        fetch('/api/contacts?user_id=' + encodeURIComponent(email)),
+        fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
+      ]);
+      if (contactsRes.status === 503) {
+        loadingEl.style.display = 'none';
+        errorEl.textContent =
+          'Contacts require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (!contactsRes.ok) throw new Error('Failed to fetch contacts');
+      contactRows = await contactsRes.json();
+      if (connectionsRes.ok) {
+        connectionsMap = await connectionsRes.json();
+      } else {
+        console.warn(
+          'GET /api/groups/connections failed:',
+          connectionsRes.status,
+          await connectionsRes.text().catch(() => '')
+        );
+      }
     } else {
-      console.warn(
-        'GET /api/groups/connections failed:',
-        connectionsRes.status,
-        await connectionsRes.text().catch(() => '')
-      );
+      const [friendsRes, connectionsRes] = await Promise.all([
+        fetch('/api/friends?user_id=' + encodeURIComponent(email)),
+        fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
+      ]);
+      if (friendsRes.status === 503) {
+        loadingEl.style.display = 'none';
+        errorEl.textContent =
+          'Friends require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (!friendsRes.ok) throw new Error('Failed to fetch friends');
+      friendRows = await friendsRes.json();
+      if (connectionsRes.ok) {
+        connectionsMap = await connectionsRes.json();
+      } else {
+        console.warn(
+          'GET /api/groups/connections failed:',
+          connectionsRes.status,
+          await connectionsRes.text().catch(() => '')
+        );
+      }
     }
 
     loadingEl.style.display = 'none';
 
-    // Build unified row list
     const entries = [];
 
     friendRows.forEach(row => {
-      const name = row.other_user != null
-        ? String(row.other_user)
-        : row.friend_email != null
-          ? String(row.friend_email)
-          : '';
+      const name =
+        row.other_user != null
+          ? String(row.other_user)
+          : row.friend_email != null
+            ? String(row.friend_email)
+            : '';
       const notes =
         row.private_notes != null ? String(row.private_notes) : '';
       entries.push({
@@ -250,11 +298,9 @@ async function loadFriendsAndContacts(email) {
       return;
     }
 
-    // Sort: friends first, then contacts, alphabetically within each group
-    entries.sort((a, b) => {
-      if (a.type !== b.type) return a.type === 'friend' ? -1 : 1;
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
+    entries.sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
 
     friendsListEntriesCache = entries.map(entry => ({
       ...entry,
@@ -267,27 +313,30 @@ async function loadFriendsAndContacts(email) {
       tr.classList.add('friends-table-row');
       tr.dataset.entryIndex = String(idx);
 
-      const removeBtn = entry.type === 'friend'
-        ? `<button type="button" class="btn btn-sm btn-outline-danger friends-remove-btn mr-1" data-id="${escapeHtml(entry.id)}">Remove</button>`
-        : '';
+      const removeBtn =
+        entry.type === 'friend'
+          ? `<button type="button" class="btn btn-sm btn-outline-danger friends-remove-btn mr-1" data-id="${escapeHtml(entry.id)}">Remove</button>`
+          : '';
 
       const deleteBtn =
         entry.type === 'contact'
           ? `<button type="button" class="btn btn-sm btn-outline-danger friends-delete-btn" data-name="${escapeAttr(entry.name)}" data-contact-id="${escapeAttr(String(entry.id))}">Delete</button>`
           : '';
 
-      const statusBadge = entry.type === 'friend'
-        ? `<span class="badge badge-primary">Friend</span>`
-        : `<span class="badge badge-secondary">Contact</span>`;
-
       const sharedGroups = entry.groupsList;
       const groupsCell = sharedGroups.length
-        ? sharedGroups.map(g => `<span class="badge badge-info mr-1">${escapeHtml(g)}</span>`).join('')
+        ? sharedGroups
+            .map(g => `<span class="badge badge-info mr-1">${escapeHtml(g)}</span>`)
+            .join('')
         : '<span class="text-muted small">—</span>';
 
+      const nameCell =
+        entry.name && String(entry.name).trim() !== ''
+          ? `<a href="${escapeAttr(contactPageHrefForListName(entry.name))}" class="friends-name-link">${escapeHtml(entry.name)}</a>`
+          : escapeHtml(entry.name || '');
+
       tr.innerHTML = `
-        <td>${escapeHtml(entry.name)}</td>
-        <td>${statusBadge}</td>
+        <td>${nameCell}</td>
         <td>${groupsCell}</td>
         <td><div class="d-flex flex-wrap align-items-center">${removeBtn}${deleteBtn}</div></td>
       `;
@@ -297,7 +346,9 @@ async function loadFriendsAndContacts(email) {
   } catch (err) {
     console.error(err);
     loadingEl.style.display = 'none';
-    errorEl.textContent = 'Failed to load friends and contacts. Please refresh the page.';
+    errorEl.textContent = contactsOnly
+      ? 'Failed to load contacts. Please refresh the page.'
+      : 'Failed to load friends. Please refresh the page.';
     errorEl.style.display = 'block';
   }
 }
@@ -305,19 +356,37 @@ async function loadFriendsAndContacts(email) {
 async function loadFriendsPage() {
   const email = await getLoggedInUserId();
   if (!email) {
-    document.getElementById('requests-loading').style.display = 'none';
-    document.getElementById('friends-loading').style.display = 'none';
-    document.getElementById('requests-empty').textContent = 'Please log in to view friend requests.';
-    document.getElementById('requests-empty').style.display = 'block';
-    document.getElementById('friends-empty').textContent = 'Please log in to view your friends and contacts.';
-    document.getElementById('friends-empty').style.display = 'block';
+    const rl = document.getElementById('requests-loading');
+    const fl = document.getElementById('friends-loading');
+    if (rl) rl.style.display = 'none';
+    if (fl) fl.style.display = 'none';
+    const re = document.getElementById('requests-empty');
+    if (re) {
+      re.textContent = 'Please log in to view friend requests.';
+      re.style.display = 'block';
+    }
+    const fe = document.getElementById('friends-empty');
+    if (fe) {
+      fe.textContent = isContactsListPage()
+        ? 'Please log in to view your contacts.'
+        : 'Please log in to view your friends.';
+      fe.style.display = 'block';
+    }
     return;
   }
 
-  document.getElementById('requests-empty').textContent = 'No pending friend requests.';
-  document.getElementById('friends-empty').textContent = 'No friends or contacts yet.';
+  const re = document.getElementById('requests-empty');
+  if (re) re.textContent = 'No pending friend requests.';
+  const fe = document.getElementById('friends-empty');
+  if (fe) {
+    fe.textContent = isContactsListPage()
+      ? 'No contacts yet.'
+      : 'No friends yet.';
+  }
 
-  await Promise.all([loadIncomingRequests(email), loadFriendsAndContacts(email)]);
+  const tasks = [loadFriendsAndContacts(email)];
+  if (isFriendsListPage()) tasks.push(loadIncomingRequests(email));
+  await Promise.all(tasks);
 }
 
 async function respondToRequest(id, action) {
@@ -354,7 +423,28 @@ function syncAddFriendModalHints() {
   const hFriend = document.getElementById('af-name-hint-friend');
   const hContact = document.getElementById('af-name-hint-contact');
   const groupWrap = document.getElementById('af-group-wrap');
-  if (!status || !nameInput || !hFriend || !hContact) return;
+  if (!nameInput || !hFriend || !hContact) return;
+
+  if (isContactsListPage()) {
+    if (status) status.value = 'contact';
+    hFriend.classList.add('d-none');
+    hContact.classList.remove('d-none');
+    nameInput.setAttribute('type', 'text');
+    nameInput.setAttribute('autocomplete', 'name');
+    if (groupWrap) groupWrap.classList.add('d-none');
+    return;
+  }
+  if (isFriendsListPage()) {
+    if (status) status.value = 'friend';
+    hFriend.classList.remove('d-none');
+    hContact.classList.add('d-none');
+    nameInput.setAttribute('type', 'email');
+    nameInput.setAttribute('autocomplete', 'email');
+    if (groupWrap) groupWrap.classList.remove('d-none');
+    return;
+  }
+
+  if (!status) return;
   if (status.value === 'friend') {
     hFriend.classList.remove('d-none');
     hContact.classList.add('d-none');
@@ -391,23 +481,53 @@ async function loadOwnedGroupsIntoModal() {
   }
 }
 
+function applyPageSpecificAddModal() {
+  const statusField = document.getElementById('af-status');
+  const statusWrap = statusField && statusField.closest('.form-group');
+  if (statusWrap) {
+    statusWrap.style.display =
+      isContactsListPage() || isFriendsListPage() ? 'none' : '';
+  }
+  const label = document.getElementById('addFriendModalLabel');
+  if (label) {
+    if (isContactsListPage()) label.textContent = 'Add contact';
+    else if (isFriendsListPage()) label.textContent = 'Add friend';
+  }
+  const submit = document.getElementById('af-submit');
+  if (submit && (isContactsListPage() || isFriendsListPage())) {
+    submit.textContent = addModalDefaultSubmitLabel();
+  }
+}
+
 function resetAddFriendModal() {
   const form = document.getElementById('add-friend-modal-form');
   if (form) form.reset();
   const status = document.getElementById('af-status');
-  if (status) status.value = 'friend';
+  if (status) {
+    if (isContactsListPage()) status.value = 'contact';
+    else if (isFriendsListPage()) status.value = 'friend';
+    else status.value = 'friend';
+  }
   syncAddFriendModalHints();
+  applyPageSpecificAddModal();
 }
 
 async function addFriendModalSubmit() {
   const nameInput = document.getElementById('af-name');
   const statusEl = document.getElementById('af-status');
   const notesInput = document.getElementById('af-notes');
+  const groupSel = document.getElementById('af-group');
   const btn = document.getElementById('af-submit');
 
   const name = nameInput && nameInput.value.trim();
-  const status = statusEl && statusEl.value;
+  const status = isContactsListPage()
+    ? 'contact'
+    : isFriendsListPage()
+      ? 'friend'
+      : statusEl && statusEl.value;
   const notes = notesInput && notesInput.value.trim();
+  const groupName =
+    groupSel && groupSel.value ? String(groupSel.value).trim() : '';
 
   if (!name) {
     alert('Please enter a name.');
@@ -421,8 +541,10 @@ async function addFriendModalSubmit() {
   }
 
   try {
-    btn.disabled = true;
-    btn.textContent = 'Adding…';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+    }
 
     if (status === 'friend') {
       const email = name;
@@ -502,8 +624,10 @@ async function addFriendModalSubmit() {
     console.error(err);
     alert(err.message || 'Something went wrong. Please try again.');
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Add';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = addModalDefaultSubmitLabel();
+    }
   }
 }
 
@@ -564,12 +688,14 @@ function openRowDetailModal(index) {
   const groupsEl = document.getElementById('row-detail-groups');
   const notesEl = document.getElementById('row-detail-notes');
   const modal = document.getElementById('rowDetailModal');
-  if (!nameEl || !statusEl || !groupsEl || !notesEl || !modal) return;
+  if (!nameEl || !groupsEl || !notesEl || !modal) return;
 
   nameEl.value = entry.name || '';
   nameEl.readOnly = entry.type !== 'contact';
   nameEl.classList.toggle('bg-light', entry.type !== 'contact');
-  statusEl.value = entry.type === 'friend' ? 'Friend' : 'Contact';
+  if (statusEl) {
+    statusEl.value = entry.type === 'friend' ? 'Friend' : 'Contact';
+  }
   groupsEl.value =
     entry.groupsList && entry.groupsList.length
       ? entry.groupsList.join(', ')
@@ -709,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
     afSubmit.addEventListener('click', addFriendModalSubmit);
   }
   syncAddFriendModalHints();
+  applyPageSpecificAddModal();
   const tbody = document.getElementById('friends-tbody');
   if (tbody) {
     tbody.addEventListener('click', (e) => {
@@ -722,6 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
         removeFriend(b.dataset.id);
         return;
       }
+      if (e.target.closest('.friends-name-link')) return;
       const tr = e.target.closest('tr.friends-table-row');
       if (!tr) return;
       const idx = parseInt(tr.dataset.entryIndex, 10);
