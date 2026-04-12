@@ -542,6 +542,41 @@ function getContactPathKeyFromUrl() {
   return m ? decodeURIComponent(m[1]) : '';
 }
 
+/**
+ * Value stored in `group_members.person_handle`: same as URL segment or `contact_details.handle`
+ * (e.g. johnpicasso_aaronchalal), not the public @contact_handle.
+ */
+function getContactCompositeHandleForGroups(row) {
+  const fromUrl = getContactPathKeyFromUrl();
+  if (fromUrl && String(fromUrl).trim()) {
+    return String(fromUrl).trim();
+  }
+  if (row && row.handle != null && String(row.handle).trim() !== '') {
+    return String(row.handle).trim();
+  }
+  const oh =
+    cachedProfileRow && cachedProfileRow.handle
+      ? String(cachedProfileRow.handle).trim().replace(/^@+/, '').toLowerCase()
+      : '';
+  const cn =
+    row && row.contact_name != null && String(row.contact_name).trim() !== ''
+      ? String(row.contact_name).trim()
+      : getContactNameForContactDetailsPage();
+  const slug = contactDisplayNameToUrlSlug(cn);
+  if (oh && slug) {
+    return oh + '_' + slug;
+  }
+  return '';
+}
+
+/** Public profile handle for inviting (profiles.handle / contact_details.contact_handle), not the composite URL key. */
+function getContactProfileHandleForInvite(row) {
+  if (!row || row.contact_handle == null || String(row.contact_handle).trim() === '') {
+    return '';
+  }
+  return String(row.contact_handle).trim().replace(/^@+/, '');
+}
+
 /** Matches server `contact_details.handle` (owner suffix: letters/digits only, lowercased). */
 function contactDisplayNameToUrlSlug(name) {
   return String(name || '')
@@ -678,10 +713,7 @@ async function refreshContactGroupsSummaryLine(row) {
   setContactGroupsSummaryDefault();
   const el = document.getElementById('contact-groups-summary');
   if (!el || !row) return;
-  const ph =
-    row.contact_handle != null && String(row.contact_handle).trim() !== ''
-      ? String(row.contact_handle).trim().replace(/^@+/, '')
-      : '';
+  const ph = getContactCompositeHandleForGroups(row);
   if (!ph || !cachedUserEmail) return;
   try {
     const res = await fetch(
@@ -1677,10 +1709,7 @@ async function loadContactGroupsModalContent() {
   }
 
   const row = cachedWorkRow;
-  const ph =
-    row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
-      ? String(row.contact_handle).trim().replace(/^@+/, '')
-      : '';
+  const ph = getContactCompositeHandleForGroups(row);
 
   if (!ph) {
     if (tbody) {
@@ -1805,10 +1834,7 @@ function initContactGroupsModal() {
       if (!btn || !cachedUserEmail) return;
       const groupName = btn.getAttribute('data-group-name');
       const row = cachedWorkRow;
-      const ph =
-        row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
-          ? String(row.contact_handle).trim().replace(/^@+/, '')
-          : '';
+      const ph = getContactCompositeHandleForGroups(row);
       if (!groupName || !ph) return;
       if (!window.confirm('Remove this person from “' + groupName + '”?')) return;
       try {
@@ -1837,10 +1863,8 @@ function initContactGroupsModal() {
       const errEl = document.getElementById('contact-groups-modal-error');
       const groupName = sel && sel.value ? String(sel.value).trim() : '';
       const row = cachedWorkRow;
-      const ph =
-        row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
-          ? String(row.contact_handle).trim().replace(/^@+/, '')
-          : '';
+      const ph = getContactCompositeHandleForGroups(row);
+      const profileHandle = getContactProfileHandleForInvite(row);
       if (!groupName || !ph || !cachedUserEmail) {
         if (errEl) {
           errEl.textContent = 'Choose a group and ensure this contact has a public handle.';
@@ -1860,7 +1884,8 @@ function initContactGroupsModal() {
           body: JSON.stringify({
             user_id: cachedUserEmail,
             group_name: groupName,
-            person_handle: ph
+            person_handle: ph,
+            profile_handle: profileHandle || undefined
           })
         });
         const data = await res.json().catch(() => ({}));

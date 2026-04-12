@@ -975,13 +975,16 @@ app.delete('/api/groups/membership-by-person-handle', async (req, res) => {
   }
 });
 
-/** Invite profile by public handle; stores person_handle on group_members row. */
+/**
+ * Invite a member: `person_handle` is the contact composite key (e.g. johnpicasso_aaronchalal) stored on
+ * group_members; `profile_handle` is the invitee's public profiles.handle used to resolve their email.
+ */
 app.post('/api/groups/invite-by-person-handle', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured() || !supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Groups and profiles require Supabase' });
     }
-    const { user_id, group_name, person_handle } = req.body || {};
+    const { user_id, group_name, person_handle, profile_handle } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
@@ -991,11 +994,16 @@ app.post('/api/groups/invite-by-person-handle', async (req, res) => {
     if (!person_handle || !String(person_handle).trim()) {
       return res.status(400).json({ error: 'person_handle is required' });
     }
-    const profile = await supabaseProfiles.getProfileByHandle(person_handle.trim());
+    const lookup =
+      profile_handle && String(profile_handle).trim()
+        ? String(profile_handle).trim()
+        : String(person_handle).trim();
+    const profile = await supabaseProfiles.getProfileByHandle(lookup);
     if (!profile || !profile.email) {
-      return res
-        .status(400)
-        .json({ error: 'No profile with that public handle was found' });
+      return res.status(400).json({
+        error:
+          'No profile found for that public handle — set Public handle on the contact, or pass profile_handle.'
+      });
     }
     await supabaseGroups.inviteMemberWithPersonHandle({
       group_name: group_name.trim(),
