@@ -199,3 +199,16 @@ main.contact-page-compact #my-notes-section-content p {
 #contact-section-notes {
   scroll-margin-top: 1rem;
 }
+
+/* Friends / contact list — thumbnails from `contact_photos` bucket */
+img.friends-list-contact-photo {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  display: block;
+  background: #e9ecef;
+}
+
+a.friends-name-link:hover .text-primary {
+  text-decoration: underline !important;
+}

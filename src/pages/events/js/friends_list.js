@@ -79,6 +79,45 @@ function escapeAttr(text) {
     .replace(/>/g, '&gt;');
 }
 
+/** Placeholder before `/api/contact-photo` returns a `contact_photos` URL. */
+const LIST_CONTACT_PHOTO_PLACEHOLDER =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#dee2e6"/><circle cx="36" cy="27" r="11" fill="#adb5bd"/><path d="M12 60c4-10 14-16 24-16s20 6 24 16" fill="#adb5bd"/></svg>'
+  );
+
+/**
+ * Resolve public URLs from bucket `contact_photos` via API (same as contact.html).
+ */
+async function hydrateFriendsListContactPhotos(tbodyEl, ownersHandle) {
+  if (!tbodyEl || !ownersHandle) return;
+  const imgs = tbodyEl.querySelectorAll(
+    'img.friends-list-contact-photo[data-contact-name]'
+  );
+  await Promise.all(
+    [...imgs].map(async img => {
+      const cn = img.getAttribute('data-contact-name');
+      if (!cn) return;
+      try {
+        const res = await fetch(
+          '/api/contact-photo?owners_handle=' +
+            encodeURIComponent(ownersHandle) +
+            '&contact_name=' +
+            encodeURIComponent(cn)
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.url) {
+          img.src = data.url;
+          img.alt = '';
+        }
+      } catch (e) {
+        console.warn('Contact list photo:', e);
+      }
+    })
+  );
+}
+
 function isContactsListPage() {
   return window.location.pathname.indexOf('contact_list') !== -1;
 }
@@ -92,6 +131,50 @@ function addModalDefaultSubmitLabel() {
   return 'Add';
 }
 
+/** Trim, collapse spaces, lowercase — for deduping and sorting contact display names. */
+function normalizePersonSortKey(name) {
+  return String(name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+}
+
+/** Ascending A→Z; empty names last. */
+function comparePersonNamesAsc(a, b) {
+  const ka = normalizePersonSortKey(a.name);
+  const kb = normalizePersonSortKey(b.name);
+  if (!ka && !kb) return 0;
+  if (!ka) return 1;
+  if (!kb) return -1;
+  return ka.localeCompare(kb, undefined, { sensitivity: 'base', numeric: true });
+}
+
+/**
+ * One row per person: same display name with different spacing/casing counts as duplicate.
+ * Keeps the row with longer notes when merging.
+ */
+function dedupeContactListEntries(entries) {
+  const merged = new Map();
+  const noName = [];
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    const key = normalizePersonSortKey(e.name);
+    if (!key) {
+      noName.push(e);
+      continue;
+    }
+    if (!merged.has(key)) {
+      merged.set(key, e);
+      continue;
+    }
+    const existing = merged.get(key);
+    const a = (existing.notes || '').length;
+    const b = (e.notes || '').length;
+    merged.set(key, b > a ? e : existing);
+  }
+  return Array.from(merged.values()).concat(noName);
+}
+
 /** Enriched rows for row-click modal (set in loadFriendsAndContacts). */
 let friendsListEntriesCache = [];
 
@@ -103,10 +186,29 @@ function connectionLookupKey(entry) {
   return String(raw || '').trim().toLowerCase();
 }
 
-/** contact.html loads a person by `contact_name` query (see events_table.js). */
-function contactPageHrefForListName(name) {
+/** Matches server `contact_details.handle` suffix (letters/digits only, lowercased). */
+function contactDisplayNameToUrlSlug(name) {
+  return String(name || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
+}
+
+/**
+ * Contact record URL: `/events/contact/{owners_handle}_{contactNameSlug}` (matches `contact_photos` stem).
+ * @param {string} name Display name (`contact_details.contact_name`)
+ * @param {string} ownersHandle Profile handle (`contact_details.owners_handle`)
+ */
+function contactPageHrefForListName(name, ownersHandle) {
+  const cn = String(name || '').trim();
+  const oh = String(ownersHandle || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+  if (!oh || !cn) {
+    return '/events/contact.html?contact_name=' + encodeURIComponent(cn);
+  }
   return (
-    '/events/contact.html?contact_name=' + encodeURIComponent(String(name || ''))
+    '/events/contact/' + encodeURIComponent(oh + '_' + contactDisplayNameToUrlSlug(cn))
   );
 }
 
@@ -217,6 +319,8 @@ async function loadFriendsAndContacts(email) {
   const contactsOnly = isContactsListPage();
 
   try {
+    const ownersHandle = await fetchProfileHandle(email);
+
     let friendRows = [];
     let contactRows = [];
     let connectionsMap = {};
@@ -310,19 +414,22 @@ async function loadFriendsAndContacts(email) {
         type: 'contact',
         id: name,
         notes,
-        contactDetails: true,
         lookupContactName: name
       });
     });
+
+    if (contactsOnly) {
+      const deduped = dedupeContactListEntries(entries);
+      entries.length = 0;
+      entries.push(...deduped);
+    }
 
     if (!entries.length) {
       emptyEl.style.display = 'block';
       return;
     }
 
-    entries.sort((a, b) =>
-      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-    );
+    entries.sort(comparePersonNamesAsc);
 
     friendsListEntriesCache = entries.map(entry => ({
       ...entry,
@@ -335,16 +442,6 @@ async function loadFriendsAndContacts(email) {
       tr.classList.add('friends-table-row');
       tr.dataset.entryIndex = String(idx);
 
-      const removeBtn =
-        entry.type === 'friend'
-          ? `<button type="button" class="btn btn-sm btn-outline-danger friends-remove-btn mr-1" data-id="${escapeHtml(entry.id)}">Remove</button>`
-          : '';
-
-      const deleteBtn =
-        entry.type === 'contact'
-          ? `<button type="button" class="btn btn-sm btn-outline-danger friends-delete-btn" data-name="${escapeAttr(entry.name)}" data-contact-id="${escapeAttr(String(entry.id))}">Delete</button>`
-          : '';
-
       const sharedGroups = entry.groupsList;
       const groupsCell = sharedGroups.length
         ? sharedGroups
@@ -352,19 +449,29 @@ async function loadFriendsAndContacts(email) {
             .join('')
         : '<span class="text-muted small">—</span>';
 
-      const nameCell =
-        entry.name && String(entry.name).trim() !== ''
-          ? `<a href="${escapeAttr(contactPageHrefForListName(entry.name))}" class="friends-name-link">${escapeHtml(entry.name)}</a>`
-          : escapeHtml(entry.name || '');
+      const photoHtml =
+        ownersHandle && entry.name && String(entry.name).trim() !== ''
+          ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-contact-name="${escapeAttr(entry.name)}" />`
+          : '';
+      let nameCell;
+      if (entry.name && String(entry.name).trim() !== '') {
+        const href = escapeAttr(contactPageHrefForListName(entry.name, ownersHandle));
+        const label = escapeHtml(entry.name);
+        nameCell = photoHtml
+          ? `<a href="${href}" class="friends-name-link d-inline-flex align-items-center min-w-0 text-body text-decoration-none">${photoHtml}<span class="text-break text-primary">${label}</span></a>`
+          : `<a href="${href}" class="friends-name-link">${label}</a>`;
+      } else {
+        nameCell = `${photoHtml}${escapeHtml(entry.name || '')}`;
+      }
 
       tr.innerHTML = `
         <td>${nameCell}</td>
         <td>${groupsCell}</td>
-        <td><div class="d-flex flex-wrap align-items-center">${removeBtn}${deleteBtn}</div></td>
       `;
-      if (entry.type === 'friend') tr.dataset.friendId = entry.id;
       tbodyEl.appendChild(tr);
     });
+
+    hydrateFriendsListContactPhotos(tbodyEl, ownersHandle);
   } catch (err) {
     console.error(err);
     loadingEl.style.display = 'none';
@@ -510,7 +617,7 @@ function applyPageSpecificAddModal() {
     statusWrap.style.display =
       isContactsListPage() || isFriendsListPage() ? 'none' : '';
   }
-  const label = document.getElementById('addFriendModalLabel');
+  const label = document.getElementById('addMemberModalLabel');
   if (label) {
     if (isContactsListPage()) label.textContent = 'Add contact';
     else if (isFriendsListPage()) label.textContent = 'Add friend';
@@ -563,6 +670,9 @@ async function addFriendModalSubmit() {
   }
 
   try {
+    let goToNewContactPage = false;
+    let ownersHandleForContact = null;
+
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Adding…';
@@ -621,6 +731,7 @@ async function addFriendModalSubmit() {
       }
     } else {
       const ownersHandle = await fetchProfileHandle(userId);
+      ownersHandleForContact = ownersHandle;
       if (!ownersHandle) {
         alert(
           'Your profile needs a handle before you can add contacts. Update your profile first.'
@@ -632,10 +743,9 @@ async function addFriendModalSubmit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          owners_handle: ownersHandle,
           lookup_contact_name: name,
           contact_name: name,
-          my_notes: notes || undefined
+          my_notes: notes != null && String(notes).trim() !== '' ? String(notes).trim() : null
         })
       });
       if (response.status === 503) {
@@ -646,10 +756,17 @@ async function addFriendModalSubmit() {
         const j = await response.json().catch(() => ({}));
         throw new Error(j.error || 'Failed to add contact');
       }
+      goToNewContactPage = isContactsListPage();
     }
 
     resetAddFriendModal();
-    if (window.jQuery) window.jQuery('#addFriendModal').modal('hide');
+    if (window.jQuery) window.jQuery('#addMemberModal').modal('hide');
+    if (goToNewContactPage) {
+      window.location.assign(
+        contactPageHrefForListName(name, ownersHandleForContact)
+      );
+      return;
+    }
     await loadFriendsPage();
   } catch (err) {
     console.error(err);
@@ -659,78 +776,6 @@ async function addFriendModalSubmit() {
       btn.disabled = false;
       btn.textContent = addModalDefaultSubmitLabel();
     }
-  }
-}
-
-async function deleteContactFromTable(btn) {
-  if (
-    !confirm(
-      "Are you sure you want to delete this contact? It can't be undone."
-    )
-  ) {
-    return;
-  }
-
-  const userId = await getLoggedInUserId();
-  if (!userId) {
-    alert('You must be logged in.');
-    return;
-  }
-
-  const name = btn.dataset.name || '';
-  const contactId = btn.dataset.contactId || '';
-
-  try {
-    if (isContactsListPage()) {
-      const contactName = (name || contactId || '').trim();
-      if (!contactName) {
-        alert('Nothing to delete.');
-        return;
-      }
-      const url =
-        '/api/contact-details?user_id=' +
-        encodeURIComponent(userId) +
-        '&contact_name=' +
-        encodeURIComponent(contactName);
-      const response = await fetch(url, { method: 'DELETE' });
-      if (response.status === 503) {
-        alert('Profiles require Supabase.');
-        return;
-      }
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete');
-      }
-      await loadFriendsPage();
-      return;
-    }
-
-    let url = '/api/contacts?user_id=' + encodeURIComponent(userId);
-    if (contactId) {
-      url += '&id=' + encodeURIComponent(contactId);
-    } else if (name) {
-      url += '&name=' + encodeURIComponent(name);
-    } else {
-      alert('Nothing to delete.');
-      return;
-    }
-
-    const response = await fetch(url, { method: 'DELETE' });
-    if (response.status === 503) {
-      alert('Contacts require Supabase.');
-      return;
-    }
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to delete');
-    }
-    if (result.deleted === 0) {
-      alert('No matching contact was found for this name.');
-    }
-    await loadFriendsPage();
-  } catch (err) {
-    console.error(err);
-    alert(err.message || 'Could not delete. Please try again.');
   }
 }
 
@@ -781,7 +826,7 @@ async function rowDetailSubmit() {
     btn.disabled = true;
     btn.textContent = 'Saving…';
 
-    if (entry.type === 'contact' && entry.contactDetails) {
+    if (entry.type === 'contact') {
       const ownersHandle = await fetchProfileHandle(userId);
       if (!ownersHandle) {
         alert('Your profile needs a handle before you can save.');
@@ -806,32 +851,6 @@ async function rowDetailSubmit() {
       });
       if (response.status === 503) {
         alert('Contact details require Supabase.');
-        return;
-      }
-      if (!response.ok) {
-        const j = await response.json().catch(() => ({}));
-        throw new Error(j.error || 'Failed to save');
-      }
-    } else if (entry.type === 'contact') {
-      const name = nameEl.value.trim();
-      if (!name) {
-        alert('Name cannot be empty.');
-        return;
-      }
-      const response = await fetch(
-        '/api/contacts/' + encodeURIComponent(entry.id),
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            name,
-            notes: notesEl.value
-          })
-        }
-      );
-      if (response.status === 503) {
-        alert('Contacts require Supabase.');
         return;
       }
       if (!response.ok) {
@@ -871,30 +890,6 @@ async function rowDetailSubmit() {
   }
 }
 
-async function removeFriend(id) {
-  if (!confirm('Remove this friend from your list?')) return;
-
-  const userId = await getLoggedInUserId();
-  if (!userId) {
-    alert('You must be logged in.');
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      '/api/friends/' + encodeURIComponent(id) + '?user_id=' + encodeURIComponent(userId),
-      { method: 'DELETE' }
-    );
-    if (!response.ok) {
-      throw new Error('Failed to remove');
-    }
-    await loadFriendsPage();
-  } catch (err) {
-    console.error(err);
-    alert('Could not remove friend. Please try again.');
-  }
-}
-
 const originalUpdateContentVisibility = updateContentVisibility;
 updateContentVisibility = function (isAuthenticated) {
   originalUpdateContentVisibility(isAuthenticated);
@@ -904,7 +899,7 @@ updateContentVisibility = function (isAuthenticated) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const addModal = document.getElementById('addFriendModal');
+  const addModal = document.getElementById('addMemberModal');
   if (addModal) {
     addModal.addEventListener('show.bs.modal', () => {
       resetAddFriendModal();
@@ -924,16 +919,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('friends-tbody');
   if (tbody) {
     tbody.addEventListener('click', (e) => {
-      const del = e.target.closest('.friends-delete-btn');
-      if (del) {
-        deleteContactFromTable(del);
-        return;
-      }
-      const b = e.target.closest('.friends-remove-btn');
-      if (b && b.dataset.id) {
-        removeFriend(b.dataset.id);
-        return;
-      }
       if (e.target.closest('.friends-name-link')) return;
       const tr = e.target.closest('tr.friends-table-row');
       if (!tr) return;

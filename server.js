@@ -15,16 +15,18 @@ const supabaseTemporary = require('./supabase-temporary');
 const supabaseEvents = require('./supabase-events');
 const supabaseFriends = require('./supabase-friends');
 const supabaseGroups = require('./supabase-groups');
-const supabaseContacts = require('./supabase-contacts');
 const supabaseProfiles = require('./supabase-profiles');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
 const useSupabaseEvents = supabaseEvents.isConfigured();
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware (base64 photos in JSON are ~4× file size; use explicit byte limit)
+const JSON_BODY_LIMIT_BYTES = 50 * 1024 * 1024; // 50 MiB
+app.use(bodyParser.json({ limit: JSON_BODY_LIMIT_BYTES }));
+app.use(
+  bodyParser.urlencoded({ extended: true, limit: JSON_BODY_LIMIT_BYTES })
+);
 
 // Serve static files from the dist directory (if it exists)
 const distPath = path.join(__dirname, 'dist');
@@ -382,106 +384,14 @@ app.delete('/api/friends/:id', async (req, res) => {
   }
 });
 
-// --- Contacts API (Supabase `contacts` table) ---
-
-app.get('/api/contacts', async (req, res) => {
-  try {
-    if (!supabaseContacts.isConfigured()) {
-      return res.status(503).json({ error: 'Contacts require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
-    }
-    const userId = req.query.user_id;
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
-    }
-    const rows = await supabaseContacts.getContactsForOwner(userId.trim());
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching contacts:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch contacts' });
-  }
-});
-
-app.post('/api/contacts', async (req, res) => {
-  try {
-    if (!supabaseContacts.isConfigured()) {
-      return res.status(503).json({ error: 'Contacts require Supabase' });
-    }
-    const { user_id, name, private_notes } = req.body || {};
-    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
-      return res.status(400).json({ error: 'user_id is required' });
-    }
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({ error: 'name is required' });
-    }
-    const row = await supabaseContacts.insertContact({
-      name: name.trim(),
-      owner: user_id.trim(),
-      private_notes
-    });
-    res.status(201).json(row);
-  } catch (error) {
-    console.error('Error adding contact:', error);
-    res.status(500).json({ error: error.message || 'Failed to add contact' });
-  }
-});
-
-app.patch('/api/contacts/:id', async (req, res) => {
-  try {
-    if (!supabaseContacts.isConfigured()) {
-      return res.status(503).json({ error: 'Contacts require Supabase' });
-    }
-    const { id } = req.params;
-    const { user_id, name, notes } = req.body || {};
-    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
-      return res.status(400).json({ error: 'user_id is required' });
-    }
-    if (name === undefined && notes === undefined) {
-      return res.status(400).json({ error: 'Provide name and/or notes' });
-    }
-    await supabaseContacts.updateContactForOwner({
-      id,
-      ownerUserId: user_id.trim(),
-      name,
-      notes
-    });
-    res.json({ message: 'Updated' });
-  } catch (error) {
-    const status = error.status || 500;
-    console.error('Error updating contact:', error);
-    res.status(status).json({ error: error.message || 'Failed to update contact' });
-  }
-});
-
-app.delete('/api/contacts', async (req, res) => {
-  try {
-    if (!supabaseContacts.isConfigured()) {
-      return res.status(503).json({ error: 'Contacts require Supabase' });
-    }
-    const userId = req.query.user_id;
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
-    }
-    const id = req.query.id;
-    const name = req.query.name;
-    if (id != null && String(id).trim() !== '') {
-      const ok = await supabaseContacts.deleteContactByIdForOwner(String(id).trim(), userId.trim());
-      return res.json({ deleted: ok ? 1 : 0 });
-    }
-    if (name != null && String(name).trim() !== '') {
-      const n = await supabaseContacts.deleteContactsByOwnerAndName(userId.trim(), String(name).trim());
-      return res.json({ deleted: n });
-    }
-    return res.status(400).json({ error: 'Provide id or name' });
-  } catch (error) {
-    const status = error.status || 500;
-    console.error('Error deleting contact:', error);
-    res.status(status).json({ error: error.message || 'Failed to delete contact' });
-  }
-});
-
 // Serve the profiles page for a handle URL  e.g. /events/@meganpicasso  or  /events/@meganpicasso/profiles.html
 app.get(['/events/@:handle', '/events/@:handle/profiles.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'events', 'profiles.html'));
+});
+
+// Contact record page: /events/contact/{owners_handle}_{contactNameSlug} (same key as contact_photos stem)
+app.get('/events/contact/:pathKey', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'events', 'contact.html'));
 });
 
 // --- Profiles API (Supabase `profiles` table) ---
@@ -582,19 +492,27 @@ app.get('/api/profile/work', async (req, res) => {
   }
 });
 
-/** Work info for a saved contact: `contact_details` row keyed by owners_handle + contact_name */
+/** Work info for a saved contact: `contact_details` row keyed by owners_handle + contact_name, or by `path_key` */
 app.get('/api/contact-details/work', async (req, res) => {
   try {
     if (!supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Profiles require Supabase' });
     }
     const ownersHandle = req.query.owners_handle;
-    const contactName = req.query.contact_name;
+    const pathKey = req.query.path_key;
     if (!ownersHandle || !String(ownersHandle).trim()) {
       return res.status(400).json({ error: 'owners_handle query parameter is required' });
     }
+    if (pathKey && String(pathKey).trim()) {
+      const row = await supabaseProfiles.getContactDetailsWorkByPathKey(
+        String(pathKey).trim(),
+        ownersHandle.trim()
+      );
+      return res.json(row);
+    }
+    const contactName = req.query.contact_name;
     if (!contactName || !String(contactName).trim()) {
-      return res.status(400).json({ error: 'contact_name query parameter is required' });
+      return res.status(400).json({ error: 'contact_name or path_key query parameter is required' });
     }
     const row = await supabaseProfiles.getContactDetailsWork(
       ownersHandle.trim(),
@@ -636,7 +554,7 @@ app.get('/api/contact-details/list', async (req, res) => {
     if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
       return res.json([]);
     }
-    res.status(500).json({ error: error.message || 'Failed to list contacts' });
+    res.status(500).json({ error: error.message || 'Failed to list contact details' });
   }
 });
 
@@ -677,7 +595,6 @@ app.put('/api/contact-details', async (req, res) => {
     }
     const body = req.body || {};
     const user_id = body.user_id;
-    const owners_handle = body.owners_handle;
     const lookup_contact_name =
       body.lookup_contact_name != null && String(body.lookup_contact_name).trim() !== ''
         ? String(body.lookup_contact_name).trim()
@@ -685,12 +602,18 @@ app.put('/api/contact-details', async (req, res) => {
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
-    if (!owners_handle || !String(owners_handle).trim()) {
-      return res.status(400).json({ error: 'owners_handle is required' });
-    }
     if (!lookup_contact_name) {
       return res.status(400).json({ error: 'lookup_contact_name is required' });
     }
+    const profile = await supabaseProfiles.getProfileByEmail(user_id.trim());
+    if (!profile || !profile.handle) {
+      return res
+        .status(400)
+        .json({ error: 'Profile handle is required — save your profile first' });
+    }
+    const owners_handle_canonical = String(profile.handle)
+      .trim()
+      .replace(/^@+/, '');
     const {
       user_id: _u,
       owners_handle: _o,
@@ -699,7 +622,7 @@ app.put('/api/contact-details', async (req, res) => {
     } = body;
     const row = await supabaseProfiles.upsertContactDetails(
       user_id.trim(),
-      owners_handle.trim(),
+      owners_handle_canonical,
       lookup_contact_name,
       patch
     );
@@ -805,7 +728,11 @@ app.post('/api/profile/photo', async (req, res) => {
     res.json({ url });
   } catch (error) {
     console.error('Error uploading profile photo:', error);
-    res.status(500).json({ error: error.message || 'Failed to upload photo' });
+    const msg =
+      (error && error.message) ||
+      (typeof error === 'string' ? error : '') ||
+      'Failed to upload photo';
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -860,7 +787,11 @@ app.post('/api/contact-photo', async (req, res) => {
     res.json({ url });
   } catch (error) {
     console.error('Error uploading contact photo:', error);
-    res.status(500).json({ error: error.message || 'Failed to upload contact photo' });
+    const msg =
+      (error && error.message) ||
+      (typeof error === 'string' ? error : '') ||
+      'Failed to upload contact photo';
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -963,6 +894,120 @@ app.post('/api/groups/invite-member', async (req, res) => {
     const status = error.status || 500;
     console.error('Error inviting member:', error);
     res.status(status).json({ error: error.message || 'Failed to invite member' });
+  }
+});
+
+/** Rows in `group_members` with matching `person_handle` (contact public handle), plus can_remove for viewer. */
+app.get('/api/groups/memberships-by-person-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    const person_handle = req.query.person_handle;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    if (!person_handle || !String(person_handle).trim()) {
+      return res.status(400).json({ error: 'person_handle query parameter is required' });
+    }
+    const rows = await supabaseGroups.getMembershipsByPersonHandleForViewer(
+      person_handle.trim(),
+      userId.trim()
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching memberships by person_handle:', error);
+    const msg = String(error.message || '').toLowerCase();
+    if (msg.includes('column') && msg.includes('person_handle')) {
+      return res.status(503).json({
+        error:
+          'Add column person_handle (text) to group_members in Supabase, then retry.'
+      });
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch memberships' });
+  }
+});
+
+/** Groups where the user is owner or admin (for inviting from contact page). */
+app.get('/api/groups/where-i-manage', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const rows = await supabaseGroups.listGroupsWhereUserCanManageMembers(userId.trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching groups where user manages:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch groups' });
+  }
+});
+
+app.delete('/api/groups/membership-by-person-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_name, person_handle } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!group_name || !String(group_name).trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    if (!person_handle || !String(person_handle).trim()) {
+      return res.status(400).json({ error: 'person_handle is required' });
+    }
+    await supabaseGroups.removeMembershipByPersonHandle({
+      group_name: group_name.trim(),
+      person_handle: person_handle.trim(),
+      actorUserId: user_id.trim()
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error removing membership by person_handle:', error);
+    res.status(status).json({ error: error.message || 'Failed to remove membership' });
+  }
+});
+
+/** Invite profile by public handle; stores person_handle on group_members row. */
+app.post('/api/groups/invite-by-person-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured() || !supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Groups and profiles require Supabase' });
+    }
+    const { user_id, group_name, person_handle } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!group_name || !String(group_name).trim()) {
+      return res.status(400).json({ error: 'group_name is required' });
+    }
+    if (!person_handle || !String(person_handle).trim()) {
+      return res.status(400).json({ error: 'person_handle is required' });
+    }
+    const profile = await supabaseProfiles.getProfileByHandle(person_handle.trim());
+    if (!profile || !profile.email) {
+      return res
+        .status(400)
+        .json({ error: 'No profile with that public handle was found' });
+    }
+    await supabaseGroups.inviteMemberWithPersonHandle({
+      group_name: group_name.trim(),
+      memberEmail: profile.email,
+      person_handle: person_handle.trim(),
+      actorUserId: user_id.trim()
+    });
+    res.status(201).json({ message: 'Invited' });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error inviting by person_handle:', error);
+    res.status(status).json({ error: error.message || 'Failed to invite' });
   }
 });
 
@@ -1081,35 +1126,6 @@ app.post('/api/groups', async (req, res) => {
       admins: Array.isArray(admins) ? admins : [],
       invited_members: Array.isArray(invited_members) ? invited_members : []
     });
-
-    // "Only me": ensure each listed member appears as a friend or contact; otherwise add a contact row
-    const vis = visibility.trim();
-    if (
-      vis === 'Only me' &&
-      supabaseFriends.isConfigured() &&
-      supabaseContacts.isConfigured()
-    ) {
-      const owner = user_id.trim();
-      const ownerLower = owner.toLowerCase();
-      const members = Array.isArray(invited_members) ? invited_members : [];
-      for (const raw of members) {
-        const email = String(raw || '')
-          .trim()
-          .toLowerCase();
-        if (!email || email === ownerLower) continue;
-        try {
-          const isFriend = await supabaseFriends.hasAnyFriendshipWith(owner, email);
-          if (isFriend) continue;
-          const isContact = await supabaseContacts.hasContactForOwner(owner, email);
-          if (isContact) continue;
-          await supabaseContacts.insertContact({ name: email, owner });
-        } catch (ensureErr) {
-          if (ensureErr.code !== '23505') {
-            console.warn('Could not ensure contact for group member:', email, ensureErr.message);
-          }
-        }
-      }
-    }
 
     res.status(201).json(result);
   } catch (error) {

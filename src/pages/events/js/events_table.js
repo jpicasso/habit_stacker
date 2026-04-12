@@ -355,6 +355,128 @@ function renderTaskRows(tasks) {
   });
 }
 
+/**
+ * Read JSON from a fetch Response; on error, include body text when JSON parse fails (e.g. payload too large).
+ */
+async function readJsonFromFetchResponse(res) {
+  const text = await res.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        throw new Error(
+          text.slice(0, 400) || res.statusText || 'Request failed'
+        );
+      }
+    }
+  }
+  if (!res.ok) {
+    const msg =
+      data.error ||
+      data.message ||
+      (text && text.slice(0, 400)) ||
+      res.statusText ||
+      'Request failed';
+    throw new Error(String(msg));
+  }
+  return data;
+}
+
+/**
+ * Resize and JPEG-encode an image file so base64 JSON stays under server/proxy limits.
+ * @returns {Promise<string>} data URL
+ */
+function compressImageFileToJpegDataUrl(file, maxDim, jpegQuality) {
+  maxDim = maxDim || 1920;
+  jpegQuality = jpegQuality == null ? 0.85 : jpegQuality;
+  return new Promise(function (resolve, reject) {
+    if (!file || !file.type || !/^image\//i.test(file.type)) {
+      reject(new Error('Not an image file'));
+      return;
+    }
+    const img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function () {
+      URL.revokeObjectURL(url);
+      try {
+        var w = img.naturalWidth || img.width;
+        var h = img.naturalHeight || img.height;
+        if (w < 1 || h < 1) {
+          reject(new Error('Invalid image dimensions'));
+          return;
+        }
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          function (blob) {
+            if (!blob) {
+              reject(new Error('Could not encode image'));
+              return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              resolve(e.target.result);
+            };
+            reader.onerror = function () {
+              reject(new Error('Could not read blob'));
+            };
+            reader.readAsDataURL(blob);
+          },
+          'image/jpeg',
+          jpegQuality
+        );
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not load image'));
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * @returns {Promise<{ imageBase64: string, contentType: string }>}
+ */
+async function photoFileToUploadPayload(file) {
+  var readOriginal = function () {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+  try {
+    var dataUrl = await compressImageFileToJpegDataUrl(file, 1920, 0.85);
+    return { imageBase64: dataUrl, contentType: 'image/jpeg' };
+  } catch (e) {
+    console.warn('Photo compression skipped, using original file:', e);
+    return {
+      imageBase64: await readOriginal(),
+      contentType: file.type || 'image/jpeg'
+    };
+  }
+}
+
 /** SVG placeholder when Auth0 user has no picture (profiles page). */
 var PROFILE_AVATAR_PLACEHOLDER =
   'data:image/svg+xml,' +
@@ -374,9 +496,11 @@ function getProfileHandleFromUrl() {
   return match ? decodeURIComponent(match[1]).replace(/^@+/, '') : null;
 }
 
-/** Contact record page (`contact.html`) loads work from `contact_details`, not `profiles`. */
+/** Contact record page (`contact.html` or `/events/contact/{pathKey}`) loads work from `contact_details`, not `profiles`. */
 function isContactDetailsWorkPage() {
-  return window.location.pathname.toLowerCase().includes('contact.html');
+  const p = window.location.pathname;
+  if (p.toLowerCase().includes('contact.html')) return true;
+  return /^\/events\/contact\/[^/]+\/?$/.test(p);
 }
 
 /** True if this page uses the profile header (profiles) or contact header (contact.html). */
@@ -389,6 +513,7 @@ function hasProfileOrContactHeader() {
 
 /**
  * Contact name for `contact_details.contact_name` (query `contact_name` or `contact`, or #contact-page-contact-name).
+ * After load, uses cached row when URL is `/events/contact/{owners}_{slug}` (no query).
  * Normalized to match server lookup (trim, collapse spaces); `my_notes` and other fields load from that row via `/api/contact-details/work`.
  */
 function getContactNameForContactDetailsPage() {
@@ -401,7 +526,72 @@ function getContactNameForContactDetailsPage() {
   if (el && el.value && String(el.value).trim()) {
     return String(el.value).trim().replace(/\s+/g, ' ');
   }
+  if (
+    cachedWorkRow &&
+    cachedWorkRow.contact_name != null &&
+    String(cachedWorkRow.contact_name).trim() !== ''
+  ) {
+    return String(cachedWorkRow.contact_name).trim().replace(/\s+/g, ' ');
+  }
   return '';
+}
+
+/** Path segment after `/events/contact/` — `{owners_handle}_{contactNameSlug}` (same as contact_photos stem). */
+function getContactPathKeyFromUrl() {
+  const m = window.location.pathname.match(/^\/events\/contact\/([^/]+)\/?$/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+/** Matches server `contact_details.handle` (owner suffix: letters/digits only, lowercased). */
+function contactDisplayNameToUrlSlug(name) {
+  return String(name || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
+}
+
+function buildContactDetailsWorkApiUrl(ownersHandle) {
+  const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
+  if (!oh) return '';
+  const pathKey = getContactPathKeyFromUrl();
+  if (pathKey) {
+    return (
+      '/api/contact-details/work?path_key=' +
+      encodeURIComponent(pathKey) +
+      '&owners_handle=' +
+      encodeURIComponent(oh)
+    );
+  }
+  const contactName = getContactNameForContactDetailsPage();
+  if (!contactName) return '';
+  return (
+    '/api/contact-details/work?owners_handle=' +
+    encodeURIComponent(oh) +
+    '&contact_name=' +
+    encodeURIComponent(contactName)
+  );
+}
+
+/** True when the contact page can resolve a `contact_details` row (path key or legacy query). */
+function hasContactDetailsPageLookup() {
+  if (getContactPathKeyFromUrl()) return true;
+  return !!getContactNameForContactDetailsPage();
+}
+
+/** After loading with `?contact_name=`, replace the URL with `/events/contact/{owner}_{slug}`. */
+function maybeReplaceLegacyContactQueryWithPath(ownersHandle, contactDisplayName) {
+  if (getContactPathKeyFromUrl()) return;
+  const q = new URLSearchParams(window.location.search);
+  if (!q.get('contact_name') && !q.get('contact')) return;
+  const oh = String(ownersHandle || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+  const slug = contactDisplayNameToUrlSlug(contactDisplayName);
+  if (!oh || !slug) return;
+  const url = new URL(window.location.href);
+  url.pathname = '/events/contact/' + encodeURIComponent(oh + '_' + slug);
+  url.search = '';
+  window.history.replaceState({}, '', url);
 }
 
 /**
@@ -429,6 +619,7 @@ function applyProfileEditVisibility(own) {
     const show = !!own;
     [
       'contact-name-edit-btn',
+      'contact-groups-edit-btn',
       'my-notes-section-edit-btn',
       'work-section-edit-btn',
       'education-section-edit-btn',
@@ -452,6 +643,60 @@ function applyProfileEditVisibility(own) {
   controls.forEach(el => {
     if (el) el.style.display = own ? '' : 'none';
   });
+}
+
+function setContactHeaderPhoneLines(row, cellEl, otherPhoneEl) {
+  const c = row && row.cell != null ? String(row.cell).trim() : '';
+  const o = row && row.other_phone != null ? String(row.other_phone).trim() : '';
+  if (!c && !o) {
+    if (cellEl) cellEl.textContent = 'Cell: TBD';
+    if (otherPhoneEl) otherPhoneEl.textContent = '';
+    return;
+  }
+  if (cellEl) cellEl.textContent = c ? 'Cell: ' + c : 'Cell: TBD';
+  if (otherPhoneEl) otherPhoneEl.textContent = o ? 'Other phone: ' + o : '';
+}
+
+function setContactHeaderEmailLines(row, workEmailEl, personalEmailEl) {
+  const w = row && row.work_email != null ? String(row.work_email).trim() : '';
+  const p = row && row.personal_email != null ? String(row.personal_email).trim() : '';
+  if (!w && !p) {
+    if (workEmailEl) workEmailEl.textContent = 'Email: TBD';
+    if (personalEmailEl) personalEmailEl.textContent = '';
+    return;
+  }
+  if (workEmailEl) workEmailEl.textContent = w ? 'Work: ' + w : '';
+  if (personalEmailEl) personalEmailEl.textContent = p ? 'Personal: ' + p : '';
+}
+
+function setContactGroupsSummaryDefault() {
+  const el = document.getElementById('contact-groups-summary');
+  if (el) el.textContent = 'Groups: TBD';
+}
+
+async function refreshContactGroupsSummaryLine(row) {
+  setContactGroupsSummaryDefault();
+  const el = document.getElementById('contact-groups-summary');
+  if (!el || !row) return;
+  const ph =
+    row.contact_handle != null && String(row.contact_handle).trim() !== ''
+      ? String(row.contact_handle).trim().replace(/^@+/, '')
+      : '';
+  if (!ph || !cachedUserEmail) return;
+  try {
+    const res = await fetch(
+      '/api/groups/memberships-by-person-handle?user_id=' +
+        encodeURIComponent(cachedUserEmail) +
+        '&person_handle=' +
+        encodeURIComponent(ph)
+    );
+    if (!res.ok) return;
+    const list = await res.json();
+    const names = (list || []).map(r => r.group_name).filter(Boolean);
+    el.textContent = names.length ? 'Groups: ' + names.join(', ') : 'Groups: TBD';
+  } catch (e) {
+    /* keep TBD */
+  }
 }
 
 /**
@@ -478,11 +723,10 @@ async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
 
   if (!ownersHandle) {
     if (nameEl) nameEl.textContent = '—';
-    if (cellEl) cellEl.textContent = '';
-    if (otherPhoneEl) otherPhoneEl.textContent = '';
-    if (workEmailEl) workEmailEl.textContent = '';
-    if (personalEmailEl) personalEmailEl.textContent = '';
+    setContactHeaderPhoneLines(null, cellEl, otherPhoneEl);
+    setContactHeaderEmailLines(null, workEmailEl, personalEmailEl);
     if (publicHandleEl) publicHandleEl.textContent = '';
+    setContactGroupsSummaryDefault();
     if (imgEl) {
       imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
       imgEl.alt = '';
@@ -493,15 +737,13 @@ async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
     return;
   }
 
-  if (!contactName) {
+  const workUrl = buildContactDetailsWorkApiUrl(ownersHandle);
+  if (!hasContactDetailsPageLookup() || !workUrl) {
     if (nameEl) nameEl.textContent = '—';
-    if (cellEl) cellEl.textContent = '';
-    if (otherPhoneEl) otherPhoneEl.textContent = '';
-    if (workEmailEl) {
-      workEmailEl.textContent = '';
-    }
-    if (personalEmailEl) personalEmailEl.textContent = '';
+    setContactHeaderPhoneLines(null, cellEl, otherPhoneEl);
+    setContactHeaderEmailLines(null, workEmailEl, personalEmailEl);
     if (publicHandleEl) publicHandleEl.textContent = '';
+    setContactGroupsSummaryDefault();
     if (imgEl) {
       imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
       imgEl.alt = '';
@@ -513,12 +755,7 @@ async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
   }
 
   try {
-    const res = await fetch(
-      '/api/contact-details/work?owners_handle=' +
-        encodeURIComponent(ownersHandle) +
-        '&contact_name=' +
-        encodeURIComponent(contactName)
-    );
+    const res = await fetch(workUrl);
     const row = res.ok ? await res.json() : null;
     cachedWorkRow = row;
     cachedFamilyRow = row;
@@ -528,32 +765,30 @@ async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
       row && row.contact_name != null && String(row.contact_name).trim() !== ''
         ? String(row.contact_name).trim()
         : contactName;
+    cachedProfileNameForFilter = displayName || null;
+    maybeReplaceLegacyContactQueryWithPath(ownersHandle, displayName);
     if (nameEl) nameEl.textContent = displayName;
 
-    if (cellEl) {
-      const c = row && row.cell != null ? String(row.cell).trim() : '';
-      cellEl.textContent = c ? 'Cell: ' + c : '';
-    }
-    if (otherPhoneEl) {
-      const o = row && row.other_phone != null ? String(row.other_phone).trim() : '';
-      otherPhoneEl.textContent = o ? 'Other phone: ' + o : '';
-    }
-
-    if (workEmailEl) {
-      const w = row && row.work_email != null ? String(row.work_email).trim() : '';
-      workEmailEl.textContent = w ? 'Work: ' + w : '';
-    }
-    if (personalEmailEl) {
-      const p = row && row.personal_email != null ? String(row.personal_email).trim() : '';
-      personalEmailEl.textContent = p ? 'Personal: ' + p : '';
-    }
+    setContactHeaderPhoneLines(row, cellEl, otherPhoneEl);
+    setContactHeaderEmailLines(row, workEmailEl, personalEmailEl);
 
     if (publicHandleEl) {
       const ch =
         row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
           ? String(row.contact_handle).trim().replace(/^@+/, '')
           : '';
-      publicHandleEl.textContent = ch ? 'Public handle: @' + ch : 'Public handle: —';
+      if (!ch) {
+        publicHandleEl.textContent = 'Public handle: —';
+      } else {
+        const profilePath = '/events/@' + encodeURIComponent(ch);
+        publicHandleEl.innerHTML =
+          'Public handle: <a href="' +
+          escapeAttr(profilePath) +
+          '" class="text-primary">' +
+          '@' +
+          escapeHtml(ch) +
+          '</a>';
+      }
     }
 
     if (imgEl) {
@@ -584,12 +819,15 @@ async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
         })
         .catch(() => {});
     }
+
+    await refreshContactGroupsSummaryLine(row);
   } catch (e) {
     console.error('applyContactDetailsPageHeader:', e);
     if (nameEl) nameEl.textContent = contactName;
-    if (cellEl) cellEl.textContent = '';
-    if (otherPhoneEl) otherPhoneEl.textContent = '';
+    setContactHeaderPhoneLines(null, cellEl, otherPhoneEl);
+    setContactHeaderEmailLines(null, workEmailEl, personalEmailEl);
     if (publicHandleEl) publicHandleEl.textContent = '';
+    setContactGroupsSummaryDefault();
     cachedWorkRow = null;
     cachedFamilyRow = null;
     cachedInterestsRow = null;
@@ -1129,12 +1367,8 @@ document.addEventListener('DOMContentLoaded', () => {
       profileEditBtn.textContent = '…';
 
       try {
-        const imageBase64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload  = e => resolve(e.target.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        const { imageBase64, contentType: uploadContentType } =
+          await photoFileToUploadPayload(file);
 
         const res = await fetch('/api/profile/photo', {
           method: 'POST',
@@ -1142,11 +1376,10 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({
             handle,
             imageBase64,
-            contentType: file.type || 'image/jpeg'
+            contentType: uploadContentType
           })
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        const data = await readJsonFromFetchResponse(res);
 
         const imgEl = document.getElementById('profile-user-photo');
         if (imgEl && data.url) imgEl.src = data.url + '?t=' + Date.now();
@@ -1188,12 +1421,8 @@ document.addEventListener('DOMContentLoaded', () => {
       contactEditBtn.textContent = '…';
 
       try {
-        const imageBase64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = e => resolve(e.target.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        const { imageBase64, contentType: uploadContentType } =
+          await photoFileToUploadPayload(file);
 
         const res = await fetch('/api/contact-photo', {
           method: 'POST',
@@ -1202,11 +1431,10 @@ document.addEventListener('DOMContentLoaded', () => {
             owners_handle: ownersHandle,
             contact_name: contactName,
             imageBase64,
-            contentType: file.type || 'image/jpeg'
+            contentType: uploadContentType
           })
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        const data = await readJsonFromFetchResponse(res);
 
         const imgEl = document.getElementById('contact-user-photo');
         if (imgEl && data.url) imgEl.src = data.url + '?t=' + Date.now();
@@ -1433,6 +1661,220 @@ function escapeAttr(s) {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/\r?\n/g, ' ');
+}
+
+const CONTACT_GROUP_TRASH_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.5V14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.5l-.118-.5H4.118zM2.5 3V2h11v1h-11z"/></svg>';
+
+async function loadContactGroupsModalContent() {
+  const tbody = document.getElementById('contact-groups-modal-tbody');
+  const errEl = document.getElementById('contact-groups-modal-error');
+  const sel = document.getElementById('contact-groups-add-select');
+  const addBtn = document.getElementById('contact-groups-add-btn');
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+
+  const row = cachedWorkRow;
+  const ph =
+    row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
+      ? String(row.contact_handle).trim().replace(/^@+/, '')
+      : '';
+
+  if (!ph) {
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="3" class="text-muted small">Add a public handle to this contact to see and manage group memberships.</td></tr>';
+    }
+    if (sel) {
+      sel.innerHTML = '<option value="">—</option>';
+      sel.disabled = true;
+    }
+    if (addBtn) addBtn.disabled = true;
+    return;
+  }
+
+  if (!cachedUserEmail) {
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="3" class="text-muted small">Log in to manage groups.</td></tr>';
+    }
+    if (sel) {
+      sel.innerHTML = '<option value="">—</option>';
+      sel.disabled = true;
+    }
+    if (addBtn) addBtn.disabled = true;
+    return;
+  }
+
+  if (sel) sel.disabled = false;
+  if (addBtn) addBtn.disabled = false;
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-muted small">Loading…</td></tr>';
+  }
+
+  try {
+    const [memRes, manageRes] = await Promise.all([
+      fetch(
+        '/api/groups/memberships-by-person-handle?user_id=' +
+          encodeURIComponent(cachedUserEmail) +
+          '&person_handle=' +
+          encodeURIComponent(ph)
+      ),
+      fetch('/api/groups/where-i-manage?user_id=' + encodeURIComponent(cachedUserEmail))
+    ]);
+
+    if (!memRes.ok) {
+      const t = await memRes.text();
+      throw new Error(t || memRes.statusText);
+    }
+    const memberships = await memRes.json();
+    const alreadyIn = new Set((memberships || []).map(m => m.group_name).filter(Boolean));
+
+    if (sel && manageRes.ok) {
+      const groups = await manageRes.json();
+      sel.innerHTML = '<option value="">Choose a group…</option>';
+      (groups || []).forEach(g => {
+        const gn = g.group_name != null ? String(g.group_name) : '';
+        if (!gn || alreadyIn.has(gn)) return;
+        const opt = document.createElement('option');
+        opt.value = gn;
+        opt.textContent = gn;
+        sel.appendChild(opt);
+      });
+    }
+
+    if (tbody) {
+      if (!memberships || memberships.length === 0) {
+        tbody.innerHTML =
+          '<tr><td colspan="3" class="text-muted small">No group memberships yet.</td></tr>';
+      } else {
+        tbody.innerHTML = (memberships || [])
+          .map(m => {
+            const gn = m.group_name != null ? String(m.group_name) : '';
+            const st = m.status != null ? String(m.status) : '';
+            const can = !!m.can_remove;
+            const removeCell = can
+              ? '<button type="button" class="btn btn-sm btn-link text-danger p-0 contact-groups-remove-btn" data-group-name="' +
+                escapeAttr(gn) +
+                '" title="Remove from group" aria-label="Remove from group">' +
+                CONTACT_GROUP_TRASH_SVG +
+                '</button>'
+              : '<span class="text-muted small">—</span>';
+            return (
+              '<tr><td>' +
+              escapeHtml(gn) +
+              '</td><td>' +
+              escapeHtml(st) +
+              '</td><td class="text-center">' +
+              removeCell +
+              '</td></tr>'
+            );
+          })
+          .join('');
+      }
+    }
+  } catch (err) {
+    console.error('loadContactGroupsModalContent:', err);
+    if (errEl) {
+      errEl.textContent =
+        err.message ||
+        'Could not load groups. Add column person_handle (text) to group_members if missing.';
+      errEl.style.display = 'block';
+    }
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-danger small">Failed to load.</td></tr>';
+    }
+  }
+}
+
+function initContactGroupsModal() {
+  const modal = document.getElementById('contactGroupsModal');
+  const tbody = document.getElementById('contact-groups-modal-tbody');
+  const addBtn = document.getElementById('contact-groups-add-btn');
+  if (!modal || !window.jQuery) return;
+
+  window.jQuery('#contactGroupsModal').on('show.bs.modal', function() {
+    loadContactGroupsModalContent();
+  });
+
+  if (tbody) {
+    tbody.addEventListener('click', async e => {
+      const btn = e.target.closest('.contact-groups-remove-btn');
+      if (!btn || !cachedUserEmail) return;
+      const groupName = btn.getAttribute('data-group-name');
+      const row = cachedWorkRow;
+      const ph =
+        row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
+          ? String(row.contact_handle).trim().replace(/^@+/, '')
+          : '';
+      if (!groupName || !ph) return;
+      if (!window.confirm('Remove this person from “' + groupName + '”?')) return;
+      try {
+        const res = await fetch('/api/groups/membership-by-person-handle', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: cachedUserEmail,
+            group_name: groupName,
+            person_handle: ph
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Remove failed');
+        await loadContactGroupsModalContent();
+        await refreshContactGroupsSummaryLine(cachedWorkRow);
+      } catch (err) {
+        alert(err.message || 'Could not remove.');
+      }
+    });
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener('click', async () => {
+      const sel = document.getElementById('contact-groups-add-select');
+      const errEl = document.getElementById('contact-groups-modal-error');
+      const groupName = sel && sel.value ? String(sel.value).trim() : '';
+      const row = cachedWorkRow;
+      const ph =
+        row && row.contact_handle != null && String(row.contact_handle).trim() !== ''
+          ? String(row.contact_handle).trim().replace(/^@+/, '')
+          : '';
+      if (!groupName || !ph || !cachedUserEmail) {
+        if (errEl) {
+          errEl.textContent = 'Choose a group and ensure this contact has a public handle.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      if (errEl) {
+        errEl.style.display = 'none';
+        errEl.textContent = '';
+      }
+      addBtn.disabled = true;
+      try {
+        const res = await fetch('/api/groups/invite-by-person-handle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: cachedUserEmail,
+            group_name: groupName,
+            person_handle: ph
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Could not add');
+        if (sel) sel.value = '';
+        await loadContactGroupsModalContent();
+        await refreshContactGroupsSummaryLine(cachedWorkRow);
+      } catch (err) {
+        alert(err.message || 'Could not add to group.');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+  }
 }
 
 function plainTextShared(raw) {
@@ -1881,20 +2323,18 @@ async function loadWorkSection() {
   }
 
   if (isContactDetailsWorkPage()) {
-    const contactName = getContactNameForContactDetailsPage();
-    if (!contactName) {
+    if (!hasContactDetailsPageLookup()) {
       if (contentEl) {
         contentEl.innerHTML =
-          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load work from <code>contact_details</code>, e.g. ' +
-          '<code>?contact_name=Megan%20Picasso</code>. You can also set <code>#contact-page-contact-name</code>.</p>';
+          '<p class="text-muted small">Open a contact from your list, or use <code>/events/contact/</code><em>yourhandle</em><code>_</code><em>contactnameslug</em> (same key as contact photos), e.g. <code>/events/contact/johnpicasso_meganpicasso</code>. Legacy: <code>?contact_name=…</code>.</p>';
       }
       if (eduContentEl) {
         eduContentEl.innerHTML =
-          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load education from <code>contact_details</code>.</p>';
+          '<p class="text-muted small">Add a contact path or <code>contact_name</code> to the URL to load education from <code>contact_details</code>.</p>';
       }
       if (myNotesContentEl) {
         myNotesContentEl.innerHTML =
-          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load notes from <code>contact_details</code>.</p>';
+          '<p class="text-muted small">Add a contact path or <code>contact_name</code> to the URL to load notes from <code>contact_details</code>.</p>';
       }
       workSectionLoaded = true;
       return;
@@ -1934,12 +2374,9 @@ async function loadWorkSection() {
       if (loadingEl) loadingEl.style.display = '';
       if (errorEl)   errorEl.style.display   = 'none';
 
-      const res = await fetch(
-        '/api/contact-details/work?owners_handle=' +
-          encodeURIComponent(ownersHandle) +
-          '&contact_name=' +
-          encodeURIComponent(contactName)
-      );
+      const workFetchUrl = buildContactDetailsWorkApiUrl(ownersHandle);
+      if (!workFetchUrl) throw new Error('Missing contact lookup');
+      const res = await fetch(workFetchUrl);
       if (!res.ok) throw new Error('Server error ' + res.status);
       const row = await res.json();
       cachedWorkRow = row;
@@ -2030,9 +2467,21 @@ async function applySavedContactDetailsRow(data) {
       : '';
   const prevLookup = getContactNameForContactDetailsPage();
   if (newCn && newCn !== prevLookup) {
-    const u = new URL(window.location.href);
-    u.searchParams.set('contact_name', newCn);
-    window.history.replaceState({}, '', u);
+    const oh =
+      cachedProfileRow && cachedProfileRow.handle
+        ? String(cachedProfileRow.handle).trim().replace(/^@+/, '').toLowerCase()
+        : '';
+    const slug = contactDisplayNameToUrlSlug(newCn);
+    if (oh && slug) {
+      const url = new URL(window.location.href);
+      url.pathname = '/events/contact/' + encodeURIComponent(oh + '_' + slug);
+      url.search = '';
+      window.history.replaceState({}, '', url);
+    } else {
+      const u = new URL(window.location.href);
+      u.searchParams.set('contact_name', newCn);
+      window.history.replaceState({}, '', u);
+    }
     const hid = document.getElementById('contact-page-contact-name');
     if (hid) hid.value = newCn;
   }
@@ -2307,11 +2756,10 @@ async function loadFamilySection() {
   }
 
   if (isContactDetailsWorkPage()) {
-    const contactName = getContactNameForContactDetailsPage();
-    if (!contactName) {
+    if (!hasContactDetailsPageLookup()) {
       if (contentEl) {
         contentEl.innerHTML =
-          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load family from <code>contact_details</code>.</p>';
+          '<p class="text-muted small">Add a contact path or <code>contact_name</code> to the URL to load family from <code>contact_details</code>.</p>';
       }
       familySectionLoaded = true;
       return;
@@ -2341,12 +2789,9 @@ async function loadFamilySection() {
       if (loadingEl) loadingEl.style.display = '';
       if (errorEl) errorEl.style.display = 'none';
 
-      const res = await fetch(
-        '/api/contact-details/work?owners_handle=' +
-          encodeURIComponent(ownersHandle) +
-          '&contact_name=' +
-          encodeURIComponent(contactName)
-      );
+      const workFetchUrl = buildContactDetailsWorkApiUrl(ownersHandle);
+      if (!workFetchUrl) throw new Error('Missing contact lookup');
+      const res = await fetch(workFetchUrl);
       if (!res.ok) throw new Error('Server error ' + res.status);
       const row = await res.json();
       cachedWorkRow = row;
@@ -2501,11 +2946,10 @@ async function loadInterestsSection() {
   }
 
   if (isContactDetailsWorkPage()) {
-    const contactName = getContactNameForContactDetailsPage();
-    if (!contactName) {
+    if (!hasContactDetailsPageLookup()) {
       if (contentEl) {
         contentEl.innerHTML =
-          '<p class="text-muted small">Add <code>contact_name</code> to the URL to load interests from <code>contact_details</code>.</p>';
+          '<p class="text-muted small">Add a contact path or <code>contact_name</code> to the URL to load interests from <code>contact_details</code>.</p>';
       }
       interestsSectionLoaded = true;
       return;
@@ -2534,12 +2978,9 @@ async function loadInterestsSection() {
       if (loadingEl) loadingEl.style.display = '';
       if (errorEl) errorEl.style.display = 'none';
 
-      const res = await fetch(
-        '/api/contact-details/work?owners_handle=' +
-          encodeURIComponent(ownersHandle) +
-          '&contact_name=' +
-          encodeURIComponent(contactName)
-      );
+      const workFetchUrl = buildContactDetailsWorkApiUrl(ownersHandle);
+      if (!workFetchUrl) throw new Error('Missing contact lookup');
+      const res = await fetch(workFetchUrl);
       if (!res.ok) throw new Error('Server error ' + res.status);
       const row = await res.json();
       cachedWorkRow = row;
@@ -2677,4 +3118,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (deleteBtn) {
     deleteBtn.addEventListener('click', deleteEventFromModal);
   }
+  initContactGroupsModal();
 });

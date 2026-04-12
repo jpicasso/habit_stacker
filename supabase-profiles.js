@@ -340,6 +340,18 @@ async function upsertInterestsProfile(email, interestFields) {
 
 const PHOTO_BUCKET = 'profile_photos';
 const PHOTO_EXTS   = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
+
+function formatSupabaseStorageError(err) {
+  if (err == null) return 'Unknown storage error';
+  if (typeof err === 'string') return err;
+  if (typeof err.message === 'string' && err.message) return err.message;
+  if (typeof err.error === 'string') return err.error;
+  try {
+    const s = JSON.stringify(err);
+    if (s && s !== '{}') return s;
+  } catch (_) {}
+  return String(err);
+}
 const MIME_TO_EXT  = {
   'image/jpeg': 'jpg',
   'image/jpg':  'jpg',
@@ -423,7 +435,7 @@ async function uploadProfilePhoto(handle, imageBuffer, contentType) {
       upsert: true
     });
 
-  if (error) throw error;
+  if (error) throw new Error(formatSupabaseStorageError(error));
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${newPath}`;
 }
 
@@ -434,6 +446,30 @@ function contactNameToFileSlug(contactName) {
   return String(contactName || '')
     .replace(/\s+/g, '')
     .toLowerCase();
+}
+
+/**
+ * Suffix for `contact_details.handle`: letters and digits only, lowercased (spaces and symbols removed).
+ * e.g. "Aaron Chalal!" → "aaronchalal"
+ */
+function contactNameToDetailHandleSuffix(contactName) {
+  return String(contactName || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
+}
+
+/**
+ * Stored `contact_details.handle`: `{owners_handle}_{suffix}` (suffix from {@link contactNameToDetailHandleSuffix}).
+ * @returns {string|null}
+ */
+function contactDetailsHandleValue(ownersHandle, contactDisplayName) {
+  const oh = String(ownersHandle || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+  const suf = contactNameToDetailHandleSuffix(contactDisplayName);
+  if (!oh || !suf) return null;
+  return `${oh}_${suf}`;
 }
 
 /**
@@ -509,7 +545,7 @@ async function uploadContactPhoto(ownersHandle, contactName, imageBuffer, conten
       upsert: true
     });
 
-  if (error) throw error;
+  if (error) throw new Error(formatSupabaseStorageError(error));
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${CONTACT_PHOTO_BUCKET}/${newPath}`;
 }
 
@@ -542,7 +578,10 @@ const CONTACT_DETAILS_COLUMNS = [
 
 const CONTACT_DETAILS_WORK_FIELDS = CONTACT_DETAILS_COLUMNS.join(', ');
 
-const CONTACT_DETAILS_PATCHABLE = new Set(CONTACT_DETAILS_COLUMNS);
+/** Server-managed composite key; not accepted from client patches. */
+const CONTACT_DETAILS_PATCHABLE = new Set(
+  CONTACT_DETAILS_COLUMNS.filter(c => c !== 'handle')
+);
 
 /**
  * Fetch work fields from `contact_details` for a given owner + contact name.
@@ -603,6 +642,69 @@ async function getContactDetailsWork(ownersHandle, contactName) {
     throw error;
   }
   return data || null;
+}
+
+/**
+ * Resolve `contact_details` from a URL path key: `{owners_handle}_{contactNameToFileSlug(contact_name)}`
+ * (same stem as `contact_photos`). The first path segment must match `expectedOwnersHandle` (case-insensitive).
+ * @param {string} pathKey e.g. johnpicasso_aaronchalal
+ * @param {string} expectedOwnersHandle Profile handle for the logged-in owner (must match path prefix).
+ * @returns {Promise<object|null>}
+ */
+async function getContactDetailsWorkByPathKey(pathKey, expectedOwnersHandle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+
+  const raw = String(pathKey || '').trim();
+  const i = raw.indexOf('_');
+  if (i <= 0) return null;
+
+  const ohFromPath = raw.slice(0, i).replace(/^@+/, '').trim();
+  const slug = raw.slice(i + 1).replace(/\s+/g, '').toLowerCase();
+  if (!slug) return null;
+
+  const expected = String(expectedOwnersHandle || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+  if (!expected || ohFromPath.toLowerCase() !== expected) {
+    return null;
+  }
+
+  const oh = String(expectedOwnersHandle).trim().replace(/^@+/, '');
+  const pathNorm = raw.toLowerCase();
+
+  let { data: byHandle, error: errHandle } = await supabase
+    .from('contact_details')
+    .select(CONTACT_DETAILS_WORK_FIELDS)
+    .eq('owners_handle', oh)
+    .eq('handle', pathNorm)
+    .maybeSingle();
+
+  if (!errHandle && byHandle) return byHandle;
+  if (errHandle && !isSchemaError(errHandle)) throw errHandle;
+
+  const { data: rows, error } = await supabase
+    .from('contact_details')
+    .select(CONTACT_DETAILS_WORK_FIELDS)
+    .eq('owners_handle', oh);
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  if (!rows || !rows.length) return null;
+
+  for (const row of rows) {
+    const stored = row.handle
+      ? String(row.handle).toLowerCase()
+      : contactDetailsHandleValue(oh, row.contact_name);
+    if (stored === pathNorm) return row;
+    if (contactNameToFileSlug(row.contact_name) === slug) {
+      return row;
+    }
+  }
+  return null;
 }
 
 /**
@@ -698,6 +800,18 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
     if (Object.keys(filtered).length === 0) {
       return existing;
     }
+    const finalContactName =
+      filtered.contact_name !== undefined
+        ? normalizeContactDetailName(filtered.contact_name)
+        : normalizeContactDetailName(existing.contact_name || lookupCn);
+    const nextHandle = contactDetailsHandleValue(oh, finalContactName);
+    if (!nextHandle) {
+      throw new Error(
+        'Contact name must contain at least one letter or number for the handle field'
+      );
+    }
+    filtered.handle = nextHandle;
+
     const { data, error } = await supabase
       .from('contact_details')
       .update(filtered)
@@ -715,6 +829,14 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
     contact_name: lookupCn,
     ...filtered
   };
+  insertRow.contact_name = normalizeContactDetailName(insertRow.contact_name);
+  const insertHandle = contactDetailsHandleValue(oh, insertRow.contact_name);
+  if (!insertHandle) {
+    throw new Error(
+      'Contact name must contain at least one letter or number for the handle field'
+    );
+  }
+  insertRow.handle = insertHandle;
 
   const { data: inserted, error: insErr } = await supabase
     .from('contact_details')
@@ -743,6 +865,7 @@ module.exports = {
   getContactPhotoUrlForContact,
   uploadContactPhoto,
   getContactDetailsWork,
+  getContactDetailsWorkByPathKey,
   upsertContactDetails,
   listContactDetailsByOwnersHandle,
   deleteContactDetailsForOwner

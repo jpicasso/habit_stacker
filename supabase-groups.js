@@ -1,7 +1,7 @@
 /**
  * Groups in Supabase.
  *
- * Table: `group_members`  — id, group_name, member (email), status ('invited'|'member'|'admin')
+ * Table: `group_members`  — id, group_name, member (email), status ('invited'|'member'|'admin'), person_handle (optional)
  *
  * Admins are rows in group_members where status = 'admin'.
  *
@@ -13,6 +13,7 @@
  *     member text not null,
  *     status text not null default 'invited'
  *   );
+ *   alter table public.group_members add column if not exists person_handle text;
  */
 
 let client = null;
@@ -31,6 +32,11 @@ function getClient() {
 
 function normalizeEmail(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
+}
+
+/** Normalized public handle (no @), lowercased — matches `contact_details.contact_handle` / `group_members.person_handle`. */
+function normalizePersonHandle(s) {
+  return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
 }
 
 /** Member statuses that give a user active membership in a group. */
@@ -546,6 +552,149 @@ async function getGroupMembers(groupName) {
   return (data || []).map(r => r.member);
 }
 
+/**
+ * Throws if userId is not the group owner or an admin in group_members.
+ */
+async function assertUserCanManageGroup(groupName, userId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uid = normalizeEmail(userId);
+  const gn = (groupName || '').trim();
+  if (!gn || !uid) {
+    throw Object.assign(new Error('group_name and user are required'), { status: 400 });
+  }
+
+  const { data: g, error: gErr } = await supabase
+    .from('groups')
+    .select('owner')
+    .eq('group_name', gn)
+    .maybeSingle();
+  if (gErr) throw gErr;
+  if (!g) throw Object.assign(new Error('Group not found'), { status: 404 });
+  if (normalizeEmail(g.owner) === uid) return;
+
+  const { data: adm, error: aErr } = await supabase
+    .from('group_members')
+    .select('id')
+    .eq('group_name', gn)
+    .ilike('member', uid)
+    .eq('status', 'admin')
+    .maybeSingle();
+  if (aErr) throw aErr;
+  if (!adm) {
+    throw Object.assign(new Error('Only group owners and admins can do this'), { status: 403 });
+  }
+}
+
+/**
+ * Groups where the user is the owner (groups.owner) or has status admin in group_members.
+ */
+async function listGroupsWhereUserCanManageMembers(userId) {
+  const uid = normalizeEmail(userId);
+  if (!uid) return [];
+
+  const owned = await listGroupsOwnedByUser(userId);
+  const names = new Set((owned || []).map(g => g.group_name));
+
+  const userGroups = await listGroupsForUser(userId);
+  for (const row of userGroups || []) {
+    if (row.is_admin) names.add(row.group_name);
+  }
+
+  return [...names]
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+    .map(group_name => ({ group_name }));
+}
+
+const MEMBERSHIP_LIST_STATUSES = [...MEMBER_STATUSES, 'invited'];
+
+/**
+ * All group_members rows whose person_handle matches (for contact public handle).
+ * Each row includes can_remove if viewerUserId may manage that group.
+ */
+async function getMembershipsByPersonHandleForViewer(person_handle, viewerUserId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const ph = normalizePersonHandle(person_handle);
+  if (!ph) return [];
+
+  const { data: rows, error } = await supabase
+    .from('group_members')
+    .select('id, group_name, status, member, person_handle')
+    .ilike('person_handle', ph)
+    .in('status', MEMBERSHIP_LIST_STATUSES)
+    .order('group_name', { ascending: true });
+  if (error) throw error;
+
+  const out = [];
+  for (const r of rows || []) {
+    let can_remove = false;
+    try {
+      await assertUserCanManageGroup(r.group_name, viewerUserId);
+      can_remove = true;
+    } catch (e) {
+      can_remove = false;
+    }
+    out.push({
+      id: r.id,
+      group_name: r.group_name,
+      status: r.status,
+      can_remove
+    });
+  }
+  return out;
+}
+
+async function removeMembershipByPersonHandle({ group_name, person_handle, actorUserId }) {
+  await assertUserCanManageGroup(group_name, actorUserId);
+  const supabase = getClient();
+  const ph = normalizePersonHandle(person_handle);
+  if (!ph) throw new Error('person_handle is required');
+  const { error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_name', (group_name || '').trim())
+    .ilike('person_handle', ph);
+  if (error) throw error;
+  return { ok: true };
+}
+
+/**
+ * Invite a member by email and store person_handle on the row (owner or admin may invite).
+ */
+async function inviteMemberWithPersonHandle({
+  group_name,
+  memberEmail,
+  person_handle,
+  actorUserId
+}) {
+  await assertUserCanManageGroup(group_name, actorUserId);
+  const supabase = getClient();
+  const gn = (group_name || '').trim();
+  const mem = normalizeEmail(memberEmail);
+  const ph = normalizePersonHandle(person_handle);
+  if (!gn || !mem) throw new Error('group_name and member email are required');
+
+  const insertPayload = {
+    group_name: gn,
+    member: mem,
+    status: 'invited',
+    person_handle: ph || null
+  };
+
+  const { error: insErr } = await supabase.from('group_members').insert(insertPayload);
+  if (insErr) {
+    if (insErr.code === '23505') {
+      throw Object.assign(
+        new Error('That person is already in this group or has a pending invite'),
+        { status: 409 }
+      );
+    }
+    throw insErr;
+  }
+  return { ok: true };
+}
+
 module.exports = {
   isConfigured,
   listGroupsForUser,
@@ -559,5 +708,10 @@ module.exports = {
   getGroupMembers,
   getConnectionsForUser,
   listGroupsOwnedByUser,
-  inviteMemberAsOwner
+  inviteMemberAsOwner,
+  normalizePersonHandle,
+  listGroupsWhereUserCanManageMembers,
+  getMembershipsByPersonHandleForViewer,
+  removeMembershipByPersonHandle,
+  inviteMemberWithPersonHandle
 };
