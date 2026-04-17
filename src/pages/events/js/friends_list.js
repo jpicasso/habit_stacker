@@ -118,6 +118,60 @@ async function hydrateFriendsListContactPhotos(tbodyEl, ownersHandle) {
   );
 }
 
+/** Group page: `profile_photos` for rows with `, friend` (stem = `person_handle`); else `contact_photos` by `person_handle`. */
+function groupMemberRowUsesProfilePhoto(displayStatus) {
+  const s = String(displayStatus || '');
+  return s.includes(', friend');
+}
+
+async function hydrateGroupMemberPhotos(tbodyEl) {
+  if (!tbodyEl) return;
+  const profileImgs = tbodyEl.querySelectorAll(
+    'img.friends-list-contact-photo[data-profile-photo-handle]'
+  );
+  await Promise.all(
+    [...profileImgs].map(async img => {
+      const h = img.getAttribute('data-profile-photo-handle');
+      if (!h) return;
+      try {
+        const res = await fetch(
+          '/api/profile/photo?handle=' + encodeURIComponent(h)
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.url) {
+          img.src = data.url;
+          img.alt = '';
+        }
+      } catch (e) {
+        console.warn('Group member profile photo:', e);
+      }
+    })
+  );
+  const contactImgs = tbodyEl.querySelectorAll(
+    'img.friends-list-contact-photo[data-contact-photo-handle]'
+  );
+  await Promise.all(
+    [...contactImgs].map(async img => {
+      const ph = img.getAttribute('data-contact-photo-handle');
+      if (!ph) return;
+      try {
+        const res = await fetch(
+          '/api/contact-photo?person_handle=' + encodeURIComponent(ph)
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.url) {
+          img.src = data.url;
+          img.alt = '';
+        }
+      } catch (e) {
+        console.warn('Group member contact photo:', e);
+      }
+    })
+  );
+}
+
 function isContactsListPage() {
   return window.location.pathname.indexOf('contact_list') !== -1;
 }
@@ -126,8 +180,25 @@ function isFriendsListPage() {
   return window.location.pathname.indexOf('friends_list') !== -1;
 }
 
+/** `/events/group/@handle` — dynamic group detail (see server `GET /events/group/:groupPath`). */
+function isGroupPage() {
+  return /^\/events\/group\/.+/.test(window.location.pathname);
+}
+
+/** Path segment after `/events/group/` (e.g. `@collegefriends_johnpicasso`). */
+function getGroupHandleFromUrl() {
+  const m = window.location.pathname.match(/^\/events\/group\/(.+)$/);
+  if (!m) return '';
+  try {
+    return decodeURIComponent(m[1]);
+  } catch (e) {
+    return m[1];
+  }
+}
+
 function addModalDefaultSubmitLabel() {
   if (isContactsListPage()) return 'Add contact';
+  if (isGroupPage()) return 'Add member';
   return 'Add';
 }
 
@@ -210,6 +281,62 @@ function contactPageHrefForListName(name, ownersHandle) {
   return (
     '/events/contact/' + encodeURIComponent(oh + '_' + contactDisplayNameToUrlSlug(cn))
   );
+}
+
+/** Group member row → `/events/contact/<person_handle>` (same stem as `contact_details.handle`). */
+function contactPageHrefForPersonHandle(personHandle) {
+  const raw = String(personHandle || '')
+    .trim()
+    .replace(/^@+/, '');
+  if (!raw) return '/events/contact_list.html';
+  return '/events/contact/' + encodeURIComponent(raw);
+}
+
+async function handleGroupMemberRemoveClick(btn, tbodyEl) {
+  const tr = btn.closest('tr.group-member-row');
+  if (!tr || !tr.dataset.personHandle) return;
+  const groupName = tbodyEl.dataset.groupDisplayName || 'this group';
+  const memberDisplay =
+    (btn.dataset.memberDisplay && String(btn.dataset.memberDisplay).trim()) ||
+    tr.dataset.personHandle ||
+    'this member';
+  const personHandle = tr.dataset.personHandle;
+  if (
+    !confirm(
+      'Are you sure you want to remove ' +
+        memberDisplay +
+        ' from the ' +
+        groupName +
+        '?'
+    )
+  ) {
+    return;
+  }
+  const userId = await getLoggedInUserId();
+  if (!userId) {
+    alert('You must be logged in.');
+    return;
+  }
+  const gh = getGroupHandleFromUrl();
+  try {
+    const res = await fetch('/api/groups/member-by-group-handle', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        group_handle: gh,
+        person_handle: personHandle
+      })
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(j.error || 'Could not remove member');
+    }
+    await loadGroupMembersPage();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Could not remove member.');
+  }
 }
 
 async function getLoggedInUserId() {
@@ -298,6 +425,139 @@ async function loadIncomingRequests(email) {
     console.error(err);
     loadingEl.style.display = 'none';
     errorEl.textContent = 'Failed to load friend requests. Please refresh the page.';
+    errorEl.style.display = 'block';
+  }
+}
+
+async function loadGroupMembersPage() {
+  const loadingEl = document.getElementById('friends-loading');
+  const errorEl = document.getElementById('friends-error');
+  const emptyEl = document.getElementById('friends-empty');
+  const tableEl = document.getElementById('friends-table');
+  const tbodyEl = document.getElementById('friends-tbody');
+  const titleEl = document.getElementById('group-page-title');
+  if (!loadingEl || !errorEl || !emptyEl || !tableEl || !tbodyEl) return;
+
+  loadingEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  tableEl.style.display = 'none';
+  tbodyEl.innerHTML = '';
+
+  const handle = getGroupHandleFromUrl();
+  if (!handle) {
+    loadingEl.style.display = 'none';
+    errorEl.textContent = 'Invalid group link.';
+    errorEl.style.display = 'block';
+    if (titleEl) titleEl.textContent = 'Group';
+    return;
+  }
+
+  try {
+    const gRes = await fetch(
+      '/api/groups/by-handle?handle=' + encodeURIComponent(handle)
+    );
+    if (gRes.status === 503) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent =
+        'Groups require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (gRes.status === 404) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent = 'Group not found.';
+      errorEl.style.display = 'block';
+      if (titleEl) titleEl.textContent = 'Group';
+      return;
+    }
+    if (!gRes.ok) throw new Error('Failed to load group');
+    const groupRow = await gRes.json();
+    const groupName =
+      groupRow.group_name != null ? String(groupRow.group_name).trim() : '';
+    if (titleEl) titleEl.textContent = groupName || 'Group';
+    tbodyEl.dataset.groupDisplayName = groupName || '';
+
+    const viewerId = await getLoggedInUserId();
+    let membersUrl =
+      '/api/groups/members-by-group-handle?group_handle=' +
+      encodeURIComponent(handle);
+    if (viewerId) {
+      membersUrl += '&user_id=' + encodeURIComponent(viewerId);
+    }
+    const mRes = await fetch(membersUrl);
+    if (mRes.status === 503) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent =
+        'Groups require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!mRes.ok) throw new Error('Failed to load members');
+    const members = await mRes.json();
+
+    loadingEl.style.display = 'none';
+
+    if (!Array.isArray(members) || !members.length) {
+      emptyEl.style.display = 'block';
+      return;
+    }
+
+    tableEl.style.display = 'table';
+    members.forEach(row => {
+      const tr = document.createElement('tr');
+      const displayName =
+        row.display_name != null && String(row.display_name).trim() !== ''
+          ? String(row.display_name).trim()
+          : '';
+      const cn =
+        row.contact_name != null && String(row.contact_name).trim() !== ''
+          ? String(row.contact_name).trim()
+          : '';
+      const member =
+        displayName ||
+        cn ||
+        (row.member != null ? String(row.member) : '');
+      const status =
+        row.display_status != null && String(row.display_status).trim() !== ''
+          ? String(row.display_status).trim()
+          : row.status != null
+            ? String(row.status)
+            : '';
+      const ph = row.person_handle != null ? String(row.person_handle) : '';
+      const useProfilePhoto = ph && groupMemberRowUsesProfilePhoto(status);
+      const photoHtml =
+        ph && useProfilePhoto
+          ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-profile-photo-handle="${escapeAttr(ph)}" />`
+          : ph
+            ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-contact-photo-handle="${escapeAttr(ph)}" />`
+            : '';
+      const nameCell = ph
+        ? `<span class="d-inline-flex align-items-center min-w-0">${photoHtml}<span class="text-break">${escapeHtml(member)}</span></span>`
+        : escapeHtml(member);
+      const removeBtnHtml = ph
+        ? `<button type="button" class="btn btn-link btn-sm text-danger p-0 border-0 group-member-remove-btn" title="Remove from group" aria-label="Remove from group" data-member-display="${escapeAttr(member)}"><span class="material-icons align-middle" style="font-size:22px;line-height:1;">delete</span></button>`
+        : '';
+      tr.innerHTML = `
+        <td>${nameCell}</td>
+        <td>${escapeHtml(status)}</td>
+        <td>${escapeHtml(ph)}</td>
+        <td class="text-right align-middle">${removeBtnHtml}</td>
+      `;
+      if (ph) {
+        tr.classList.add('group-member-row');
+        tr.dataset.personHandle = ph;
+        tr.style.cursor = 'pointer';
+        tr.setAttribute('title', 'Open contact');
+      }
+      tbodyEl.appendChild(tr);
+    });
+    await hydrateGroupMemberPhotos(tbodyEl);
+  } catch (err) {
+    console.error(err);
+    loadingEl.style.display = 'none';
+    errorEl.textContent =
+      err.message || 'Failed to load group. Please refresh the page.';
     errorEl.style.display = 'block';
   }
 }
@@ -498,7 +758,9 @@ async function loadFriendsPage() {
     if (fe) {
       fe.textContent = isContactsListPage()
         ? 'Please log in to view your contacts.'
-        : 'Please log in to view your friends.';
+        : isGroupPage()
+          ? 'Please log in to view this group.'
+          : 'Please log in to view your friends.';
       fe.style.display = 'block';
     }
     return;
@@ -510,7 +772,14 @@ async function loadFriendsPage() {
   if (fe) {
     fe.textContent = isContactsListPage()
       ? 'No contacts yet.'
-      : 'No friends yet.';
+      : isGroupPage()
+        ? 'No members yet.'
+        : 'No friends yet.';
+  }
+
+  if (isGroupPage()) {
+    await loadGroupMembersPage();
+    return;
   }
 
   const tasks = [loadFriendsAndContacts(email)];
@@ -552,7 +821,19 @@ function syncAddFriendModalHints() {
   const hFriend = document.getElementById('af-name-hint-friend');
   const hContact = document.getElementById('af-name-hint-contact');
   const groupWrap = document.getElementById('af-group-wrap');
-  if (!nameInput || !hFriend || !hContact) return;
+  if (!nameInput) return;
+  if (!hFriend || !hContact) {
+    if (isGroupPage()) {
+      nameInput.setAttribute('type', 'text');
+      nameInput.setAttribute('autocomplete', 'off');
+    } else if (isFriendsListPage()) {
+      if (status) status.value = 'friend';
+      nameInput.setAttribute('type', 'email');
+      nameInput.setAttribute('autocomplete', 'email');
+      if (groupWrap) groupWrap.classList.add('d-none');
+    }
+    return;
+  }
 
   if (isContactsListPage()) {
     if (status) status.value = 'contact';
@@ -560,6 +841,15 @@ function syncAddFriendModalHints() {
     hContact.classList.remove('d-none');
     nameInput.setAttribute('type', 'text');
     nameInput.setAttribute('autocomplete', 'name');
+    if (groupWrap) groupWrap.classList.add('d-none');
+    return;
+  }
+  if (isGroupPage()) {
+    if (status) status.value = 'friend';
+    hFriend.classList.remove('d-none');
+    hContact.classList.add('d-none');
+    nameInput.setAttribute('type', 'email');
+    nameInput.setAttribute('autocomplete', 'email');
     if (groupWrap) groupWrap.classList.add('d-none');
     return;
   }
@@ -621,9 +911,10 @@ function applyPageSpecificAddModal() {
   if (label) {
     if (isContactsListPage()) label.textContent = 'Add contact';
     else if (isFriendsListPage()) label.textContent = 'Add friend';
+    else if (isGroupPage()) label.textContent = 'Add member';
   }
   const submit = document.getElementById('af-submit');
-  if (submit && (isContactsListPage() || isFriendsListPage())) {
+  if (submit && (isContactsListPage() || isFriendsListPage() || isGroupPage())) {
     submit.textContent = addModalDefaultSubmitLabel();
   }
 }
@@ -635,6 +926,7 @@ function resetAddFriendModal() {
   if (status) {
     if (isContactsListPage()) status.value = 'contact';
     else if (isFriendsListPage()) status.value = 'friend';
+    else if (isGroupPage()) status.value = 'member';
     else status.value = 'friend';
   }
   syncAddFriendModalHints();
@@ -653,19 +945,99 @@ async function addFriendModalSubmit() {
     ? 'contact'
     : isFriendsListPage()
       ? 'friend'
-      : statusEl && statusEl.value;
+      : isGroupPage()
+        ? statusEl && statusEl.value
+        : statusEl && statusEl.value;
   const notes = notesInput && notesInput.value.trim();
   const groupName =
     groupSel && groupSel.value ? String(groupSel.value).trim() : '';
 
   if (!name) {
-    alert('Please enter a name.');
+    alert(isGroupPage() ? 'Please enter a handle.' : 'Please enter a name.');
     return;
   }
 
   const userId = await getLoggedInUserId();
   if (!userId) {
     alert('You must be logged in.');
+    return;
+  }
+
+  if (isGroupPage()) {
+    const role =
+      statusEl && statusEl.value
+        ? String(statusEl.value).trim().toLowerCase()
+        : '';
+    if (role !== 'member' && role !== 'admin' && role !== 'blind member') {
+      alert('Choose Member, Admin, or Blind Member.');
+      return;
+    }
+    const membershipStatus =
+      role === 'blind member' ? 'blind member' : 'invited';
+    const ph = String(name).replace(/^@+/, '').trim();
+    if (!ph) {
+      alert('Please enter a valid handle.');
+      return;
+    }
+    const lastUnderscore = ph.lastIndexOf('_');
+    const profileHandle =
+      lastUnderscore > 0 ? ph.slice(lastUnderscore + 1) : ph;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+    }
+    try {
+      const gh = getGroupHandleFromUrl();
+      const gRes = await fetch(
+        '/api/groups/by-handle?handle=' + encodeURIComponent(gh)
+      );
+      if (gRes.status === 503) {
+        alert(
+          'Groups require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+        );
+        return;
+      }
+      if (!gRes.ok) {
+        const j = await gRes.json().catch(() => ({}));
+        throw new Error(j.error || 'Group not found');
+      }
+      const gRow = await gRes.json();
+      const resolvedGroupName =
+        gRow.group_name != null ? String(gRow.group_name).trim() : '';
+      if (!resolvedGroupName) {
+        throw new Error('Could not resolve group name');
+      }
+
+      const res = await fetch('/api/groups/invite-by-person-handle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          group_name: resolvedGroupName,
+          person_handle: ph,
+          profile_handle: profileHandle,
+          group_handle: getGroupHandleFromUrl(),
+          membership_status: membershipStatus
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Could not invite member');
+      }
+
+      resetAddFriendModal();
+      if (window.jQuery) window.jQuery('#addMemberModal').modal('hide');
+      await loadGroupMembersPage();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Could not add member.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = addModalDefaultSubmitLabel();
+      }
+    }
     return;
   }
 
@@ -919,6 +1291,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('friends-tbody');
   if (tbody) {
     tbody.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.group-member-remove-btn');
+      if (removeBtn && isGroupPage()) {
+        e.preventDefault();
+        e.stopPropagation();
+        void handleGroupMemberRemoveClick(removeBtn, tbody);
+        return;
+      }
+      const groupTr = e.target.closest('tr.group-member-row');
+      if (groupTr && groupTr.dataset.personHandle) {
+        window.location.assign(
+          contactPageHrefForPersonHandle(groupTr.dataset.personHandle)
+        );
+        return;
+      }
       if (e.target.closest('.friends-name-link')) return;
       const tr = e.target.closest('tr.friends-table-row');
       if (!tr) return;

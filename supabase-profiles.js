@@ -80,6 +80,28 @@ async function getProfileByHandle(handle) {
 }
 
 /**
+ * @param {string[]} emails
+ * @returns {Promise<Array<{ email, name, handle }>>}
+ */
+async function getProfilesByEmails(emails) {
+  const supabase = getClient();
+  if (!supabase) return [];
+  const uniq = [...new Set((emails || []).map(e => normalizeEmail(e)).filter(Boolean))];
+  if (!uniq.length) return [];
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('email, name, handle')
+    .in('email', uniq);
+
+  if (error) {
+    if (isSchemaError(error)) return [];
+    throw error;
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+/**
  * Insert or update by email (no ON CONFLICT needed).
  * @returns {Promise<object>}
  */
@@ -504,6 +526,37 @@ async function getContactPhotoUrlForContact(ownersHandle, contactName) {
 }
 
 /**
+ * Public URL for `contact_photos/{person_handle}.{ext}` when the file stem equals `person_handle`
+ * (e.g. `johnpicasso_aaronchalal` → `johnpicasso_aaronchalal.png`).
+ */
+async function getContactPhotoUrlByPersonHandle(personHandle) {
+  const supabase = getClient();
+  if (!supabase || !process.env.SUPABASE_URL || personHandle == null) return null;
+  const prefix = String(personHandle)
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+  if (!prefix) return null;
+
+  const { data, error } = await supabase.storage
+    .from(CONTACT_PHOTO_BUCKET)
+    .list('', { search: prefix });
+
+  if (error || !data || data.length === 0) return null;
+
+  const found = data.find(f => {
+    const name = f.name.toLowerCase();
+    const dotIdx = name.lastIndexOf('.');
+    if (dotIdx === -1) return false;
+    const base = name.slice(0, dotIdx);
+    return base === prefix && PHOTO_EXTS.includes(name.slice(dotIdx + 1));
+  });
+
+  if (!found) return null;
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${CONTACT_PHOTO_BUCKET}/${found.name}`;
+}
+
+/**
  * Upload contact photo; path `{ownersHandle}_{slug}.{ext}`. Removes other extensions for same stem.
  * @returns {Promise<string>} public URL
  */
@@ -848,10 +901,223 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
   return inserted || null;
 }
 
+/** Lowercase, strip leading @ — matches `group_members.person_handle` to `contact_details.handle`. */
+function detailHandleLookupKey(s) {
+  return String(s || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+}
+
+/**
+ * Blind-member invites: match `contact_details.handle` only (no `profiles` lookup for the invitee).
+ * Scoped to the inviter's address book (`owners_handle` = inviter profile handle).
+ */
+async function getContactDetailsRowByOwnersHandleAndHandleColumn(
+  ownersHandle,
+  compositeHandle
+) {
+  const supabase = getClient();
+  const oh = String(ownersHandle || '').trim().replace(/^@+/, '');
+  const key = detailHandleLookupKey(compositeHandle);
+  if (!supabase || !oh || !key) return null;
+
+  const { data, error } = await supabase
+    .from('contact_details')
+    .select('handle, work_email, personal_email, contact_name')
+    .eq('owners_handle', oh)
+    .eq('handle', key)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
+}
+
+function getEmailFromContactDetailsRow(row) {
+  if (!row) return null;
+  const w = row.work_email != null ? normalizeEmail(row.work_email) : '';
+  const p = row.personal_email != null ? normalizeEmail(row.personal_email) : '';
+  return w || p || null;
+}
+
+/**
+ * Resolve invitee for blind-member group adds using only `contact_details.handle`.
+ * Optional `work_email` / `personal_email` are returned when present; otherwise `memberEmail` is null
+ * (caller stores a placeholder in `group_members.member`).
+ */
+async function resolveBlindMemberInviteeFromContactDetails(
+  actorUserEmail,
+  personHandleComposite
+) {
+  const inviter = await getProfileByEmail(actorUserEmail);
+  if (!inviter || !String(inviter.handle || '').trim()) {
+    return {
+      ok: false,
+      error:
+        'Your profile must have a public handle to add blind members from your address book.'
+    };
+  }
+  const oh = String(inviter.handle).trim().replace(/^@+/, '');
+  const ph = String(personHandleComposite || '').trim();
+  if (!ph) {
+    return { ok: false, error: 'person_handle is required' };
+  }
+  const row = await getContactDetailsRowByOwnersHandleAndHandleColumn(oh, ph);
+  if (!row) {
+    return {
+      ok: false,
+      error:
+        'No contact with that handle in your address book (contact_details.handle).'
+    };
+  }
+  const memberEmail = getEmailFromContactDetailsRow(row);
+  return { ok: true, memberEmail: memberEmail || null };
+}
+
+/**
+ * For the viewer's address book (`owners_handle` = profile handle), map `contact_details.handle` → `contact_name`.
+ * Includes computed handles via {@link contactDetailsHandleValue} when `handle` is null.
+ */
+async function getContactHandleToContactNameMap(ownersHandle) {
+  const supabase = getClient();
+  const oh = String(ownersHandle || '')
+    .trim()
+    .replace(/^@+/, '');
+  if (!supabase || !oh) return new Map();
+
+  const { data, error } = await supabase
+    .from('contact_details')
+    .select('contact_name, handle')
+    .eq('owners_handle', oh);
+
+  if (error) {
+    if (isSchemaError(error)) return new Map();
+    throw error;
+  }
+
+  const m = new Map();
+  for (const row of data || []) {
+    const cn = row.contact_name != null ? String(row.contact_name).trim() : '';
+    if (!cn) continue;
+    if (row.handle != null && String(row.handle).trim() !== '') {
+      const k = detailHandleLookupKey(row.handle);
+      if (k && !m.has(k)) m.set(k, cn);
+    }
+    const computed = contactDetailsHandleValue(oh, cn);
+    if (computed) {
+      const k2 = detailHandleLookupKey(computed);
+      if (k2 && !m.has(k2)) m.set(k2, cn);
+    }
+  }
+  return m;
+}
+
+/**
+ * Adds `contact_name` on each row when `person_handle` matches `contact_details.handle` for this owner.
+ * @param {string} ownersHandle Profile `handle` (same as `contact_details.owners_handle`)
+ * @param {object[]} rows `group_members` rows with optional `person_handle`
+ */
+async function enrichGroupMemberRowsWithContactNames(ownersHandle, rows) {
+  if (!Array.isArray(rows) || !rows.length) return rows;
+  const map = await getContactHandleToContactNameMap(ownersHandle);
+  return rows.map(r => {
+    const ph = r.person_handle != null ? String(r.person_handle).trim() : '';
+    const contact_name = ph ? map.get(detailHandleLookupKey(ph)) || null : null;
+    return { ...r, contact_name };
+  });
+}
+
+/**
+ * For rows with no `contact_name`, match `person_handle` to `profiles.handle` and set `profile_name` from `profiles.name`.
+ */
+async function enrichGroupMemberRowsWithProfileNames(rows) {
+  if (!Array.isArray(rows) || !rows.length) return rows;
+  const supabase = getClient();
+  if (!supabase) {
+    return rows.map(r => ({ ...r, profile_name: null }));
+  }
+
+  const keysNeedingProfile = new Set();
+  for (const r of rows) {
+    const hasContact = r.contact_name && String(r.contact_name).trim();
+    if (hasContact) continue;
+    const ph = r.person_handle != null ? String(r.person_handle).trim() : '';
+    if (ph) keysNeedingProfile.add(detailHandleLookupKey(ph));
+  }
+
+  const map = new Map();
+  if (keysNeedingProfile.size) {
+    const handleList = [...keysNeedingProfile];
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('name, handle')
+      .in('handle', handleList);
+
+    if (error && !isSchemaError(error)) throw error;
+    for (const row of data || []) {
+      const hk = detailHandleLookupKey(row.handle);
+      const nm = row.name != null ? String(row.name).trim() : '';
+      if (hk && nm && !map.has(hk)) map.set(hk, nm);
+    }
+
+    for (const k of keysNeedingProfile) {
+      if (map.has(k)) continue;
+      try {
+        const p = await getProfileByHandle(k);
+        if (p && p.name) {
+          const nm = String(p.name).trim();
+          if (nm) map.set(k, nm);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }
+  }
+
+  return rows.map(r => {
+    const hasContact = r.contact_name && String(r.contact_name).trim();
+    if (hasContact) return { ...r, profile_name: null };
+    const ph = r.person_handle != null ? String(r.person_handle).trim() : '';
+    const k = ph ? detailHandleLookupKey(ph) : '';
+    const profile_name = k ? map.get(k) || null : null;
+    return { ...r, profile_name };
+  });
+}
+
+/**
+ * `display_name`: contact_name or profile name.
+ * `display_status`: DB `status` plus `, contact` or `, friend` (never replaces the stored status).
+ */
+function attachGroupMemberDisplayFields(rows) {
+  if (!Array.isArray(rows)) return rows;
+  return rows.map(r => {
+    const cn = r.contact_name && String(r.contact_name).trim();
+    const pn = r.profile_name && String(r.profile_name).trim();
+    const display_name = cn || pn || null;
+    const raw = r.status != null ? String(r.status).trim() : '';
+    const base = raw;
+
+    let display_status;
+    if (cn) {
+      display_status = base ? `${base}, contact` : 'contact';
+    } else if (pn) {
+      display_status = base ? `${base}, friend` : 'friend';
+    } else {
+      display_status = base ? `${base}, contact` : 'contact';
+    }
+
+    return { ...r, display_name, display_status };
+  });
+}
+
 module.exports = {
   isConfigured,
   getProfileByEmail,
   getProfileByHandle,
+  getProfilesByEmails,
   upsertProfile,
   getWorkProfileByHandle,
   getWorkProfileByEmail,
@@ -863,10 +1129,15 @@ module.exports = {
   getProfilePhotoUrl,
   uploadProfilePhoto,
   getContactPhotoUrlForContact,
+  getContactPhotoUrlByPersonHandle,
   uploadContactPhoto,
   getContactDetailsWork,
   getContactDetailsWorkByPathKey,
   upsertContactDetails,
   listContactDetailsByOwnersHandle,
-  deleteContactDetailsForOwner
+  deleteContactDetailsForOwner,
+  enrichGroupMemberRowsWithContactNames,
+  enrichGroupMemberRowsWithProfileNames,
+  attachGroupMemberDisplayFields,
+  resolveBlindMemberInviteeFromContactDetails
 };

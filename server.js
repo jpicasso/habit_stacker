@@ -394,6 +394,11 @@ app.get('/events/contact/:pathKey', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'events', 'contact.html'));
 });
 
+// Group page: /events/group/@collegefriends_johnpicasso (handle in path segment)
+app.get('/events/group/:groupPath', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'events', 'group.html'));
+});
+
 // --- Profiles API (Supabase `profiles` table) ---
 
 app.get('/api/profile', async (req, res) => {
@@ -736,11 +741,18 @@ app.post('/api/profile/photo', async (req, res) => {
   }
 });
 
-/** Bucket `contact_photos`: `{owners_handle}_{contactNameSlug}.{ext}` */
+/** Bucket `contact_photos`: `{owners_handle}_{contactNameSlug}.{ext}` or `{person_handle}.{ext}` */
 app.get('/api/contact-photo', async (req, res) => {
   try {
     if (!supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Supabase required' });
+    }
+    const personHandle = req.query.person_handle;
+    if (personHandle && String(personHandle).trim()) {
+      const url = await supabaseProfiles.getContactPhotoUrlByPersonHandle(
+        personHandle.trim()
+      );
+      return res.json({ url: url || null });
     }
     const ownersHandle = req.query.owners_handle;
     const contactName = req.query.contact_name;
@@ -834,6 +846,48 @@ app.put('/api/profile/interests', async (req, res) => {
 });
 
 // --- Groups API (Supabase `group_members` + `groups` tables) ---
+
+/** Resolve `group_name` by handle: `group_details` first (`handle` matches URL, often without `@`), then legacy `groups`. */
+app.get('/api/groups/by-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const handle = req.query.handle;
+    if (!handle || typeof handle !== 'string' || !handle.trim()) {
+      return res.status(400).json({ error: 'handle query parameter is required' });
+    }
+    const row = await supabaseGroups.getGroupRowByHandle(handle.trim());
+    if (!row) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching group by handle:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch group' });
+  }
+});
+
+/** All `group_members` rows whose `group_handle` matches the URL handle (fallback: `group_name`). Optional `user_id` (email) enriches with `contact_name` from the viewer's `contact_details`. */
+app.get('/api/groups/members-by-group-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const gh = req.query.group_handle;
+    if (!gh || typeof gh !== 'string' || !gh.trim()) {
+      return res.status(400).json({ error: 'group_handle query parameter is required' });
+    }
+    const userId = req.query.user_id;
+    const viewer =
+      userId && typeof userId === 'string' && userId.trim() ? userId.trim() : null;
+    const rows = await supabaseGroups.listMembersRowsByGroupHandle(gh.trim(), viewer);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching members by group_handle:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch members' });
+  }
+});
 
 app.get('/api/groups/connections', async (req, res) => {
   try {
@@ -975,16 +1029,54 @@ app.delete('/api/groups/membership-by-person-handle', async (req, res) => {
   }
 });
 
+/** Delete `group_members` row matching URL `group_handle` and `person_handle` (owner or admin only). */
+app.delete('/api/groups/member-by-group-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, group_handle, person_handle } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!group_handle || !String(group_handle).trim()) {
+      return res.status(400).json({ error: 'group_handle is required' });
+    }
+    if (!person_handle || !String(person_handle).trim()) {
+      return res.status(400).json({ error: 'person_handle is required' });
+    }
+    await supabaseGroups.removeGroupMemberByGroupHandleAndPersonHandle({
+      groupHandleRaw: group_handle.trim(),
+      person_handle: person_handle.trim(),
+      actorUserId: user_id.trim()
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    const status = error.status || 500;
+    console.error('Error removing member by group_handle:', error);
+    res.status(status).json({ error: error.message || 'Failed to remove member' });
+  }
+});
+
 /**
  * Invite a member: `person_handle` is the contact composite key (e.g. johnpicasso_aaronchalal) stored on
- * group_members; `profile_handle` is the invitee's public profiles.handle used to resolve their email.
+ * group_members. For `invited` (default), `profile_handle` is the invitee's public profiles.handle used to
+ * resolve their email. For `blind member`, the invitee is resolved only from `contact_details.handle` for
+ * the inviter's address book — no `profiles` lookup for the invitee.
  */
 app.post('/api/groups/invite-by-person-handle', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured() || !supabaseProfiles.isConfigured()) {
       return res.status(503).json({ error: 'Groups and profiles require Supabase' });
     }
-    const { user_id, group_name, person_handle, profile_handle } = req.body || {};
+    const {
+      user_id,
+      group_name,
+      person_handle,
+      profile_handle,
+      group_handle,
+      membership_status
+    } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
@@ -994,22 +1086,52 @@ app.post('/api/groups/invite-by-person-handle', async (req, res) => {
     if (!person_handle || !String(person_handle).trim()) {
       return res.status(400).json({ error: 'person_handle is required' });
     }
-    const lookup =
-      profile_handle && String(profile_handle).trim()
-        ? String(profile_handle).trim()
-        : String(person_handle).trim();
-    const profile = await supabaseProfiles.getProfileByHandle(lookup);
-    if (!profile || !profile.email) {
-      return res.status(400).json({
-        error:
-          'No profile found for that public handle — set Public handle on the contact, or pass profile_handle.'
-      });
+
+    const ms =
+      membership_status != null && String(membership_status).trim()
+        ? String(membership_status).trim().toLowerCase()
+        : 'invited';
+    const isBlindMember = ms === 'blind member';
+
+    let memberEmail;
+    if (isBlindMember) {
+      const resolved =
+        await supabaseProfiles.resolveBlindMemberInviteeFromContactDetails(
+          user_id.trim(),
+          person_handle.trim()
+        );
+      if (!resolved.ok) {
+        return res.status(400).json({ error: resolved.error });
+      }
+      memberEmail = resolved.memberEmail;
+    } else {
+      const lookup =
+        profile_handle && String(profile_handle).trim()
+          ? String(profile_handle).trim()
+          : String(person_handle).trim();
+      const profile = await supabaseProfiles.getProfileByHandle(lookup);
+      if (!profile || !profile.email) {
+        return res.status(400).json({
+          error:
+            'No profile found for that public handle — set Public handle on the contact, or pass profile_handle.'
+        });
+      }
+      memberEmail = profile.email;
     }
+
     await supabaseGroups.inviteMemberWithPersonHandle({
       group_name: group_name.trim(),
-      memberEmail: profile.email,
+      memberEmail,
       person_handle: person_handle.trim(),
-      actorUserId: user_id.trim()
+      actorUserId: user_id.trim(),
+      groupHandleRaw:
+        group_handle != null && String(group_handle).trim()
+          ? String(group_handle).trim()
+          : undefined,
+      membershipStatus:
+        membership_status != null && String(membership_status).trim()
+          ? String(membership_status).trim()
+          : undefined
     });
     res.status(201).json({ message: 'Invited' });
   } catch (error) {

@@ -69,6 +69,90 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+/** Display handle with a leading @ when missing (matches `/events/group/@…` URLs). */
+function formatGroupHandleForDisplay(handle) {
+  const h = handle != null ? String(handle).trim() : '';
+  if (!h) return '';
+  return h.startsWith('@') ? h : '@' + h;
+}
+
+/** Path to the group page, e.g. `/events/group/@picasso20` (handle from API, with or without `@`). */
+function groupPageUrlFromHandle(handleRaw) {
+  const h = handleRaw != null ? String(handleRaw).trim() : '';
+  if (!h) return '';
+  const noAt = h.replace(/^@+/, '');
+  if (!noAt) return '';
+  return '/events/group/@' + encodeURIComponent(noAt);
+}
+
+/** Public profile page, e.g. `/events/@picasso20` (see server `/events/@:handle`). */
+function profilePageUrlFromHandle(handleRaw) {
+  const h = handleRaw != null ? String(handleRaw).trim() : '';
+  if (!h) return '';
+  const noAt = h.replace(/^@+/, '');
+  if (!noAt) return '';
+  return '/events/@' + encodeURIComponent(noAt);
+}
+
+function initialsFromDisplayName(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    return (
+      parts[0][0] + parts[parts.length - 1][0]
+    ).toUpperCase();
+  }
+  if (parts.length === 1 && parts[0].length) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return '?';
+}
+
+/**
+ * @param {string} viewerEmail
+ * @param {{ admin_profiles?: Array<{ email?: string, name?: string, handle?: string|null, photo_url?: string|null }>, admin_list?: string[] }} row
+ */
+function buildAdminsCellHtml(viewerEmail, row) {
+  const profiles = row.admin_profiles;
+  if (profiles && profiles.length) {
+    return profiles
+      .map(p => {
+        const isMe =
+          viewerEmail &&
+          p.email &&
+          String(p.email).toLowerCase() === String(viewerEmail).toLowerCase();
+        const name = p.name != null ? String(p.name).trim() : '';
+        const initials = initialsFromDisplayName(name);
+        const photoUrl = p.photo_url != null ? String(p.photo_url).trim() : '';
+        const photo = photoUrl
+          ? `<img class="groups-list-admin-avatar rounded-circle border mr-1 flex-shrink-0" src="${escapeHtml(photoUrl)}" width="32" height="32" alt="" loading="lazy" referrerpolicy="no-referrer">`
+          : `<span class="groups-list-admin-avatar rounded-circle border mr-1 flex-shrink-0 d-inline-flex align-items-center justify-content-center bg-secondary text-white small font-weight-bold" style="width:32px;height:32px;font-size:0.7rem;" aria-hidden="true">${escapeHtml(initials)}</span>`;
+        const label = escapeHtml(name);
+        const meClass = isMe ? ' text-primary font-weight-medium' : '';
+        const title = p.email ? escapeHtml(String(p.email)) : '';
+        const handleRaw = p.handle != null ? String(p.handle).trim() : '';
+        const profileUrl = handleRaw ? profilePageUrlFromHandle(handleRaw) : '';
+        const inner = `${photo}<span class="groups-list-admin-name">${label}</span>`;
+        if (profileUrl) {
+          return `<a href="${escapeHtml(profileUrl)}" class="groups-list-admin-profile-link d-inline-flex align-items-center mr-2 mb-1 groups-list-admin-chip${meClass}" title="${title}">${inner}</a>`;
+        }
+        return `<span class="d-inline-flex align-items-center mr-2 mb-1 groups-list-admin-chip${meClass}" title="${title}">${inner}</span>`;
+      })
+      .join('');
+  }
+  const adminBadges = (row.admin_list || []).map(a => {
+    const isMe =
+      viewerEmail &&
+      a.toLowerCase() === String(viewerEmail).toLowerCase();
+    return isMe
+      ? `<span class="badge badge-primary mr-1" title="You">${escapeHtml(a)}</span>`
+      : `<span class="badge badge-secondary mr-1">${escapeHtml(a)}</span>`;
+  });
+  return adminBadges.join('');
+}
+
 async function getLoggedInUserId() {
   try {
     if (window.auth0) {
@@ -176,20 +260,27 @@ async function loadGroups(email) {
     rows.forEach((row) => {
       const tr = document.createElement('tr');
       tr.dataset.groupName = row.group_name || '';
-      const adminBadges = (row.admin_list || []).map(a => {
-        const isMe = a.toLowerCase() === email.toLowerCase();
-        return isMe
-          ? `<span class="badge badge-primary mr-1" title="You">${escapeHtml(a)}</span>`
-          : `<span class="badge badge-secondary mr-1">${escapeHtml(a)}</span>`;
-      }).join('');
-      const adminsCell = adminBadges || '<span class="text-muted">—</span>';
+      const adminsInner = buildAdminsCellHtml(email, row);
+      const adminsCell = adminsInner || '<span class="text-muted">—</span>';
       const visibilityCell = row.visibility
         ? escapeHtml(String(row.visibility))
         : '<span class="text-muted">—</span>';
+      const handleRaw = row.handle != null && String(row.handle).trim()
+        ? String(row.handle).trim()
+        : '';
+      const handleCell = handleRaw
+        ? escapeHtml(formatGroupHandleForDisplay(handleRaw))
+        : '<span class="text-muted">—</span>';
+      const groupPageUrl = handleRaw ? groupPageUrlFromHandle(handleRaw) : '';
+      const gn = row.group_name || '';
+      const groupNameCell = groupPageUrl
+        ? `<a href="${escapeHtml(groupPageUrl)}" class="groups-list-group-link">${escapeHtml(gn)}</a>`
+        : escapeHtml(gn);
       tr.innerHTML = `
-        <td>${escapeHtml(row.group_name || '')}</td>
-        <td>${adminsCell}</td>
-        <td>${visibilityCell}</td>
+        <td>${groupNameCell}</td>
+        <td class="groups-col-handle-cell">${handleCell}</td>
+        <td class="groups-col-admins-cell">${adminsCell}</td>
+        <td class="groups-col-visibility-cell">${visibilityCell}</td>
       `;
       tbodyEl.appendChild(tr);
     });
@@ -247,6 +338,8 @@ updateContentVisibility = function (isAuthenticated) {
 
 // Tracks whether the modal is open for editing an existing group (stores group_name) or creating new (null)
 let currentEditGroupName = null;
+/** When editing, admin emails from the server (no UI field — sent unchanged on save). */
+let loadedGroupAdmins = [];
 
 function parseEmailList(raw) {
   return (raw || '')
@@ -258,19 +351,16 @@ function parseEmailList(raw) {
 function setGroupModalMode(mode) {
   const titleEl = document.getElementById('createGroupModalLabel');
   const submitBtn = document.getElementById('create-group-submit');
-  const editActions = document.getElementById('cg-edit-actions');
   const nameEl = document.getElementById('cg-group-name');
   const membersSectionEl = document.getElementById('cg-members-section');
   if (mode === 'edit') {
     titleEl.textContent = 'Edit Group';
     submitBtn.textContent = 'Save';
-    editActions.classList.remove('d-none');
     nameEl.readOnly = true;
     if (membersSectionEl) membersSectionEl.style.display = 'block';
   } else {
     titleEl.textContent = 'Create Group';
     submitBtn.textContent = 'Create Group';
-    editActions.classList.add('d-none');
     nameEl.readOnly = false;
     if (membersSectionEl) membersSectionEl.style.display = 'none';
   }
@@ -278,15 +368,13 @@ function setGroupModalMode(mode) {
 
 function openCreateGroupModal() {
   currentEditGroupName = null;
+  loadedGroupAdmins = [];
   document.getElementById('create-group-form').reset();
   document.getElementById('create-group-error').style.display = 'none';
   const invitedEl = document.getElementById('cg-invited-members');
   if (invitedEl) invitedEl.value = '';
   const membersEl = document.getElementById('cg-members');
   if (membersEl) membersEl.value = '';
-  // Reset the invited members label (may have been changed by visibility toggle)
-  const invitedLabel = document.querySelector('label[for="cg-invited-members"]');
-  if (invitedLabel) invitedLabel.innerHTML = 'Invited Members <span class="text-danger">*</span>';
   setGroupModalMode('create');
   if (window.jQuery) window.jQuery('#createGroupModal').modal('show');
 }
@@ -311,7 +399,7 @@ async function openEditGroupModal(groupName) {
     document.getElementById('cg-group-name').value = details.group_name || '';
     const visEl = document.getElementById('cg-visibility');
     visEl.value = details.visibility || '';
-    document.getElementById('cg-admins').value = (details.admins || []).join(', ');
+    loadedGroupAdmins = Array.isArray(details.admins) ? [...details.admins] : [];
     document.getElementById('cg-invited-members').value = (details.invited_members || []).join(', ');
     document.getElementById('cg-members').value = (details.members || []).join(', ');
   } catch (err) {
@@ -328,7 +416,6 @@ async function createGroupSubmit() {
   const errorEl = document.getElementById('create-group-error');
   const nameEl = document.getElementById('cg-group-name');
   const visibilityEl = document.getElementById('cg-visibility');
-  const adminsEl = document.getElementById('cg-admins');
   const invitedMembersEl = document.getElementById('cg-invited-members');
   const membersEl = document.getElementById('cg-members');
   const submitBtn = document.getElementById('create-group-submit');
@@ -338,16 +425,18 @@ async function createGroupSubmit() {
 
   const groupName = nameEl.value.trim();
   const visibility = visibilityEl.value.trim();
-  const admins = parseEmailList(adminsEl.value);
-  const invited_members = parseEmailList(invitedMembersEl.value);
-  const members = membersEl ? parseEmailList(membersEl.value) : [];
-
   const isEdit = currentEditGroupName !== null;
+  const admins = isEdit
+    ? parseEmailList((loadedGroupAdmins || []).join(','))
+    : [];
+  const invited_members =
+    isEdit && invitedMembersEl
+      ? parseEmailList(invitedMembersEl.value)
+      : [];
+  const members = membersEl ? parseEmailList(membersEl.value) : [];
 
   if (!groupName) { errorEl.textContent = 'Group Name is required.'; errorEl.style.display = 'block'; nameEl.focus(); return; }
   if (!visibility) { errorEl.textContent = 'Please select a Visibility.'; errorEl.style.display = 'block'; visibilityEl.focus(); return; }
-  if (!admins.length) { errorEl.textContent = 'At least one Admin email is required.'; errorEl.style.display = 'block'; adminsEl.focus(); return; }
-  if (!isEdit && !invited_members.length) { errorEl.textContent = 'At least one Invited Member email is required.'; errorEl.style.display = 'block'; invitedMembersEl.focus(); return; }
 
   const userId = await getLoggedInUserId();
   if (!userId) { errorEl.textContent = 'You must be logged in.'; errorEl.style.display = 'block'; return; }
@@ -391,78 +480,6 @@ async function createGroupSubmit() {
   }
 }
 
-async function deleteGroupHandler() {
-  const groupName = currentEditGroupName;
-  if (!groupName) return;
-  if (!confirm('Are you sure you want to delete "' + groupName + '"? This cannot be undone.')) return;
-
-  const errorEl = document.getElementById('create-group-error');
-  errorEl.style.display = 'none';
-  const deleteBtn = document.getElementById('cg-delete-btn');
-  deleteBtn.disabled = true;
-  deleteBtn.textContent = 'Deleting…';
-
-  try {
-    const userId = await getLoggedInUserId();
-    if (!userId) throw new Error('You must be logged in.');
-
-    const response = await fetch('/api/groups/delete', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, group_name: groupName })
-    });
-    if (!response.ok) {
-      const j = await response.json().catch(() => ({}));
-      throw new Error(j.error || 'Failed to delete group.');
-    }
-    if (window.jQuery) window.jQuery('#createGroupModal').modal('hide');
-    await loadGroupsPage();
-  } catch (err) {
-    console.error(err);
-    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
-  } finally {
-    deleteBtn.disabled = false;
-    deleteBtn.textContent = 'Delete Group';
-  }
-}
-
-async function leaveGroupHandler() {
-  const groupName = currentEditGroupName;
-  if (!groupName) return;
-  if (!confirm('Are you sure you want to leave "' + groupName + '"?')) return;
-
-  const errorEl = document.getElementById('create-group-error');
-  errorEl.style.display = 'none';
-  const leaveBtn = document.getElementById('cg-leave-btn');
-  leaveBtn.disabled = true;
-  leaveBtn.textContent = 'Leaving…';
-
-  try {
-    const userId = await getLoggedInUserId();
-    if (!userId) throw new Error('You must be logged in.');
-
-    const response = await fetch('/api/groups/leave', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, group_name: groupName })
-    });
-    if (!response.ok) {
-      const j = await response.json().catch(() => ({}));
-      throw new Error(j.error || 'Failed to leave group.');
-    }
-    if (window.jQuery) window.jQuery('#createGroupModal').modal('hide');
-    await loadGroupsPage();
-  } catch (err) {
-    console.error(err);
-    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
-  } finally {
-    leaveBtn.disabled = false;
-    leaveBtn.textContent = 'Leave';
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   const invitesTbody = document.getElementById('invites-tbody');
   if (invitesTbody) {
@@ -478,28 +495,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitBtn = document.getElementById('create-group-submit');
   if (submitBtn) submitBtn.addEventListener('click', createGroupSubmit);
 
-  // Swap "Invited Members" ↔ "Members" label based on visibility selection
-  const visibilityEl = document.getElementById('cg-visibility');
-  const invitedLabel = document.querySelector('label[for="cg-invited-members"]');
-  if (visibilityEl && invitedLabel) {
-    visibilityEl.addEventListener('change', () => {
-      if (currentEditGroupName === null) {
-        invitedLabel.innerHTML = visibilityEl.value === 'Only me'
-          ? 'Members <span class="text-danger">*</span>'
-          : 'Invited Members <span class="text-danger">*</span>';
-      }
-    });
-  }
-
-  const deleteBtn = document.getElementById('cg-delete-btn');
-  if (deleteBtn) deleteBtn.addEventListener('click', deleteGroupHandler);
-
-  const leaveBtn = document.getElementById('cg-leave-btn');
-  if (leaveBtn) leaveBtn.addEventListener('click', leaveGroupHandler);
-
   const groupsTbody = document.getElementById('groups-tbody');
   if (groupsTbody) {
     groupsTbody.addEventListener('click', (e) => {
+      if (e.target.closest('a.groups-list-group-link')) return;
+      if (e.target.closest('a.groups-list-admin-profile-link')) return;
+      if (e.target.closest('td.groups-col-handle-cell, td.groups-col-visibility-cell')) return;
       const tr = e.target.closest('tr[data-group-name]');
       if (!tr) return;
       openEditGroupModal(tr.dataset.groupName);

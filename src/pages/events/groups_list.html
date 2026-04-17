@@ -66,6 +66,7 @@ aboutNav: true
                     <thead>
                       <tr>
                         <th>Group</th>
+                        <th class="groups-col-handle">Group Handle</th>
                         <th class="groups-col-admins">Admins</th>
                         <th class="groups-col-visibility">Visibility</th>
                       </tr>
@@ -124,35 +125,19 @@ aboutNav: true
               <option value="Public">Public</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="cg-admins">Admins <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="cg-admins" rows="2" placeholder="Comma-separated email addresses" required></textarea>
-            <small class="form-text text-muted">Separate multiple emails with commas.</small>
-          </div>
-          <div class="form-group">
-            <label for="cg-invited-members">Invited Members <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="cg-invited-members" rows="2" placeholder="Comma-separated email addresses" required></textarea>
-            <small class="form-text text-muted">Separate multiple emails with commas. Invitees will appear under Group Invitations until they accept.</small>
-          </div>
+          <!-- Preserves invited list when editing (not shown on create) -->
+          <textarea id="cg-invited-members" class="d-none" aria-hidden="true" tabindex="-1"></textarea>
           <!-- Edit mode only: confirmed members who have already accepted -->
           <div class="form-group" id="cg-members-section" style="display: none;">
             <label for="cg-members">Members</label>
-            <textarea class="form-control" id="cg-members" rows="2" placeholder="Comma-separated email addresses"></textarea>
-            <small class="form-text text-muted">People who have already accepted their invitation.</small>
+            <textarea class="form-control" id="cg-members" rows="2" placeholder="Comma-separated user handles"></textarea>
+            <small class="form-text text-muted">People who have already accepted their invitation. Separate multiple user handles with commas.</small>
           </div>
         </form>
       </div>
-      <div class="modal-footer d-flex flex-nowrap justify-content-between">
-        <!-- Edit-mode only actions (left side) -->
-        <div id="cg-edit-actions" class="d-flex flex-nowrap d-none">
-          <button type="button" class="btn btn-danger btn-sm mr-2" id="cg-delete-btn">Delete</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm mr-2" id="cg-leave-btn">Leave</button>
-        </div>
-        <!-- Always-visible actions (right side) -->
-        <div class="d-flex flex-nowrap ml-auto">
-          <button type="button" class="btn btn-secondary btn-sm mr-2" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary btn-sm" id="create-group-submit">Create Group</button>
-        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm mr-2" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="create-group-submit">Create Group</button>
       </div>
     </div>
   </div>

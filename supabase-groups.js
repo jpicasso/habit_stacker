@@ -1,7 +1,9 @@
 /**
  * Groups in Supabase.
  *
- * Table: `group_members`  — id, group_name, member (email), status ('invited'|'member'|'admin'), person_handle (optional)
+ * Table: `groups` — group_name, owner, visibility, handle (optional)
+ * Table: `group_details` — display metadata for group pages: `group_name`, `handle` (matches URL segment after `/events/group/`; DB value is usually without `@`, e.g. `collegefriends_johnpicasso` for `@collegefriends_johnpicasso`)
+ * Table: `group_members`  — group_name, group_handle (optional), member (email), status, person_handle (optional)
  *
  * Admins are rows in group_members where status = 'admin'.
  *
@@ -14,6 +16,13 @@
  *     status text not null default 'invited'
  *   );
  *   alter table public.group_members add column if not exists person_handle text;
+ *   alter table public.groups add column if not exists handle text;
+ *   alter table public.group_members add column if not exists group_handle text;
+ *
+ *   create table if not exists public.group_details (
+ *     handle text primary key,
+ *     group_name text not null
+ *   );
  */
 
 let client = null;
@@ -30,6 +39,8 @@ function getClient() {
   return client;
 }
 
+const supabaseProfiles = require('./supabase-profiles');
+
 function normalizeEmail(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
 }
@@ -37,6 +48,78 @@ function normalizeEmail(s) {
 /** Normalized public handle (no @), lowercased — matches `contact_details.contact_handle` / `group_members.person_handle`. */
 function normalizePersonHandle(s) {
   return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
+}
+
+/** Lowercase [a-z0-9] only — used when auto-generating `groups.handle`. */
+function alphanumericHandleSegment(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * `groupName` + owner public handle (or email local-part), lowercased, no spaces/special chars,
+ * joined with `_` when both parts are non-empty.
+ */
+function composeAutoGroupHandleFromNameAndUser(groupName, userHandleOrFallback) {
+  const namePart = alphanumericHandleSegment(groupName);
+  const userPart = alphanumericHandleSegment(
+    normalizePersonHandle(userHandleOrFallback) || userHandleOrFallback
+  );
+  if (!namePart && !userPart) return 'group';
+  if (!namePart) return userPart;
+  if (!userPart) return namePart;
+  return `${namePart}_${userPart}`;
+}
+
+async function resolveOwnerHandleStringForSlug(ownerEmail) {
+  const p = await supabaseProfiles.getProfileByEmail(ownerEmail);
+  if (p && p.handle != null && String(p.handle).trim()) {
+    return String(p.handle).trim();
+  }
+  const e = normalizeEmail(ownerEmail);
+  if (!e) return '';
+  const at = e.indexOf('@');
+  return at > 0 ? e.slice(0, at) : e;
+}
+
+/**
+ * Returns a `handle` not yet used in `groups` or `group_details`.
+ * On collision, appends `2`, `3`, … (alphanumeric only).
+ */
+async function allocateUniqueGroupHandle(supabase, baseHandle) {
+  const seed = alphanumericHandleSegment(baseHandle) || 'group';
+  for (let i = 0; i < 100; i++) {
+    const candidate = i === 0 ? seed : `${seed}${i + 1}`;
+    const g = await supabase.from('groups').select('group_name').eq('handle', candidate).maybeSingle();
+    if (g.error) {
+      const msg = String(g.error.message || '').toLowerCase();
+      const missingCol =
+        msg.includes('handle') && (msg.includes('does not exist') || g.error.code === '42703');
+      if (missingCol) return candidate;
+      throw g.error;
+    }
+    if (g.data) continue;
+
+    const gd = await supabase.from('group_details').select('handle').eq('handle', candidate).maybeSingle();
+    if (gd.error) {
+      const msg = String(gd.error.message || '').toLowerCase();
+      const missingRel =
+        (msg.includes('group_details') || msg.includes('schema cache')) &&
+        (msg.includes('does not exist') || msg.includes('could not find') || gd.error.code === '42P01');
+      if (missingRel) return candidate;
+      throw gd.error;
+    }
+    if (!gd.data) return candidate;
+  }
+  throw new Error('Could not allocate a unique group handle');
+}
+
+/** When `contact_details` has no email, `group_members.member` still needs a value (NOT NULL). */
+function placeholderMemberEmailForBlindPersonHandle(person_handle) {
+  const ph = normalizePersonHandle(person_handle);
+  const safe = ph ? ph.replace(/[^a-z0-9._-]/g, '_') : 'unknown';
+  return `blind-${safe}@placeholder.local`;
 }
 
 /** Member statuses that give a user active membership in a group. */
@@ -66,10 +149,12 @@ async function listGroupsForUser(userId) {
 
   // For each group, fetch all rows where status = 'admin' to build the admin list
   const adminMap = {};
-  // Fetch visibility from the groups table
+  // Fetch visibility (and optional handle) from the groups table; group_details may override handle
   const visibilityMap = {};
+  /** @type {Record<string, string>} */
+  const handleMap = {};
   if (groupNames.length) {
-    const [adminResult, groupsResult] = await Promise.all([
+    const [adminResult, groupsResult, gdResult] = await Promise.all([
       supabase
         .from('group_members')
         .select('group_name, member')
@@ -78,10 +163,21 @@ async function listGroupsForUser(userId) {
       supabase
         .from('groups')
         .select('group_name, visibility')
+        .in('group_name', groupNames),
+      supabase
+        .from('group_details')
+        .select('group_name, handle')
         .in('group_name', groupNames)
     ]);
     if (adminResult.error) throw adminResult.error;
     if (groupsResult.error) throw groupsResult.error;
+    if (gdResult.error) {
+      const msg = String(gdResult.error.message || '').toLowerCase();
+      const missingRel =
+        (msg.includes('group_details') || msg.includes('schema cache')) &&
+        (msg.includes('does not exist') || msg.includes('could not find') || gdResult.error.code === '42P01');
+      if (!missingRel) throw gdResult.error;
+    }
 
     for (const a of (adminResult.data || [])) {
       if (!adminMap[a.group_name]) adminMap[a.group_name] = [];
@@ -89,6 +185,29 @@ async function listGroupsForUser(userId) {
     }
     for (const g of (groupsResult.data || [])) {
       visibilityMap[g.group_name] = g.visibility || null;
+    }
+    for (const r of (gdResult.data || [])) {
+      const gn = r.group_name != null ? String(r.group_name).trim() : '';
+      const h = r.handle != null ? String(r.handle).trim() : '';
+      if (gn && h) handleMap[gn] = h;
+    }
+
+    const ghFromGroups = await supabase
+      .from('groups')
+      .select('group_name, handle')
+      .in('group_name', groupNames);
+    if (!ghFromGroups.error && ghFromGroups.data) {
+      for (const g of ghFromGroups.data) {
+        const gn = g.group_name != null ? String(g.group_name).trim() : '';
+        const h = g.handle != null ? String(g.handle).trim() : '';
+        if (gn && h && !handleMap[gn]) handleMap[gn] = h;
+      }
+    } else if (ghFromGroups.error) {
+      const msg = String(ghFromGroups.error.message || '').toLowerCase();
+      const missingCol =
+        msg.includes('handle') &&
+        (msg.includes('does not exist') || ghFromGroups.error.code === '42703');
+      if (!missingCol) throw ghFromGroups.error;
     }
   }
 
@@ -102,13 +221,75 @@ async function listGroupsForUser(userId) {
     }
   }
 
-  return Object.values(seen).map(row => {
+  const seenRows = Object.values(seen);
+  /** @type {Record<string, { email?: string, name?: string, handle?: string }>} */
+  let profileByEmail = {};
+  /** @type {Record<string, string|null>} */
+  let photoByHandleKey = {};
+  if (supabaseProfiles.isConfigured()) {
+    const allAdminEmails = [
+      ...new Set(
+        seenRows.flatMap(r => adminMap[r.group_name] || []).map(normalizeEmail).filter(Boolean)
+      )
+    ];
+    if (allAdminEmails.length) {
+      try {
+        const profiles = await supabaseProfiles.getProfilesByEmails(allAdminEmails);
+        for (const p of profiles) {
+          profileByEmail[normalizeEmail(p.email)] = p;
+        }
+        const handles = [
+          ...new Set(
+            (profiles || [])
+              .map(p => (p && p.handle ? String(p.handle).trim() : ''))
+              .filter(Boolean)
+          )
+        ];
+        const photoResults = await Promise.all(
+          handles.map(h => supabaseProfiles.getProfilePhotoUrl(h))
+        );
+        handles.forEach((h, i) => {
+          photoByHandleKey[normalizePersonHandle(h)] = photoResults[i] || null;
+        });
+      } catch (e) {
+        console.warn('listGroupsForUser: admin profile enrichment failed', e);
+      }
+    }
+  }
+
+  return seenRows.map(row => {
     const adminList = adminMap[row.group_name] || [];
+    const ghFromMember =
+      row.group_handle != null ? String(row.group_handle).trim() : '';
+    const handle =
+      (row.group_name && handleMap[row.group_name]) || ghFromMember || null;
+    const admin_profiles = adminList.map(memberEmail => {
+      const ne = normalizeEmail(memberEmail);
+      const p = profileByEmail[ne];
+      const h = p && p.handle != null ? String(p.handle).trim() : '';
+      const phKey = h ? normalizePersonHandle(h) : '';
+      const photo_url = phKey ? photoByHandleKey[phKey] ?? null : null;
+      let name = '';
+      if (p && p.name != null && String(p.name).trim()) {
+        name = String(p.name).trim();
+      } else {
+        const at = ne.indexOf('@');
+        name = at > 0 ? ne.slice(0, at) : ne;
+      }
+      return {
+        email: memberEmail,
+        name,
+        handle: h || null,
+        photo_url: photo_url || null
+      };
+    });
     return {
       ...row,
       is_admin: adminList.map(a => normalizeEmail(a)).includes(uid),
       admin_list: adminList,
-      visibility: visibilityMap[row.group_name] || null
+      admin_profiles,
+      visibility: visibilityMap[row.group_name] || null,
+      handle
     };
   });
 }
@@ -177,7 +358,7 @@ async function respondToGroupInvite(id, userId, action) {
  * @param {object} opts
  * @param {string}   opts.group_name
  * @param {string}   opts.visibility       e.g. 'Only me' | 'Members only' | 'Public'
- * @param {string}   opts.owner            email of the creating user (auto-added as 'member')
+ * @param {string}   opts.owner            email of the creating user (added as admin with person_handle + group_handle)
  * @param {string[]} opts.admins           emails assigned status 'admin'
  * @param {string[]} opts.invited_members  emails assigned status 'invited'
  */
@@ -190,11 +371,40 @@ async function createGroup({ group_name, visibility, owner, admins, invited_memb
   const ownerEmail = normalizeEmail(owner);
   if (!ownerEmail) throw new Error('owner is required');
 
-  // Insert the group row
-  const { error: groupErr } = await supabase
+  const ownerSlugSource = await resolveOwnerHandleStringForSlug(ownerEmail);
+  const composedHandle = composeAutoGroupHandleFromNameAndUser(name, ownerSlugSource);
+  let storedHandle = await allocateUniqueGroupHandle(supabase, composedHandle);
+
+  const baseRow = { group_name: name, visibility: visibility || null, owner: ownerEmail };
+  let { error: groupErr } = await supabase
     .from('groups')
-    .insert({ group_name: name, visibility: visibility || null, owner: ownerEmail });
-  if (groupErr) throw groupErr;
+    .insert({ ...baseRow, handle: storedHandle });
+  if (groupErr) {
+    const msg = String(groupErr.message || '').toLowerCase();
+    const missingHandleCol =
+      msg.includes('handle') && (msg.includes('does not exist') || groupErr.code === '42703');
+    if (missingHandleCol) {
+      storedHandle = null;
+      const r2 = await supabase.from('groups').insert(baseRow);
+      if (r2.error) throw r2.error;
+    } else {
+      throw groupErr;
+    }
+  }
+
+  if (storedHandle) {
+    const gdi = await supabase
+      .from('group_details')
+      .insert({ handle: storedHandle, group_name: name });
+    if (gdi.error) {
+      const msg = String(gdi.error.message || '').toLowerCase();
+      const missingRel =
+        (msg.includes('group_details') || msg.includes('schema cache')) &&
+        (msg.includes('does not exist') || msg.includes('could not find') || gdi.error.code === '42P01');
+      const dup = gdi.error.code === '23505';
+      if (!missingRel && !dup) throw gdi.error;
+    }
+  }
 
   // Build member rows — deduplicate by normalised email
   const memberRowMap = {};
@@ -216,10 +426,21 @@ async function createGroup({ group_name, visibility, owner, admins, invited_memb
     }
   }
 
-  // Owner is a full member immediately (they created the group)
-  if (!memberRowMap[ownerEmail]) {
-    memberRowMap[ownerEmail] = { group_name: name, member: ownerEmail, status: 'member' };
-  }
+  const ownerPersonHandle =
+    normalizePersonHandle(ownerSlugSource) ||
+    alphanumericHandleSegment(ownerSlugSource) ||
+    null;
+  const ownerGroupHandleNorm = storedHandle
+    ? normalizePersonHandle(storedHandle)
+    : null;
+
+  memberRowMap[ownerEmail] = {
+    group_name: name,
+    member: ownerEmail,
+    status: 'admin',
+    ...(ownerPersonHandle ? { person_handle: ownerPersonHandle } : {}),
+    ...(ownerGroupHandleNorm ? { group_handle: ownerGroupHandleNorm } : {})
+  };
 
   const memberRows = Object.values(memberRowMap);
   if (memberRows.length) {
@@ -227,7 +448,7 @@ async function createGroup({ group_name, visibility, owner, admins, invited_memb
     if (membersErr) throw membersErr;
   }
 
-  return { group_name: name };
+  return { group_name: name, handle: storedHandle || null };
 }
 
 /**
@@ -660,26 +881,116 @@ async function removeMembershipByPersonHandle({ group_name, person_handle, actor
 }
 
 /**
+ * Deletes the `group_members` row where `group_handle` matches the URL group and `person_handle` matches.
+ * Viewer must be group owner or admin. Falls back to `group_name` + `person_handle` if `group_handle` column is absent.
+ */
+async function removeGroupMemberByGroupHandleAndPersonHandle({
+  groupHandleRaw,
+  person_handle,
+  actorUserId
+}) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const groupRow = await getGroupRowByHandle(groupHandleRaw);
+  const gn = groupRow && groupRow.group_name != null ? String(groupRow.group_name).trim() : '';
+  if (!gn) {
+    throw Object.assign(new Error('Group not found'), { status: 404 });
+  }
+  await assertUserCanManageGroup(gn, actorUserId);
+
+  const ph = normalizePersonHandle(person_handle);
+  if (!ph) throw new Error('person_handle is required');
+
+  const candidates = groupHandleCandidates(groupHandleRaw);
+
+  const r1 = await supabase
+    .from('group_members')
+    .delete()
+    .in('group_handle', candidates)
+    .ilike('person_handle', ph)
+    .select('id');
+
+  if (r1.error) {
+    const msg = String(r1.error.message || '').toLowerCase();
+    const missingCol =
+      msg.includes('group_handle') && (msg.includes('does not exist') || r1.error.code === '42703');
+    if (!missingCol) throw r1.error;
+  } else if (r1.data && r1.data.length) {
+    return { ok: true };
+  }
+
+  const r2 = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_name', gn)
+    .ilike('person_handle', ph)
+    .select('id');
+  if (r2.error) throw r2.error;
+  if (!r2.data || !r2.data.length) {
+    throw Object.assign(new Error('Membership not found'), { status: 404 });
+  }
+  return { ok: true };
+}
+
+/**
  * Invite a member by email and store person_handle on the row (owner or admin may invite).
  */
 async function inviteMemberWithPersonHandle({
   group_name,
   memberEmail,
   person_handle,
-  actorUserId
+  actorUserId,
+  groupHandleRaw,
+  membershipStatus
 }) {
   await assertUserCanManageGroup(group_name, actorUserId);
   const supabase = getClient();
   const gn = (group_name || '').trim();
-  const mem = normalizeEmail(memberEmail);
   const ph = normalizePersonHandle(person_handle);
+  const rawStatus =
+    membershipStatus != null && String(membershipStatus).trim()
+      ? String(membershipStatus).trim().toLowerCase()
+      : 'invited';
+  if (rawStatus !== 'invited' && rawStatus !== 'blind member') {
+    throw Object.assign(
+      new Error('membership_status must be invited or blind member'),
+      { status: 400 }
+    );
+  }
+  const statusForRow = rawStatus === 'blind member' ? 'blind member' : 'invited';
+
+  let mem = normalizeEmail(memberEmail);
+  if (statusForRow === 'blind member' && !mem) {
+    mem = placeholderMemberEmailForBlindPersonHandle(person_handle);
+  }
   if (!gn || !mem) throw new Error('group_name and member email are required');
+
+  let groupHandleForRow = null;
+  if (groupHandleRaw != null && String(groupHandleRaw).trim()) {
+    const groupRow = await getGroupRowByHandle(groupHandleRaw);
+    const rowGn =
+      groupRow && groupRow.group_name != null
+        ? String(groupRow.group_name).trim()
+        : '';
+    if (!groupRow || !rowGn || rowGn.toLowerCase() !== gn.toLowerCase()) {
+      throw Object.assign(new Error('group_handle does not match group_name'), {
+        status: 400
+      });
+    }
+    const stored =
+      groupRow.handle != null && String(groupRow.handle).trim()
+        ? String(groupRow.handle).trim()
+        : String(groupHandleRaw).trim();
+    groupHandleForRow = normalizePersonHandle(stored) || normalizePersonHandle(groupHandleRaw);
+  }
 
   const insertPayload = {
     group_name: gn,
     member: mem,
-    status: 'invited',
-    person_handle: ph || null
+    status: statusForRow,
+    person_handle: ph || null,
+    ...(groupHandleForRow ? { group_handle: groupHandleForRow } : {})
   };
 
   const { error: insErr } = await supabase.from('group_members').insert(insertPayload);
@@ -693,6 +1004,149 @@ async function inviteMemberWithPersonHandle({
     throw insErr;
   }
   return { ok: true };
+}
+
+/**
+ * Normalized handle variants from a URL segment.
+ * Includes lowercase/no-@ forms so DB rows match `normalizePersonHandle` (same as stored handles).
+ */
+function groupHandleCandidates(raw) {
+  const q = String(raw || '').trim();
+  if (!q) return [];
+  const noAt = q.replace(/^@+/, '');
+  const withAt = '@' + noAt;
+  const norm = normalizePersonHandle(q);
+  const normWithAt = norm ? '@' + norm : '';
+  return [...new Set([q, noAt, withAt, norm, normWithAt].filter(Boolean))];
+}
+
+/**
+ * One row from `group_details` where `handle` matches the URL (typically stored without `@`, e.g. `collegefriends_johnpicasso`).
+ * Falls back to legacy `groups` when `group_details` is missing or has no row.
+ */
+async function getGroupRowByHandle(handleRaw) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const candidates = groupHandleCandidates(handleRaw);
+  if (!candidates.length) return null;
+
+  const rGd = await supabase.from('group_details').select('*').in('handle', candidates).limit(1);
+  if (rGd.error) {
+    const msg = String(rGd.error.message || '').toLowerCase();
+    const missingRel =
+      (msg.includes('group_details') || msg.includes('schema cache')) &&
+      (msg.includes('does not exist') || msg.includes('could not find') || rGd.error.code === '42P01');
+    if (!missingRel) throw rGd.error;
+  } else if (rGd.data && rGd.data.length) {
+    return rGd.data[0];
+  }
+
+  const r1 = await supabase.from('groups').select('*').in('handle', candidates).limit(1);
+  if (r1.error) {
+    const msg = String(r1.error.message || '').toLowerCase();
+    const missingCol = msg.includes('handle') && (msg.includes('does not exist') || r1.error.code === '42703');
+    if (!missingCol) throw r1.error;
+  } else if (r1.data && r1.data.length) {
+    return r1.data[0];
+  }
+
+  const r2 = await supabase.from('groups').select('*').in('group_name', candidates).limit(1);
+  if (r2.error) throw r2.error;
+  if (r2.data && r2.data.length) return r2.data[0];
+
+  // Infer group_name from group_members when handle exists on membership rows but not on groups/group_details yet
+  const gm = await supabase
+    .from('group_members')
+    .select('group_name')
+    .in('group_handle', candidates)
+    .limit(1);
+  if (gm.error) {
+    const msg = String(gm.error.message || '').toLowerCase();
+    const missingCol =
+      msg.includes('group_handle') && (msg.includes('does not exist') || gm.error.code === '42703');
+    if (!missingCol) throw gm.error;
+  } else if (gm.data && gm.data.length) {
+    const gn = gm.data[0].group_name != null ? String(gm.data[0].group_name).trim() : '';
+    if (gn) {
+      const rGd2 = await supabase.from('group_details').select('*').eq('group_name', gn).limit(1);
+      if (!rGd2.error && rGd2.data && rGd2.data.length) return rGd2.data[0];
+      if (rGd2.error) {
+        const msg = String(rGd2.error.message || '').toLowerCase();
+        const missingRel =
+          (msg.includes('group_details') || msg.includes('schema cache')) &&
+          (msg.includes('does not exist') || msg.includes('could not find') || rGd2.error.code === '42P01');
+        if (!missingRel) throw rGd2.error;
+      }
+      const rG = await supabase.from('groups').select('*').eq('group_name', gn).limit(1);
+      if (rG.error) throw rG.error;
+      if (rG.data && rG.data.length) return rG.data[0];
+      return {
+        group_name: gn,
+        handle: normalizePersonHandle(handleRaw) || null
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * All `group_members` for this group handle (`group_handle`), else by resolved `group_name`.
+ * When `viewerUserId` is set, rows may include `contact_name` from `contact_details` (viewer's address book).
+ * Rows without a contact match get `profile_name` from `profiles.handle` = `person_handle`.
+ * `display_name` / `display_status` append `, contact` or `, friend` to the stored `status` for the UI.
+ */
+async function listMembersRowsByGroupHandle(handleRaw, viewerUserId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const groupRow = await getGroupRowByHandle(handleRaw);
+  const candidates = groupHandleCandidates(handleRaw);
+
+  const r1 = await supabase
+    .from('group_members')
+    .select('id, member, status, person_handle, group_name, group_handle')
+    .in('group_handle', candidates)
+    .order('member', { ascending: true });
+
+  let rows = [];
+  if (!r1.error && r1.data && r1.data.length) {
+    rows = r1.data;
+  } else if (r1.error) {
+    const msg = String(r1.error.message || '').toLowerCase();
+    const missingCol =
+      msg.includes('group_handle') && (msg.includes('does not exist') || r1.error.code === '42703');
+    if (!missingCol) throw r1.error;
+  }
+
+  if (!rows.length && groupRow && groupRow.group_name) {
+    const r2 = await supabase
+      .from('group_members')
+      .select('id, member, status, person_handle, group_name, group_handle')
+      .eq('group_name', groupRow.group_name)
+      .order('member', { ascending: true });
+    if (r2.error) throw r2.error;
+    rows = r2.data || [];
+  }
+
+  const uid = normalizeEmail(viewerUserId);
+  if (rows.length && supabaseProfiles.isConfigured()) {
+    try {
+      if (uid) {
+        const profile = await supabaseProfiles.getProfileByEmail(uid);
+        const oh =
+          profile && profile.handle != null ? String(profile.handle).trim() : '';
+        if (oh) {
+          rows = await supabaseProfiles.enrichGroupMemberRowsWithContactNames(oh, rows);
+        }
+      }
+      rows = await supabaseProfiles.enrichGroupMemberRowsWithProfileNames(rows);
+      rows = supabaseProfiles.attachGroupMemberDisplayFields(rows);
+    } catch (e) {
+      console.warn('enrich group member display:', e.message || e);
+    }
+  }
+
+  return rows;
 }
 
 module.exports = {
@@ -713,5 +1167,9 @@ module.exports = {
   listGroupsWhereUserCanManageMembers,
   getMembershipsByPersonHandleForViewer,
   removeMembershipByPersonHandle,
-  inviteMemberWithPersonHandle
+  removeGroupMemberByGroupHandleAndPersonHandle,
+  inviteMemberWithPersonHandle,
+  groupHandleCandidates,
+  getGroupRowByHandle,
+  listMembersRowsByGroupHandle
 };

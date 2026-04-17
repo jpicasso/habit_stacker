@@ -1148,6 +1148,10 @@ async function loadTasks() {
           const el = document.getElementById(id);
           if (el) el.textContent = '';
         });
+        const myGroupsPills = document.getElementById('contact-my-groups-pills');
+        const myGroupsWrap = document.getElementById('contact-my-groups-wrap');
+        if (myGroupsPills) myGroupsPills.innerHTML = '';
+        if (myGroupsWrap) myGroupsWrap.style.display = 'none';
       }
       applyProfileHeaderFromData(authUser, null);
       return;
@@ -1196,6 +1200,7 @@ async function loadTasks() {
 
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);
+    loadContactPageGroupPills(currentUserEmail);
 
     if (!hasEventsUI) {
       return;
@@ -1610,6 +1615,66 @@ async function loadGroupPills(userEmail) {
   }
 }
 
+/** Same URL shape as `groups_list.js` `groupPageUrlFromHandle` — `/events/group/@handle`. */
+function groupPageUrlFromHandle(handleRaw) {
+  const h = handleRaw != null ? String(handleRaw).trim() : '';
+  if (!h) return '';
+  const noAt = h.replace(/^@+/, '');
+  if (!noAt) return '';
+  return '/events/group/@' + encodeURIComponent(noAt);
+}
+
+/**
+ * contact.html: show groups the viewer belongs to (member / admin / blind member) as nav pills;
+ * blind member = dark grey, member or admin = light grey; links use enriched `handle`.
+ */
+async function loadContactPageGroupPills(userEmail) {
+  const wrap = document.getElementById('contact-my-groups-wrap');
+  const pillsContainer = document.getElementById('contact-my-groups-pills');
+  if (!userEmail || !wrap || !pillsContainer || !isContactDetailsWorkPage()) return;
+
+  pillsContainer.innerHTML = '';
+  wrap.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/groups?user_id=' + encodeURIComponent(userEmail));
+    if (!res.ok) return;
+    const groups = await res.json();
+    if (!groups || !groups.length) return;
+
+    const sorted = [...groups].sort((a, b) => {
+      const na = (a.group_name && String(a.group_name)) || '';
+      const nb = (b.group_name && String(b.group_name)) || '';
+      return na.localeCompare(nb, undefined, { sensitivity: 'base' });
+    });
+
+    for (const group of sorted) {
+      const name = group.group_name != null ? String(group.group_name).trim() : '';
+      const handleRaw = group.handle != null ? String(group.handle).trim() : '';
+      if (!name || !handleRaw) continue;
+
+      const href = groupPageUrlFromHandle(handleRaw);
+      if (!href) continue;
+
+      const st = group.status != null ? String(group.status).trim().toLowerCase() : '';
+      const isBlind = st === 'blind member';
+
+      const a = document.createElement('a');
+      a.className =
+        'contact-my-group-pill mr-1 mb-1 ' +
+        (isBlind ? 'contact-my-group-pill--blind' : 'contact-my-group-pill--member');
+      a.href = href;
+      a.textContent = name;
+      a.title = isBlind ? 'Blind member — ' + name : 'Group — ' + name;
+      pillsContainer.appendChild(a);
+    }
+
+    if (pillsContainer.children.length) wrap.style.display = '';
+  } catch (e) {
+    console.error('Error loading contact page group pills:', e);
+  }
+}
+
 async function addTaskForm() {
   const taskInput      = document.getElementById('task-input');
   const whoInput       = document.getElementById('who-input');
@@ -1720,6 +1785,8 @@ async function loadContactGroupsModalContent() {
       sel.innerHTML = '<option value="">—</option>';
       sel.disabled = true;
     }
+    const roleSelNoPh = document.getElementById('contact-groups-add-role');
+    if (roleSelNoPh) roleSelNoPh.disabled = true;
     if (addBtn) addBtn.disabled = true;
     return;
   }
@@ -1733,11 +1800,18 @@ async function loadContactGroupsModalContent() {
       sel.innerHTML = '<option value="">—</option>';
       sel.disabled = true;
     }
+    const roleSelNoUser = document.getElementById('contact-groups-add-role');
+    if (roleSelNoUser) roleSelNoUser.disabled = true;
     if (addBtn) addBtn.disabled = true;
     return;
   }
 
   if (sel) sel.disabled = false;
+  const roleSelReady = document.getElementById('contact-groups-add-role');
+  if (roleSelReady) {
+    roleSelReady.disabled = false;
+    roleSelReady.value = 'member';
+  }
   if (addBtn) addBtn.disabled = false;
   if (tbody) {
     tbody.innerHTML = '<tr><td colspan="3" class="text-muted small">Loading…</td></tr>';
@@ -1860,14 +1934,25 @@ function initContactGroupsModal() {
   if (addBtn) {
     addBtn.addEventListener('click', async () => {
       const sel = document.getElementById('contact-groups-add-select');
+      const roleSel = document.getElementById('contact-groups-add-role');
       const errEl = document.getElementById('contact-groups-modal-error');
       const groupName = sel && sel.value ? String(sel.value).trim() : '';
+      const addAsRaw = roleSel && roleSel.value ? String(roleSel.value).trim() : '';
+      const addAs = addAsRaw.toLowerCase();
       const row = cachedWorkRow;
       const ph = getContactCompositeHandleForGroups(row);
       const profileHandle = getContactProfileHandleForInvite(row);
       if (!groupName || !ph || !cachedUserEmail) {
         if (errEl) {
           errEl.textContent = 'Choose a group and ensure this contact has a public handle.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      if (addAs !== 'member' && addAs !== 'admin') {
+        if (errEl) {
+          errEl.textContent =
+            'Choose Member or Admin to send an invite (saved in group_members with status “invited”).';
           errEl.style.display = 'block';
         }
         return;

@@ -175,7 +175,30 @@ main.contact-page-compact #my-notes-section-content p {
 }
 
 .groups-col-admins {
-  width: 120px;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+img.groups-list-admin-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+#groups-tbody td.groups-col-admins-cell {
+  vertical-align: middle;
+}
+
+#groups-tbody .groups-list-admin-chip {
+  max-width: 100%;
+}
+
+#groups-tbody .groups-list-admin-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
 }
 
 .groups-col-visibility {
@@ -184,6 +207,33 @@ main.contact-page-compact #my-notes-section-content p {
 
 #groups-tbody tr {
   cursor: pointer;
+}
+
+#groups-tbody td.groups-col-handle-cell,
+#groups-tbody td.groups-col-visibility-cell {
+  cursor: default;
+}
+
+#groups-tbody a.groups-list-group-link {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#groups-tbody a.groups-list-group-link:hover {
+  text-decoration: underline;
+}
+
+#groups-tbody a.groups-list-admin-profile-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+#groups-tbody a.groups-list-admin-profile-link:hover .groups-list-admin-name {
+  text-decoration: underline;
+}
+
+#groups-tbody a.groups-list-admin-profile-link.text-primary {
+  color: #007bff !important;
 }
 
 #cg-group-name[readonly] {
@@ -211,4 +261,39 @@ img.friends-list-contact-photo {
 
 a.friends-name-link:hover .text-primary {
   text-decoration: underline !important;
+}
+
+/* contact.html — logged-in viewer’s group shortcuts (member vs blind member) */
+#contact-my-groups-pills a.contact-my-group-pill {
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  line-height: 1.25;
+  display: inline-block;
+  text-decoration: none !important;
+  border: 1px solid transparent;
+}
+
+#contact-my-groups-pills a.contact-my-group-pill--member {
+  background: #e9ecef;
+  color: #212529;
+  border-color: #ced4da;
+}
+
+#contact-my-groups-pills a.contact-my-group-pill--member:hover,
+#contact-my-groups-pills a.contact-my-group-pill--member:focus {
+  background: #dee2e6;
+  color: #121416;
+}
+
+#contact-my-groups-pills a.contact-my-group-pill--blind {
+  background: #495057;
+  color: #f8f9fa;
+  border-color: #343a40;
+}
+
+#contact-my-groups-pills a.contact-my-group-pill--blind:hover,
+#contact-my-groups-pills a.contact-my-group-pill--blind:focus {
+  background: #343a40;
+  color: #fff;
 }

@@ -103,29 +103,9 @@ aboutNav: true
       </div>
       <div class="modal-body">
         <form id="add-friend-modal-form" novalidate>
-          <div class="form-group">
-            <label for="af-name">Name</label>
-            <input type="text" class="form-control" id="af-name" required autocomplete="off">
-            <small class="form-text text-muted" id="af-name-hint-friend">Enter their email address to send a friend request.</small>
-            <small class="form-text text-muted d-none" id="af-name-hint-contact">How you want this person listed.</small>
-          </div>
-          <div class="form-group">
-            <label for="af-status">Status</label>
-            <select class="form-control" id="af-status" required>
-              <option value="friend">Friend</option>
-              <option value="contact">Contact</option>
-            </select>
-          </div>
-          <div class="form-group" id="af-group-wrap">
-            <label for="af-group">Groups</label>
-            <select class="form-control" id="af-group">
-              <option value="">None</option>
-            </select>
-            <small class="form-text text-muted">Groups you own. Optional: invite this person to a group.</small>
-          </div>
           <div class="form-group mb-0">
-            <label for="af-notes">My private notes</label>
-            <textarea class="form-control" id="af-notes" rows="3" placeholder="Only you can see notes you write here"></textarea>
+            <label for="af-name">Names</label>
+            <input type="email" class="form-control" id="af-name" required autocomplete="email">
           </div>
         </form>
       </div>

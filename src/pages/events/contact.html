@@ -61,6 +61,9 @@ aboutNav: true
                       <button type="button" class="btn btn-sm btn-outline-primary contact-section-btn mr-1 mb-1" data-section="family" style="border-radius: 2rem;">Family</button>
                       <button type="button" class="btn btn-sm btn-outline-primary contact-section-btn mr-1 mb-1" data-section="interests" style="border-radius: 2rem;">Interests</button>
                     </div>
+                    <div id="contact-my-groups-wrap" class="mb-1" style="display: none;" aria-label="Your groups">
+                      <div id="contact-my-groups-pills" class="d-flex flex-wrap align-items-center"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -425,7 +428,13 @@ aboutNav: true
           <select id="contact-groups-add-select" class="form-control form-control-sm mb-1 mb-md-0" style="max-width:20rem;">
             <option value="">Choose a group…</option>
           </select>
-          <button type="button" class="btn btn-sm btn-primary ml-md-2 mb-1 mb-md-0" id="contact-groups-add-btn">Add</button>
+          <span class="small font-weight-bold ml-md-2 mr-2 mb-1 mb-md-0">Add as</span>
+          <select id="contact-groups-add-role" class="form-control form-control-sm mb-1 mb-md-0" style="max-width:12rem;">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+            <option value="blind member">Blind Member</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-primary ml-md-2 mb-1 mb-md-0" id="contact-groups-add-btn">Add member</button>
         </div>
       </div>
       <div class="modal-footer">
