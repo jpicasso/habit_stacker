@@ -2,8 +2,8 @@
  * Life events table in Supabase (`events`).
  * Expected columns: id, event (text), event_date (date), who (text), owner (text), shared (text/json),
  * copied (boolean, optional) — create in Supabase SQL if missing.
- * Visibility: a row is returned when the current user_id matches owner (exact or comma-separated)
- * or appears in shared (comma list, JSON array, or substring fallback).
+ * `owner` stores the creator's public handle (comma-separated for multiple). Legacy rows may still use email.
+ * Visibility: a row is returned when the viewer's handle (or legacy email) matches `owner`, or they appear in `shared`.
  */
 
 let client = null;
@@ -11,6 +11,8 @@ let client = null;
 function isConfigured() {
   return !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
+
+const supabaseGroups = require('./supabase-groups');
 
 function getClient() {
   if (client) return client;
@@ -24,14 +26,24 @@ function normalizeUserId(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
 }
 
-/** True if userId matches owner (exact, or one of comma-separated entries). */
-function userInOwnerField(owner, userId) {
-  const u = normalizeUserId(userId);
-  if (!u) return false;
-  const o = normalizeUserId(owner);
-  if (!o) return false;
-  if (o === u) return true;
-  return o.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).includes(u);
+/** Normalize handle or email token for comparison (lowercase, no leading @). */
+function normalizeOwnerToken(s) {
+  return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
+}
+
+/**
+ * True if `owner` lists the viewer's public handle, or legacy stored email matches.
+ * `viewerHandle` from profiles; `viewerEmail` for backward compatibility.
+ */
+function userInOwnerField(owner, viewerHandle, viewerEmail) {
+  const h = normalizeOwnerToken(viewerHandle);
+  const e = normalizeUserId(viewerEmail);
+  if (owner == null || String(owner).trim() === '') return false;
+  const str = String(owner).trim();
+  if (!str) return false;
+  const parts = str.split(',').map(x => normalizeOwnerToken(x)).filter(Boolean);
+  const tokens = parts.length ? parts : [normalizeOwnerToken(str)];
+  return tokens.some(t => (h && t === h) || (e && t === e));
 }
 
 /** Parse shared field into an array of trimmed tokens (comma or newline separated). */
@@ -57,8 +69,13 @@ function userInSharedField(shared, userId) {
   return String(shared).toLowerCase().includes(u);
 }
 
-function rowVisibleForUser(row, userId) {
-  return userInOwnerField(row.owner, userId) || userInSharedField(row.shared, userId);
+async function rowVisibleForUser(row, userEmail) {
+  const uid = normalizeUserId(userEmail);
+  if (!uid) return false;
+  const viewerPh = await supabaseGroups.personHandleForUserEmail(uid);
+  return (
+    userInOwnerField(row.owner, viewerPh, uid) || userInSharedField(row.shared, uid)
+  );
 }
 
 /**
@@ -70,20 +87,29 @@ async function getUserGroupsMap(userId) {
   const uid = normalizeUserId(userId);
   if (!uid || !supabase) return new Map();
 
+  const viewerPh = await supabaseGroups.personHandleForUserEmail(uid);
+  if (!viewerPh) return new Map();
+
   const { data: memberRows, error: e1 } = await supabase
     .from('group_members')
-    .select('group_name')
-    .ilike('member', uid)
+    .select('group_handle')
+    .ilike('person_handle', viewerPh)
     .in('status', ['member', 'blind member', 'admin']);
   if (e1) throw e1;
 
-  const groupNames = [...new Set((memberRows || []).map(r => r.group_name))];
-  if (!groupNames.length) return new Map();
+  const handles = [
+    ...new Set(
+      (memberRows || [])
+        .map(r => supabaseGroups.normalizeGroupHandle(r.group_handle))
+        .filter(Boolean)
+    )
+  ];
+  if (!handles.length) return new Map();
 
   const { data: groupRows, error: e2 } = await supabase
     .from('groups')
     .select('group_name, visibility')
-    .in('group_name', groupNames);
+    .in('handle', handles);
   if (e2) throw e2;
 
   const map = new Map();
@@ -149,7 +175,7 @@ function eventDateSortKey(row) {
 
 /**
  * All events visible to this user:
- *  - owner matches, or user email is in shared (existing behaviour), OR
+ *  - owner matches handle (or legacy email), or user email is in shared, OR
  *  - shared contains a group name the user is a member/admin of.
  *
  * Before returning, the shared field is transformed for display:
@@ -171,9 +197,14 @@ async function getEventsForUser(userId) {
 
   const rows = eventsResult.data || [];
 
-  // Filter: visible by email match OR via a shared group
-  const visible = rows.filter(row =>
-    rowVisibleForUser(row, userId) || userInSharedViaGroup(row.shared, groupsMap)
+  const uid = normalizeUserId(userId);
+  const viewerPh = await supabaseGroups.personHandleForUserEmail(uid);
+
+  const visible = rows.filter(
+    row =>
+      userInOwnerField(row.owner, viewerPh, uid) ||
+      userInSharedField(row.shared, uid) ||
+      userInSharedViaGroup(row.shared, groupsMap)
   );
 
   // Transform shared field: replace "Only me" group names with viewer's email

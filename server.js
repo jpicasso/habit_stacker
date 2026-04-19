@@ -181,10 +181,17 @@ app.post('/api/events', async (req, res) => {
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
+    const ownerHandle = await supabaseGroups.personHandleForUserEmail(user_id.trim());
+    if (!ownerHandle) {
+      return res.status(400).json({
+        error:
+          'Set a public handle on your profile before creating events (events.owner stores your handle).'
+      });
+    }
     const row = await supabaseEvents.insertEvent({
       event: String(event).trim(),
       event_date,
-      owner: user_id.trim(),
+      owner: ownerHandle,
       who: who != null ? who : undefined,
       shared: shared != null ? shared : null,
       copied: copied !== undefined ? copied : undefined
@@ -216,7 +223,7 @@ app.put('/api/events/:id', async (req, res) => {
     if (!existing) {
       return res.status(404).json({ error: 'Event not found' });
     }
-    if (!supabaseEvents.rowVisibleForUser(existing, user_id.trim())) {
+    if (!(await supabaseEvents.rowVisibleForUser(existing, user_id.trim()))) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const payload = {
@@ -249,7 +256,7 @@ app.delete('/api/events/:id', async (req, res) => {
     if (!existing) {
       return res.status(404).json({ error: 'Event not found' });
     }
-    if (!supabaseEvents.rowVisibleForUser(existing, userId.trim())) {
+    if (!(await supabaseEvents.rowVisibleForUser(existing, userId.trim()))) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     await supabaseEvents.deleteEvent(id);
@@ -260,7 +267,7 @@ app.delete('/api/events/:id', async (req, res) => {
   }
 });
 
-// --- Friends API (Supabase `friends` table: user1, user2) ---
+// --- Friends API (Supabase `friends`: user1 & user2 = profile handles) ---
 
 app.get('/api/friends/incoming', async (req, res) => {
   try {
@@ -314,11 +321,9 @@ app.post('/api/friends', async (req, res) => {
     if (!friendTarget) {
       return res.status(400).json({ error: 'friend_id (or friend_email) is required' });
     }
-    const { private_notes } = req.body || {};
     const row = await supabaseFriends.insertFriend({
       user_id: user_id.trim(),
-      friend_id: friendTarget,
-      private_notes
+      friend_id: friendTarget
     });
     res.status(201).json(row);
   } catch (error) {
@@ -338,7 +343,7 @@ app.patch('/api/friends/:id', async (req, res) => {
       return res.status(503).json({ error: 'Friends require Supabase' });
     }
     const { id } = req.params;
-    const { user_id, action, private_notes } = req.body || {};
+    const { user_id, action } = req.body || {};
     if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
       return res.status(400).json({ error: 'user_id is required' });
     }
@@ -349,14 +354,7 @@ app.patch('/api/friends/:id', async (req, res) => {
       }
       return res.json({ message: 'Updated' });
     }
-    if (private_notes !== undefined) {
-      const ok = await supabaseFriends.updateFriendPrivateNotes(id, user_id.trim(), private_notes);
-      if (!ok) {
-        return res.status(404).json({ error: 'Friend entry not found' });
-      }
-      return res.json({ message: 'Updated' });
-    }
-    return res.status(400).json({ error: 'Send action (accept/reject) or private_notes' });
+    return res.status(400).json({ error: 'Send action (accept or reject)' });
   } catch (error) {
     console.error('Error updating friend:', error);
     res.status(500).json({ error: error.message || 'Failed to update friend' });
@@ -868,7 +866,7 @@ app.get('/api/groups/by-handle', async (req, res) => {
   }
 });
 
-/** All `group_members` rows whose `group_handle` matches the URL handle (fallback: `group_name`). Optional `user_id` (email) enriches with `contact_name` from the viewer's `contact_details`. */
+/** All `group_members` rows whose `group_handle` matches the URL handle (`groups.handle`). Optional `user_id` (email) enriches with `contact_name` from the viewer's `contact_details`. */
 app.get('/api/groups/members-by-group-handle', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured()) {
@@ -903,6 +901,30 @@ app.get('/api/groups/connections', async (req, res) => {
   } catch (error) {
     console.error('Error fetching connections:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch connections' });
+  }
+});
+
+/** Mutual groups: `group_name` where viewer and each other handle are both `member` or `blind member` in `group_members`. */
+app.post('/api/groups/mutual', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, handles } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!Array.isArray(handles)) {
+      return res.status(400).json({ error: 'handles must be an array' });
+    }
+    const groupsByHandle = await supabaseGroups.listMutualGroupNamesByHandles(
+      user_id.trim(),
+      handles
+    );
+    res.json({ groupsByHandle });
+  } catch (error) {
+    console.error('Error fetching mutual groups:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch mutual groups' });
   }
 });
 
@@ -1276,7 +1298,11 @@ app.get('/api/groups', async (req, res) => {
     if (!userId || typeof userId !== 'string' || !userId.trim()) {
       return res.status(400).json({ error: 'user_id query parameter is required' });
     }
-    const rows = await supabaseGroups.listGroupsForUser(userId.trim());
+    const contactPersonHandle = req.query.contact_person_handle;
+    const rows =
+      contactPersonHandle && typeof contactPersonHandle === 'string' && contactPersonHandle.trim()
+        ? await supabaseGroups.listGroupsForContactPage(userId.trim(), contactPersonHandle.trim())
+        : await supabaseGroups.listGroupsForUser(userId.trim());
     res.json(rows);
   } catch (error) {
     console.error('Error fetching groups:', error);

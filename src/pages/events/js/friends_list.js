@@ -257,6 +257,14 @@ function connectionLookupKey(entry) {
   return String(raw || '').trim().toLowerCase();
 }
 
+/** Matches server `normalizePersonHandle` / mutual-groups map keys. */
+function personHandleKey(handleRaw) {
+  return String(handleRaw || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase();
+}
+
 /** Matches server `contact_details.handle` suffix (letters/digits only, lowercased). */
 function contactDisplayNameToUrlSlug(name) {
   return String(name || '')
@@ -290,6 +298,15 @@ function contactPageHrefForPersonHandle(personHandle) {
     .replace(/^@+/, '');
   if (!raw) return '/events/contact_list.html';
   return '/events/contact/' + encodeURIComponent(raw);
+}
+
+/** Public profile page from `profiles.handle`, e.g. `/events/@picasso20` (see server `/events/@:handle`). */
+function profilePageUrlFromHandle(handleRaw) {
+  const h = handleRaw != null ? String(handleRaw).trim() : '';
+  if (!h) return '';
+  const noAt = h.replace(/^@+/, '');
+  if (!noAt) return '';
+  return '/events/@' + encodeURIComponent(noAt);
 }
 
 async function handleGroupMemberRemoveClick(btn, tbodyEl) {
@@ -409,11 +426,35 @@ async function loadIncomingRequests(email) {
     }
 
     tableEl.style.display = 'table';
-    rows.forEach((row) => {
+    const enriched = await Promise.all(
+      rows.map(async (row) => {
+        const inviterHandle =
+          row.user1 != null ? String(row.user1).trim() : '';
+        let inviterName = inviterHandle;
+        if (inviterHandle) {
+          try {
+            const pr = await fetch(
+              '/api/profile/by-handle?handle=' +
+                encodeURIComponent(inviterHandle)
+            );
+            if (pr.ok) {
+              const p = await pr.json();
+              if (p && p.name != null && String(p.name).trim() !== '') {
+                inviterName = String(p.name).trim();
+              }
+            }
+          } catch (e) {
+            /* ignore */
+          }
+        }
+        return { row, inviterHandle, inviterName };
+      })
+    );
+    enriched.forEach(({ row, inviterHandle, inviterName }) => {
       const tr = document.createElement('tr');
-      const person = row.user1 != null ? String(row.user1) : '';
       tr.innerHTML = `
-        <td>${escapeHtml(person)}</td>
+        <td>${escapeHtml(inviterName)}</td>
+        <td>${escapeHtml(inviterHandle)}</td>
         <td>
           <button type="button" class="btn btn-sm btn-success friend-request-accept mr-1" data-id="${escapeHtml(String(row.id))}">Accept</button>
           <button type="button" class="btn btn-sm btn-outline-danger friend-request-reject" data-id="${escapeHtml(String(row.id))}">Reject</button>
@@ -517,7 +558,7 @@ async function loadGroupMembersPage() {
       const member =
         displayName ||
         cn ||
-        (row.member != null ? String(row.member) : '');
+        (row.person_handle != null ? String(row.person_handle) : '');
       const status =
         row.display_status != null && String(row.display_status).trim() !== ''
           ? String(row.display_status).trim()
@@ -609,10 +650,9 @@ async function loadFriendsAndContacts(email) {
         );
       }
     } else {
-      const [friendsRes, connectionsRes] = await Promise.all([
-        fetch('/api/friends?user_id=' + encodeURIComponent(email)),
-        fetch('/api/groups/connections?user_id=' + encodeURIComponent(email))
-      ]);
+      const friendsRes = await fetch(
+        '/api/friends?user_id=' + encodeURIComponent(email)
+      );
       if (friendsRes.status === 503) {
         loadingEl.style.display = 'none';
         errorEl.textContent =
@@ -622,15 +662,6 @@ async function loadFriendsAndContacts(email) {
       }
       if (!friendsRes.ok) throw new Error('Failed to fetch friends');
       friendRows = await friendsRes.json();
-      if (connectionsRes.ok) {
-        connectionsMap = await connectionsRes.json();
-      } else {
-        console.warn(
-          'GET /api/groups/connections failed:',
-          connectionsRes.status,
-          await connectionsRes.text().catch(() => '')
-        );
-      }
     }
 
     loadingEl.style.display = 'none';
@@ -638,20 +669,24 @@ async function loadFriendsAndContacts(email) {
     const entries = [];
 
     friendRows.forEach(row => {
-      const name =
-        row.other_user != null
-          ? String(row.other_user)
-          : row.friend_email != null
-            ? String(row.friend_email)
-            : '';
-      const notes =
-        row.private_notes != null ? String(row.private_notes) : '';
+      const friendHandle =
+        row.other_user != null ? String(row.other_user).trim() : '';
+      const displayName =
+        row.friend_display_name != null &&
+        String(row.friend_display_name).trim() !== ''
+          ? String(row.friend_display_name).trim()
+          : friendHandle;
+      const lookupEmail =
+        row.other_user_email != null && String(row.other_user_email).trim() !== ''
+          ? String(row.other_user_email).trim()
+          : friendHandle;
       entries.push({
-        name,
-        lookupEmail: name,
+        name: displayName,
+        friendHandle: friendHandle || undefined,
+        lookupEmail,
         type: 'friend',
         id: String(row.id),
-        notes
+        notes: ''
       });
     });
 
@@ -666,6 +701,7 @@ async function loadFriendsAndContacts(email) {
       const notes = row.my_notes != null ? String(row.my_notes) : '';
       entries.push({
         name,
+        contactHandle: ch && String(ch).trim() !== '' ? String(ch).trim() : undefined,
         lookupEmail:
           pe ||
           we ||
@@ -691,9 +727,42 @@ async function loadFriendsAndContacts(email) {
 
     entries.sort(comparePersonNamesAsc);
 
+    let mutualByHandle = {};
+    if (!contactsOnly) {
+      const handles = [
+        ...new Set(
+          entries
+            .filter(e => e.type === 'friend' && e.friendHandle)
+            .map(e => String(e.friendHandle).trim())
+            .filter(Boolean)
+        )
+      ];
+      if (handles.length) {
+        const mutualRes = await fetch('/api/groups/mutual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: email, handles })
+        });
+        if (mutualRes.ok) {
+          const data = await mutualRes.json();
+          mutualByHandle = data.groupsByHandle || {};
+        } else {
+          console.warn(
+            'POST /api/groups/mutual failed:',
+            mutualRes.status,
+            await mutualRes.text().catch(() => '')
+          );
+        }
+      }
+    }
+
     friendsListEntriesCache = entries.map(entry => ({
       ...entry,
-      groupsList: connectionsMap[connectionLookupKey(entry)] || []
+      groupsList: contactsOnly
+        ? connectionsMap[connectionLookupKey(entry)] || []
+        : entry.type === 'friend' && entry.friendHandle
+          ? mutualByHandle[personHandleKey(entry.friendHandle)] || []
+          : []
     }));
 
     tableEl.style.display = 'table';
@@ -710,12 +779,18 @@ async function loadFriendsAndContacts(email) {
         : '<span class="text-muted small">—</span>';
 
       const photoHtml =
-        ownersHandle && entry.name && String(entry.name).trim() !== ''
-          ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-contact-name="${escapeAttr(entry.name)}" />`
-          : '';
+        entry.friendHandle && String(entry.friendHandle).trim() !== ''
+          ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-profile-photo-handle="${escapeAttr(entry.friendHandle)}" />`
+          : ownersHandle && entry.name && String(entry.name).trim() !== ''
+            ? `<img src="${LIST_CONTACT_PHOTO_PLACEHOLDER}" width="36" height="36" class="friends-list-contact-photo rounded-circle flex-shrink-0 mr-2" alt="" data-contact-name="${escapeAttr(entry.name)}" />`
+            : '';
       let nameCell;
       if (entry.name && String(entry.name).trim() !== '') {
-        const href = escapeAttr(contactPageHrefForListName(entry.name, ownersHandle));
+        const linkTarget =
+          entry.type === 'friend' && entry.friendHandle
+            ? profilePageUrlFromHandle(entry.friendHandle)
+            : contactPageHrefForListName(entry.name, ownersHandle);
+        const href = escapeAttr(linkTarget);
         const label = escapeHtml(entry.name);
         nameCell = photoHtml
           ? `<a href="${href}" class="friends-name-link d-inline-flex align-items-center min-w-0 text-body text-decoration-none">${photoHtml}<span class="text-break text-primary">${label}</span></a>`
@@ -724,14 +799,32 @@ async function loadFriendsAndContacts(email) {
         nameCell = `${photoHtml}${escapeHtml(entry.name || '')}`;
       }
 
-      tr.innerHTML = `
+      const handlePlain =
+        entry.type === 'friend'
+          ? entry.friendHandle && String(entry.friendHandle).trim() !== ''
+            ? String(entry.friendHandle).trim()
+            : ''
+          : entry.contactHandle && String(entry.contactHandle).trim() !== ''
+            ? String(entry.contactHandle).trim()
+            : '';
+      const handleCell = handlePlain
+        ? escapeHtml(handlePlain)
+        : '<span class="text-muted small">—</span>';
+
+      if (contactsOnly) {
+        tr.innerHTML = `<td>${nameCell}</td>`;
+      } else {
+        tr.innerHTML = `
         <td>${nameCell}</td>
+        <td>${handleCell}</td>
         <td>${groupsCell}</td>
       `;
+      }
       tbodyEl.appendChild(tr);
     });
 
     hydrateFriendsListContactPhotos(tbodyEl, ownersHandle);
+    await hydrateGroupMemberPhotos(tbodyEl);
   } catch (err) {
     console.error(err);
     loadingEl.style.display = 'none';
@@ -828,8 +921,8 @@ function syncAddFriendModalHints() {
       nameInput.setAttribute('autocomplete', 'off');
     } else if (isFriendsListPage()) {
       if (status) status.value = 'friend';
-      nameInput.setAttribute('type', 'email');
-      nameInput.setAttribute('autocomplete', 'email');
+      nameInput.setAttribute('type', 'text');
+      nameInput.setAttribute('autocomplete', 'username');
       if (groupWrap) groupWrap.classList.add('d-none');
     }
     return;
@@ -857,8 +950,8 @@ function syncAddFriendModalHints() {
     if (status) status.value = 'friend';
     hFriend.classList.remove('d-none');
     hContact.classList.add('d-none');
-    nameInput.setAttribute('type', 'email');
-    nameInput.setAttribute('autocomplete', 'email');
+    nameInput.setAttribute('type', 'text');
+    nameInput.setAttribute('autocomplete', 'username');
     if (groupWrap) groupWrap.classList.remove('d-none');
     return;
   }
@@ -867,8 +960,8 @@ function syncAddFriendModalHints() {
   if (status.value === 'friend') {
     hFriend.classList.remove('d-none');
     hContact.classList.add('d-none');
-    nameInput.setAttribute('type', 'email');
-    nameInput.setAttribute('autocomplete', 'email');
+    nameInput.setAttribute('type', 'text');
+    nameInput.setAttribute('autocomplete', 'username');
     if (groupWrap) groupWrap.classList.remove('d-none');
   } else {
     hFriend.classList.add('d-none');
@@ -1051,13 +1144,26 @@ async function addFriendModalSubmit() {
     }
 
     if (status === 'friend') {
-      const email = name;
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert('For a friend, enter a valid email address.');
+      const raw = String(name).trim();
+      const friendToken = raw.replace(/^@+/, '').trim();
+      if (!friendToken) {
+        alert('Please enter a handle.');
         return;
       }
-      if (email.toLowerCase() === String(userId).toLowerCase()) {
-        alert('Use a different email than your own account.');
+      const profileRes = await fetch(
+        '/api/profile/by-handle?handle=' + encodeURIComponent(friendToken)
+      );
+      if (profileRes.status === 503) {
+        alert('Profiles require Supabase. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
+        return;
+      }
+      if (!profileRes.ok) {
+        const j = await profileRes.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to validate handle');
+      }
+      const profileRow = await profileRes.json();
+      if (!profileRow || !profileRow.handle) {
+        alert('That handle could not be found');
         return;
       }
       const response = await fetch('/api/friends', {
@@ -1065,8 +1171,7 @@ async function addFriendModalSubmit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          friend_id: email,
-          private_notes: notes || undefined
+          friend_id: friendToken
         })
       });
       if (response.status === 503) {
@@ -1090,7 +1195,7 @@ async function addFriendModalSubmit() {
           body: JSON.stringify({
             user_id: userId,
             group_name: groupName,
-            member: email
+            member: friendToken
           })
         });
         if (!inv.ok && inv.status !== 409) {
@@ -1172,6 +1277,10 @@ function openRowDetailModal(index) {
       ? entry.groupsList.join(', ')
       : '—';
   notesEl.value = entry.notes || '';
+  const notesWrap = notesEl.closest('.form-group');
+  if (notesWrap) {
+    notesWrap.classList.toggle('d-none', entry.type === 'friend');
+  }
   modal.dataset.entryIndex = String(index);
   if (window.jQuery) window.jQuery('#rowDetailModal').modal('show');
 }
@@ -1230,25 +1339,7 @@ async function rowDetailSubmit() {
         throw new Error(j.error || 'Failed to save');
       }
     } else {
-      const response = await fetch(
-        '/api/friends/' + encodeURIComponent(entry.id),
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            private_notes: notesEl.value
-          })
-        }
-      );
-      if (response.status === 503) {
-        alert('Friends require Supabase.');
-        return;
-      }
-      if (!response.ok) {
-        const j = await response.json().catch(() => ({}));
-        throw new Error(j.error || 'Failed to save');
-      }
+      /* Friends: no editable fields; row detail is view-only. */
     }
 
     if (window.jQuery) window.jQuery('#rowDetailModal').modal('hide');

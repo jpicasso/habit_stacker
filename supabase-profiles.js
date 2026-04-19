@@ -946,7 +946,7 @@ function getEmailFromContactDetailsRow(row) {
 /**
  * Resolve invitee for blind-member group adds using only `contact_details.handle`.
  * Optional `work_email` / `personal_email` are returned when present; otherwise `memberEmail` is null
- * (caller stores a placeholder in `group_members.member`).
+ * (DB row uses `group_members.person_handle` only).
  */
 async function resolveBlindMemberInviteeFromContactDetails(
   actorUserEmail,

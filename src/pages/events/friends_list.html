@@ -36,7 +36,8 @@ aboutNav: true
                   <table class="table table-striped table-hover" id="requests-table" style="display: none;">
                     <thead>
                       <tr>
-                        <th>Person</th>
+                        <th>Name</th>
+                        <th>Handle</th>
                         <th style="width: 220px;"></th>
                       </tr>
                     </thead>
@@ -64,7 +65,8 @@ aboutNav: true
                     <thead>
                       <tr>
                         <th>Name</th>
-                        <th>Groups</th>
+                        <th>Handle</th>
+                        <th>Mutual Groups</th>
                       </tr>
                     </thead>
                     <tbody id="friends-tbody"></tbody>
@@ -104,8 +106,8 @@ aboutNav: true
       <div class="modal-body">
         <form id="add-friend-modal-form" novalidate>
           <div class="form-group mb-0">
-            <label for="af-name">Names</label>
-            <input type="email" class="form-control" id="af-name" required autocomplete="email">
+            <label for="af-name">Handle</label>
+            <input type="text" class="form-control" id="af-name" required autocomplete="username" placeholder="@theirhandle">
           </div>
         </form>
       </div>
@@ -134,7 +136,7 @@ aboutNav: true
             <input type="text" class="form-control" id="row-detail-name" autocomplete="off">
           </div>
           <div class="form-group">
-            <label for="row-detail-groups">Groups</label>
+            <label for="row-detail-groups">Mutual groups</label>
             <textarea class="form-control bg-light" id="row-detail-groups" rows="2" readonly></textarea>
           </div>
           <div class="form-group mb-0">

@@ -102,6 +102,9 @@ var currentEventsFilter = 'all';
 var cachedTasks = null;
 var cachedUserEmail = null;
 
+/** Logged-in user's public handle (normalized, no @) — matches `events.owner` for new rows. */
+var cachedViewerHandle = null;
+
 /** Megan's email used by the Megan filter */
 var MEGAN_EMAIL = 'mdonahey@alumni.princeton.edu';
 
@@ -154,10 +157,25 @@ function whoFieldReferencesProfileName(who, profileName) {
   return w.toLowerCase().includes(p.toLowerCase());
 }
 
+function normalizeEventOwnerToken(s) {
+  return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
+}
+
+/** `events.owner` is handle(s); legacy rows may use email. */
+function ownerFieldMatchesViewer(owner, userEmail, viewerHandle) {
+  const h = normalizeEventOwnerToken(viewerHandle);
+  const e = (userEmail || '').toLowerCase().trim();
+  if (owner == null || String(owner).trim() === '') return false;
+  const str = String(owner).trim();
+  const parts = str.split(',').map(x => normalizeEventOwnerToken(x)).filter(Boolean);
+  const tokens = parts.length ? parts : [normalizeEventOwnerToken(str)];
+  return tokens.some(t => (h && t === h) || (e && t === e));
+}
+
 /**
  * Profiles page:
  * - `who` includes profile display name AND `shared` lists the logged-in user, OR
- * - `who` includes the profile person's email AND `owner` is the logged-in user.
+ * - `who` includes the profile person's email AND `owner` is the viewer (handle or legacy email).
  */
 function applyProfilePageEventFilter(tasks, profileName, profileEmail, viewerEmail) {
   const viewer = (viewerEmail || '').toLowerCase().trim();
@@ -171,7 +189,7 @@ function applyProfilePageEventFilter(tasks, profileName, profileEmail, viewerEma
     const whoHasProfileEmail =
       profileEm && whoFieldReferencesProfileName(t.who, profileEm);
     const sharedHasViewer = fieldContainsEmail(t.shared, viewer);
-    const ownerIsViewer = (t.owner || '').toLowerCase().trim() === viewer;
+    const ownerIsViewer = ownerFieldMatchesViewer(t.owner, viewer, cachedViewerHandle);
 
     return (whoHasName && sharedHasViewer) || (whoHasProfileEmail && ownerIsViewer);
   });
@@ -192,16 +210,16 @@ function profileDisplayNameFromUser(user) {
 /**
  * Applies the active filter to the full task list and returns matching tasks.
  *
- * all   – shared includes user  OR  owner === user
+ * all   – shared includes user  OR  owner matches viewer handle (or legacy email)
  * me    – (who includes user AND shared includes user)
- *          OR (who is blank AND owner === user)
- * megan – who includes MEGAN_EMAIL  AND  (shared includes user OR owner === user)
+ *          OR (who is blank AND owner matches viewer)
+ * megan – who includes MEGAN_EMAIL  AND  (shared includes user OR owner matches viewer)
  */
 function applyEventsFilter(tasks, filter, userEmail) {
   const email = (userEmail || '').toLowerCase().trim();
 
   const sharedHasUser  = t => fieldContainsEmail(t.shared, email);
-  const ownerIsUser    = t => (t.owner || '').toLowerCase().trim() === email;
+  const ownerIsUser    = t => ownerFieldMatchesViewer(t.owner, email, cachedViewerHandle);
   const whoHasUser     = t => fieldContainsEmail(t.who, email);
   const whoIsBlank     = t => !t.who || String(t.who).trim() === '';
   const whoHasMegan    = t => fieldContainsEmail(t.who, MEGAN_EMAIL);
@@ -272,7 +290,7 @@ function applyWhoFilter(tasks) {
  * Call this instead of renderTaskRows(applyEventsFilter(...)) everywhere.
  */
 function renderWithAllFilters() {
-  if (!cachedTasks || !cachedUserEmail) return;
+  if (!cachedTasks || !cachedUserEmail) return; // viewer handle may be null; filters still match legacy owner emails
   let filtered;
   if (hasProfileOrContactHeader()) {
     filtered = applyProfilePageEventFilter(
@@ -706,7 +724,7 @@ function setContactHeaderEmailLines(row, workEmailEl, personalEmailEl) {
 
 function setContactGroupsSummaryDefault() {
   const el = document.getElementById('contact-groups-summary');
-  if (el) el.textContent = 'Groups: TBD';
+  if (el) el.textContent = 'Mutual groups: —';
 }
 
 async function refreshContactGroupsSummaryLine(row) {
@@ -717,15 +735,15 @@ async function refreshContactGroupsSummaryLine(row) {
   if (!ph || !cachedUserEmail) return;
   try {
     const res = await fetch(
-      '/api/groups/memberships-by-person-handle?user_id=' +
+      '/api/groups?user_id=' +
         encodeURIComponent(cachedUserEmail) +
-        '&person_handle=' +
+        '&contact_person_handle=' +
         encodeURIComponent(ph)
     );
     if (!res.ok) return;
     const list = await res.json();
     const names = (list || []).map(r => r.group_name).filter(Boolean);
-    el.textContent = names.length ? 'Groups: ' + names.join(', ') : 'Groups: TBD';
+    el.textContent = names.length ? 'Mutual groups: ' + names.join(', ') : 'Mutual groups: —';
   } catch (e) {
     /* keep TBD */
   }
@@ -1132,6 +1150,7 @@ async function loadTasks() {
 
     if (!currentUserEmail) {
       cachedUserEmail = null;
+      cachedViewerHandle = null;
       if (hasEventsUI) {
         loadingEl.style.display = 'none';
         emptyEl.textContent = 'Please log in to view your events.';
@@ -1153,6 +1172,12 @@ async function loadTasks() {
         if (myGroupsPills) myGroupsPills.innerHTML = '';
         if (myGroupsWrap) myGroupsWrap.style.display = 'none';
       }
+      const profileMutualBlock = document.getElementById('profile-mutual-groups-block');
+      const profileMutualPills = document.getElementById('profile-mutual-groups-pills');
+      const profileMutualWrap = document.getElementById('profile-mutual-groups-wrap');
+      if (profileMutualBlock) profileMutualBlock.style.display = 'none';
+      if (profileMutualPills) profileMutualPills.innerHTML = '';
+      if (profileMutualWrap) profileMutualWrap.style.display = 'none';
       applyProfileHeaderFromData(authUser, null);
       return;
     }
@@ -1185,6 +1210,31 @@ async function loadTasks() {
       cachedProfileRow = null;
       isOwnProfile = true;
     }
+
+    cachedViewerHandle = null;
+    if (currentUserEmail) {
+      if (
+        hasProfileOrContactHeader() &&
+        !getProfileHandleFromUrl() &&
+        profileRow &&
+        profileRow.handle
+      ) {
+        cachedViewerHandle = String(profileRow.handle)
+          .trim()
+          .replace(/^@+/, '')
+          .toLowerCase();
+      } else {
+        const vp = await fetchProfileByEmail(currentUserEmail);
+        cachedViewerHandle =
+          vp && vp.handle
+            ? String(vp.handle)
+                .trim()
+                .replace(/^@+/, '')
+                .toLowerCase()
+            : null;
+      }
+    }
+
     if (isContactDetailsWorkPage()) {
       await applyContactDetailsPageHeader(authUser, cachedProfileRow);
       applyProfileEditVisibility(isOwnProfile);
@@ -1201,6 +1251,7 @@ async function loadTasks() {
     // Load group pills in parallel — don't block the events fetch
     loadGroupPills(currentUserEmail);
     loadContactPageGroupPills(currentUserEmail);
+    loadProfilePageMutualGroups(currentUserEmail);
 
     if (!hasEventsUI) {
       return;
@@ -1625,8 +1676,8 @@ function groupPageUrlFromHandle(handleRaw) {
 }
 
 /**
- * contact.html: show groups the viewer belongs to (member / admin / blind member) as nav pills;
- * blind member = dark grey, member or admin = light grey; links use enriched `handle`.
+ * contact.html: mutual groups — contact's `group_members.person_handle` matches the URL composite key
+ * and the viewer is `member` or `admin` in the same group; blind member pills omitted for the viewer.
  */
 async function loadContactPageGroupPills(userEmail) {
   const wrap = document.getElementById('contact-my-groups-wrap');
@@ -1636,8 +1687,16 @@ async function loadContactPageGroupPills(userEmail) {
   pillsContainer.innerHTML = '';
   wrap.style.display = 'none';
 
+  const compositePh = getContactCompositeHandleForGroups(cachedWorkRow);
+  if (!compositePh) return;
+
   try {
-    const res = await fetch('/api/groups?user_id=' + encodeURIComponent(userEmail));
+    const res = await fetch(
+      '/api/groups?user_id=' +
+        encodeURIComponent(userEmail) +
+        '&contact_person_handle=' +
+        encodeURIComponent(compositePh)
+    );
     if (!res.ok) return;
     const groups = await res.json();
     if (!groups || !groups.length) return;
@@ -1672,6 +1731,81 @@ async function loadContactPageGroupPills(userEmail) {
     if (pillsContainer.children.length) wrap.style.display = '';
   } catch (e) {
     console.error('Error loading contact page group pills:', e);
+  }
+}
+
+/**
+ * profiles.html (handle URL): same mutual-groups rules as contact page — `group_members.person_handle`
+ * matches the profile handle and the viewer is member or admin in that group.
+ */
+async function loadProfilePageMutualGroups(userEmail) {
+  const block = document.getElementById('profile-mutual-groups-block');
+  const summaryEl = document.getElementById('profile-mutual-groups-summary');
+  const wrap = document.getElementById('profile-mutual-groups-wrap');
+  const pillsContainer = document.getElementById('profile-mutual-groups-pills');
+  if (!userEmail || !block || !summaryEl || !wrap || !pillsContainer) return;
+
+  const urlHandle = getProfileHandleFromUrl();
+  const onProfileChrome = !!document.getElementById('profile-display-name');
+  if (!onProfileChrome || !urlHandle || isOwnProfile) {
+    block.style.display = 'none';
+    summaryEl.textContent = 'Mutual groups: —';
+    pillsContainer.innerHTML = '';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  block.style.display = '';
+  pillsContainer.innerHTML = '';
+  wrap.style.display = 'none';
+
+  try {
+    const res = await fetch(
+      '/api/groups?user_id=' +
+        encodeURIComponent(userEmail) +
+        '&contact_person_handle=' +
+        encodeURIComponent(urlHandle)
+    );
+    if (!res.ok) return;
+    const groups = await res.json();
+    if (!groups || !groups.length) {
+      summaryEl.textContent = 'Mutual groups: —';
+      return;
+    }
+
+    const sorted = [...groups].sort((a, b) => {
+      const na = (a.group_name && String(a.group_name)) || '';
+      const nb = (b.group_name && String(b.group_name)) || '';
+      return na.localeCompare(nb, undefined, { sensitivity: 'base' });
+    });
+
+    const names = sorted.map(g => g.group_name).filter(Boolean);
+    summaryEl.textContent = names.length ? 'Mutual groups: ' + names.join(', ') : 'Mutual groups: —';
+
+    for (const group of sorted) {
+      const name = group.group_name != null ? String(group.group_name).trim() : '';
+      const handleRaw = group.handle != null ? String(group.handle).trim() : '';
+      if (!name || !handleRaw) continue;
+
+      const href = groupPageUrlFromHandle(handleRaw);
+      if (!href) continue;
+
+      const st = group.status != null ? String(group.status).trim().toLowerCase() : '';
+      const isBlind = st === 'blind member';
+
+      const a = document.createElement('a');
+      a.className =
+        'contact-my-group-pill mr-1 mb-1 ' +
+        (isBlind ? 'contact-my-group-pill--blind' : 'contact-my-group-pill--member');
+      a.href = href;
+      a.textContent = name;
+      a.title = isBlind ? 'Blind member — ' + name : 'Group — ' + name;
+      pillsContainer.appendChild(a);
+    }
+
+    if (pillsContainer.children.length) wrap.style.display = '';
+  } catch (e) {
+    console.error('Error loading profile mutual groups:', e);
   }
 }
 
@@ -1727,7 +1861,10 @@ async function addTaskForm() {
       alert('Events require Supabase. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
       return;
     }
-    if (!response.ok) throw new Error('Failed to add event');
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Failed to add event');
+    }
 
     // Clear form and close modal
     taskInput.value      = '';
@@ -1925,6 +2062,7 @@ function initContactGroupsModal() {
         if (!res.ok) throw new Error(data.error || 'Remove failed');
         await loadContactGroupsModalContent();
         await refreshContactGroupsSummaryLine(cachedWorkRow);
+        if (cachedUserEmail) await loadContactPageGroupPills(cachedUserEmail);
       } catch (err) {
         alert(err.message || 'Could not remove.');
       }
@@ -1978,6 +2116,7 @@ function initContactGroupsModal() {
         if (sel) sel.value = '';
         await loadContactGroupsModalContent();
         await refreshContactGroupsSummaryLine(cachedWorkRow);
+        if (cachedUserEmail) await loadContactPageGroupPills(cachedUserEmail);
       } catch (err) {
         alert(err.message || 'Could not add to group.');
       } finally {

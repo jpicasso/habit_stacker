@@ -169,6 +169,7 @@ async function getLoggedInUserId() {
 }
 
 async function loadGroupInvites(email) {
+  const sectionEl = document.getElementById('invites-section');
   const loadingEl = document.getElementById('invites-loading');
   const errorEl = document.getElementById('invites-error');
   const emptyEl = document.getElementById('invites-empty');
@@ -187,6 +188,7 @@ async function loadGroupInvites(email) {
     );
     if (response.status === 503) {
       loadingEl.style.display = 'none';
+      if (sectionEl) sectionEl.style.display = '';
       errorEl.textContent =
         'Groups require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and create the group_members table.';
       errorEl.style.display = 'block';
@@ -198,10 +200,12 @@ async function loadGroupInvites(email) {
     loadingEl.style.display = 'none';
 
     if (!rows.length) {
-      emptyEl.style.display = 'block';
+      if (sectionEl) sectionEl.style.display = 'none';
+      emptyEl.style.display = 'none';
       return;
     }
 
+    if (sectionEl) sectionEl.style.display = '';
     tableEl.style.display = 'table';
     rows.forEach((row) => {
       const tr = document.createElement('tr');
@@ -217,6 +221,7 @@ async function loadGroupInvites(email) {
   } catch (err) {
     console.error(err);
     loadingEl.style.display = 'none';
+    if (sectionEl) sectionEl.style.display = '';
     errorEl.textContent = 'Failed to load group invitations. Please refresh.';
     errorEl.style.display = 'block';
   }
@@ -299,9 +304,9 @@ async function loadGroupsPage() {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
-    const ie = document.getElementById('invites-empty');
+    const invSec = document.getElementById('invites-section');
+    if (invSec) invSec.style.display = 'none';
     const ge = document.getElementById('groups-empty');
-    if (ie) { ie.textContent = 'Please log in to view group invitations.'; ie.style.display = 'block'; }
     if (ge) { ge.textContent = 'Please log in to view your groups.'; ge.style.display = 'block'; }
     return;
   }

@@ -54,7 +54,7 @@ aboutNav: true
                     </div>
                     <div class="form-group">
                       <label for="edit-owner">Owner</label>
-                      <input type="text" class="form-control" id="edit-owner" placeholder="Owner user id">
+                      <input type="text" class="form-control" id="edit-owner" placeholder="Your public handle (e.g. picasso20)" autocomplete="username">
                     </div>
                     <div class="form-group">
                       <label for="edit-copied">Copied</label>
@@ -96,7 +96,12 @@ aboutNav: true
                     </div>
                     <div id="profile-user-handle" class="text-muted small mb-1 text-break"></div>
                     <div id="profile-user-email" class="text-muted small mb-2 text-break"></div>
-                    <div class="text-muted small mb-1">Connections: Me</div>
+                    <div id="profile-mutual-groups-block" class="mb-2" style="display: none;">
+                      <div id="profile-mutual-groups-summary" class="text-muted small text-break mb-1">Mutual groups: —</div>
+                      <div id="profile-mutual-groups-wrap" style="display: none;" aria-label="Mutual groups">
+                        <div id="profile-mutual-groups-pills" class="d-flex flex-wrap align-items-center"></div>
+                      </div>
+                    </div>
                     <div id="profile-location-line" class="text-muted small mb-3">Location: —</div>
                     <div class="mb-3 d-flex flex-wrap align-items-center" id="profile-section-pills" role="navigation" aria-label="Profile sections">
                       <button type="button" class="btn btn-sm btn-primary profile-section-btn mr-1 mb-1" data-section="notes" style="border-radius: 2rem;">My notes</button>
