@@ -131,6 +131,8 @@ var cachedProfileEmailForFilter = null;
 
 /** Supabase `profiles` row for the current user (profiles page); null if none / other pages. */
 var cachedProfileRow = null;
+/** True when current `profiles.html` subject is hydrated from `contact_library`. */
+var cachedProfileFromContactLibrary = false;
 
 /** Last Auth0 user object from loadTasks (for profile modal). */
 var cachedAuthUser = null;
@@ -664,6 +666,42 @@ async function fetchProfileByHandle(handle) {
 }
 
 /**
+ * Fetch a contact-library-backed profile row by `person_handle` from URL handle.
+ * Returns a row shaped for existing profile/work/family/interests renderers.
+ * @returns {Promise<object|null>}
+ */
+async function fetchContactLibraryProfileByPersonHandle(handle) {
+  if (!handle) return null;
+  try {
+    const res = await fetch(
+      '/api/contact-library/by-person-handle?person_handle=' +
+        encodeURIComponent(handle)
+    );
+    if (!res.ok) return null;
+    const row = await res.json();
+    if (!row) return null;
+    const personHandle =
+      row.person_handle != null ? String(row.person_handle).trim() : '';
+    const out = { ...row };
+    out.handle = personHandle;
+    out.name =
+      row.name != null && String(row.name).trim() !== ''
+        ? String(row.name).trim()
+        : personHandle;
+    out.email =
+      row.personal_email != null && String(row.personal_email).trim() !== ''
+        ? String(row.personal_email).trim()
+        : row.work_email != null && String(row.work_email).trim() !== ''
+          ? String(row.work_email).trim()
+          : '';
+    return out;
+  } catch (e) {
+    console.error('Error loading contact_library profile by person_handle:', e);
+    return null;
+  }
+}
+
+/**
  * Show or hide profile edit controls (pencil icons, photo edit button)
  * based on whether the viewer owns this profile.
  */
@@ -724,7 +762,55 @@ function setContactHeaderEmailLines(row, workEmailEl, personalEmailEl) {
 
 function setContactGroupsSummaryDefault() {
   const el = document.getElementById('contact-groups-summary');
-  if (el) el.textContent = 'Mutual groups: —';
+  if (el) el.textContent = 'Groups: —';
+}
+
+async function fetchGroupEntriesByPersonHandle(personHandle, userEmail) {
+  const ph = personHandle != null ? String(personHandle).trim() : '';
+  const uid = userEmail != null ? String(userEmail).trim() : '';
+  if (!ph || !uid) return [];
+  const res = await fetch('/api/groups/group-names-by-person-handles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: uid, person_handles: [ph] })
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  const entriesByHandle = data && data.group_entries ? data.group_entries : {};
+  const rows = Array.isArray(entriesByHandle[ph]) ? entriesByHandle[ph] : [];
+  return rows.filter(r => {
+    const name = r && r.group_name != null ? String(r.group_name).trim() : '';
+    const gh = r && r.group_handle != null ? String(r.group_handle).trim() : '';
+    return !!name && !!gh;
+  });
+}
+
+function renderContactGroupsSummaryLinks(summaryEl, entries) {
+  if (!summaryEl) return;
+  summaryEl.innerHTML = '';
+
+  const label = document.createElement('span');
+  label.textContent = 'Groups: ';
+  summaryEl.appendChild(label);
+
+  if (!entries || !entries.length) {
+    summaryEl.appendChild(document.createTextNode('—'));
+    return;
+  }
+
+  entries.forEach((entry, i) => {
+    const name = String(entry.group_name).trim();
+    const gh = String(entry.group_handle).trim();
+    const href = groupPageUrlFromHandle(gh);
+    if (!href) return;
+    if (i > 0) summaryEl.appendChild(document.createTextNode(', '));
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = name;
+    a.className = 'text-muted';
+    a.style.textDecoration = 'underline';
+    summaryEl.appendChild(a);
+  });
 }
 
 async function refreshContactGroupsSummaryLine(row) {
@@ -734,16 +820,13 @@ async function refreshContactGroupsSummaryLine(row) {
   const ph = getContactCompositeHandleForGroups(row);
   if (!ph || !cachedUserEmail) return;
   try {
-    const res = await fetch(
-      '/api/groups?user_id=' +
-        encodeURIComponent(cachedUserEmail) +
-        '&contact_person_handle=' +
-        encodeURIComponent(ph)
+    const entries = await fetchGroupEntriesByPersonHandle(ph, cachedUserEmail);
+    console.log(
+      'contact.html group_handles for person_handle',
+      ph,
+      entries.map(e => e.group_handle)
     );
-    if (!res.ok) return;
-    const list = await res.json();
-    const names = (list || []).map(r => r.group_name).filter(Boolean);
-    el.textContent = names.length ? 'Mutual groups: ' + names.join(', ') : 'Mutual groups: —';
+    renderContactGroupsSummaryLinks(el, entries);
   } catch (e) {
     /* keep TBD */
   }
@@ -1188,20 +1271,33 @@ async function loadTasks() {
     if (hasProfileOrContactHeader()) {
       const urlHandle = getProfileHandleFromUrl();
       if (urlHandle) {
-        // Viewing a profile page accessed by handle URL (e.g. /events/@meganpicasso)
-        profileRow = await fetchProfileByHandle(urlHandle);
-        cachedProfileRow = profileRow;
-        // Determine if the logged-in user owns this profile
-        if (profileRow && profileRow.email) {
-          const normalize = e => {
-            const [local, domain] = e.toLowerCase().split('@');
-            return (local || '').replace(/\./g, '') + '@' + (domain || '');
-          };
-          isOwnProfile = normalize(currentUserEmail) === normalize(profileRow.email);
-        } else {
+        // profiles.html handle route prefers `contact_library.person_handle` source.
+        profileRow = await fetchContactLibraryProfileByPersonHandle(urlHandle);
+        if (profileRow) {
+          cachedProfileFromContactLibrary = true;
+          cachedProfileRow = profileRow;
+          cachedWorkRow = profileRow;
+          cachedFamilyRow = profileRow;
+          cachedInterestsRow = profileRow;
           isOwnProfile = false;
+        } else {
+          // Fallback for legacy profile-handle rows from `profiles`.
+          cachedProfileFromContactLibrary = false;
+          profileRow = await fetchProfileByHandle(urlHandle);
+          cachedProfileRow = profileRow;
+          // Determine if the logged-in user owns this profile
+          if (profileRow && profileRow.email) {
+            const normalize = e => {
+              const [local, domain] = e.toLowerCase().split('@');
+              return (local || '').replace(/\./g, '') + '@' + (domain || '');
+            };
+            isOwnProfile = normalize(currentUserEmail) === normalize(profileRow.email);
+          } else {
+            isOwnProfile = false;
+          }
         }
       } else {
+        cachedProfileFromContactLibrary = false;
         profileRow = await fetchProfileForPage(currentUserEmail);
         cachedProfileRow = profileRow;
         isOwnProfile = true;
@@ -1691,17 +1787,10 @@ async function loadContactPageGroupPills(userEmail) {
   if (!compositePh) return;
 
   try {
-    const res = await fetch(
-      '/api/groups?user_id=' +
-        encodeURIComponent(userEmail) +
-        '&contact_person_handle=' +
-        encodeURIComponent(compositePh)
-    );
-    if (!res.ok) return;
-    const groups = await res.json();
-    if (!groups || !groups.length) return;
+    const entries = await fetchGroupEntriesByPersonHandle(compositePh, userEmail);
+    if (!entries || !entries.length) return;
 
-    const sorted = [...groups].sort((a, b) => {
+    const sorted = [...entries].sort((a, b) => {
       const na = (a.group_name && String(a.group_name)) || '';
       const nb = (b.group_name && String(b.group_name)) || '';
       return na.localeCompare(nb, undefined, { sensitivity: 'base' });
@@ -1709,22 +1798,17 @@ async function loadContactPageGroupPills(userEmail) {
 
     for (const group of sorted) {
       const name = group.group_name != null ? String(group.group_name).trim() : '';
-      const handleRaw = group.handle != null ? String(group.handle).trim() : '';
+      const handleRaw = group.group_handle != null ? String(group.group_handle).trim() : '';
       if (!name || !handleRaw) continue;
 
       const href = groupPageUrlFromHandle(handleRaw);
       if (!href) continue;
 
-      const st = group.status != null ? String(group.status).trim().toLowerCase() : '';
-      const isBlind = st === 'blind member';
-
       const a = document.createElement('a');
-      a.className =
-        'contact-my-group-pill mr-1 mb-1 ' +
-        (isBlind ? 'contact-my-group-pill--blind' : 'contact-my-group-pill--member');
+      a.className = 'contact-my-group-pill mr-1 mb-1 contact-my-group-pill--member';
       a.href = href;
       a.textContent = name;
-      a.title = isBlind ? 'Blind member — ' + name : 'Group — ' + name;
+      a.title = 'Group — ' + name;
       pillsContainer.appendChild(a);
     }
 
@@ -2551,6 +2635,32 @@ async function loadWorkSection() {
   const eduContentEl = document.getElementById('education-section-content');
   const myNotesContentEl = document.getElementById('my-notes-section-content');
 
+  if (
+    !isContactDetailsWorkPage() &&
+    cachedProfileFromContactLibrary &&
+    cachedWorkRow
+  ) {
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl) errorEl.style.display = 'none';
+      cachedFamilyRow = cachedWorkRow;
+      cachedInterestsRow = cachedWorkRow;
+      renderWorkSection(cachedWorkRow);
+      renderEducationSection(cachedWorkRow);
+      renderMyNotesSection(cachedWorkRow);
+    } catch (err) {
+      console.error('Error loading work section (contact_library):', err);
+      if (errorEl) {
+        errorEl.textContent = 'Failed to load work data.';
+        errorEl.style.display = '';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      workSectionLoaded = true;
+    }
+    return;
+  }
+
   const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
     : '';
@@ -2992,6 +3102,29 @@ async function loadFamilySection() {
   const errorEl   = document.getElementById('family-section-error');
   const contentEl = document.getElementById('family-section-content');
 
+  if (
+    !isContactDetailsWorkPage() &&
+    cachedProfileFromContactLibrary &&
+    cachedWorkRow
+  ) {
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl) errorEl.style.display = 'none';
+      cachedFamilyRow = cachedWorkRow;
+      renderFamilySection(cachedWorkRow);
+    } catch (err) {
+      console.error('Error loading family section (contact_library):', err);
+      if (errorEl) {
+        errorEl.textContent = 'Failed to load family data.';
+        errorEl.style.display = '';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      familySectionLoaded = true;
+    }
+    return;
+  }
+
   const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
     : '';
@@ -3181,6 +3314,29 @@ async function loadInterestsSection() {
   const loadingEl = document.getElementById('interests-section-loading');
   const errorEl   = document.getElementById('interests-section-error');
   const contentEl = document.getElementById('interests-section-content');
+
+  if (
+    !isContactDetailsWorkPage() &&
+    cachedProfileFromContactLibrary &&
+    cachedWorkRow
+  ) {
+    try {
+      if (loadingEl) loadingEl.style.display = '';
+      if (errorEl) errorEl.style.display = 'none';
+      cachedInterestsRow = cachedWorkRow;
+      renderInterestsSection(cachedWorkRow);
+    } catch (err) {
+      console.error('Error loading interests section (contact_library):', err);
+      if (errorEl) {
+        errorEl.textContent = 'Failed to load interests.';
+        errorEl.style.display = '';
+      }
+    } finally {
+      if (loadingEl) loadingEl.style.display = 'none';
+      interestsSectionLoaded = true;
+    }
+    return;
+  }
 
   const ownersHandle = cachedProfileRow && cachedProfileRow.handle
     ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')

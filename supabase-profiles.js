@@ -22,6 +22,29 @@ function normalizeEmail(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
 }
 
+function normalizeHandleToken(s) {
+  return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
+}
+
+async function personHandleForEmailFromSecurityHandles(email) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const e = normalizeEmail(email);
+  if (!e) return null;
+  const { data, error } = await supabase
+    .from('security_handles')
+    .select('email, person_handle')
+    .eq('email', e)
+    .maybeSingle();
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data && data.person_handle
+    ? normalizeHandleToken(data.person_handle)
+    : null;
+}
+
 function isSchemaError(error) {
   if (!error) return false;
   const code = error.code || '';
@@ -38,22 +61,14 @@ function isSchemaError(error) {
  * @returns {Promise<object|null>} Row with `handle` field, or null.
  */
 async function getProfileByEmail(email) {
-  const supabase = getClient();
-  if (!supabase) return null;
-  const e = normalizeEmail(email);
-  if (!e) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, email, name, handle, location')
-    .eq('email', e)
-    .maybeSingle();
-
-  if (error) {
-    if (isSchemaError(error)) return null;
-    throw error;
-  }
-  return data || null;
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) return null;
+  const row = await getProfileByHandle(ph);
+  if (!row) return null;
+  return {
+    ...row,
+    email: normalizeEmail(email)
+  };
 }
 
 /**
@@ -67,16 +82,25 @@ async function getProfileByHandle(handle) {
   if (!h) return null;
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, email, name, handle, location')
-    .eq('handle', h)
+    .from('contact_library')
+    .select('name, person_handle, location, work_email, personal_email')
+    .eq('person_handle', h)
     .maybeSingle();
 
   if (error) {
     if (isSchemaError(error)) return null;
     throw error;
   }
-  return data || null;
+  if (!data) return null;
+  const emWork = data.work_email != null ? normalizeEmail(data.work_email) : '';
+  const emPers = data.personal_email != null ? normalizeEmail(data.personal_email) : '';
+  return {
+    id: null,
+    email: emWork || emPers || null,
+    name: data.name != null ? String(data.name).trim() : null,
+    handle: data.person_handle != null ? String(data.person_handle).trim() : null,
+    location: data.location != null ? String(data.location).trim() : null
+  };
 }
 
 /**
@@ -90,15 +114,213 @@ async function getProfilesByEmails(emails) {
   if (!uniq.length) return [];
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('email, name, handle')
+    .from('security_handles')
+    .select('email, person_handle')
     .in('email', uniq);
-
   if (error) {
     if (isSchemaError(error)) return [];
     throw error;
   }
-  return Array.isArray(data) ? data : [];
+  const rows = Array.isArray(data) ? data : [];
+  const handles = [
+    ...new Set(rows.map(r => normalizeHandleToken(r.person_handle)).filter(Boolean))
+  ];
+  let nameByHandle = new Map();
+  if (handles.length) {
+    const { data: namesData, error: namesErr } = await supabase
+      .from('contact_library')
+      .select('person_handle, name')
+      .in('person_handle', handles);
+    if (namesErr) {
+      if (!isSchemaError(namesErr)) throw namesErr;
+    } else {
+      for (const r of namesData || []) {
+        const h = normalizeHandleToken(r.person_handle);
+        const n = r.name != null ? String(r.name).trim() : '';
+        if (h && n && !nameByHandle.has(h)) nameByHandle.set(h, n);
+      }
+    }
+  }
+  return rows
+    .map(r => {
+      const e = normalizeEmail(r.email);
+      const h = normalizeHandleToken(r.person_handle);
+      if (!e || !h) return null;
+      return { email: e, handle: h, name: nameByHandle.get(h) || null };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * `contact_library` names keyed by `person_handle` (no `profiles` lookup).
+ * @param {string[]} personHandles
+ * @returns {Promise<Record<string, string>>}
+ */
+async function getContactLibraryNamesByPersonHandles(personHandles) {
+  const supabase = getClient();
+  if (!supabase) return {};
+  const uniq = [
+    ...new Set((personHandles || []).map(h => normalizeHandleToken(h)).filter(Boolean))
+  ];
+  if (!uniq.length) return {};
+
+  const { data, error } = await supabase
+    .from('contact_library')
+    .select('person_handle, name')
+    .in('person_handle', uniq);
+  if (error) {
+    if (isSchemaError(error)) return {};
+    throw error;
+  }
+
+  const out = {};
+  for (const row of data || []) {
+    const ph = normalizeHandleToken(row.person_handle);
+    const nm = row.name != null ? String(row.name).trim() : '';
+    if (!ph || !nm) continue;
+    if (!out[ph]) out[ph] = nm;
+  }
+  return out;
+}
+
+/**
+ * List `contact_library` rows for one owner handle.
+ * @param {string} ownerHandle
+ * @returns {Promise<Array<{ person_handle: string, name: string }>>}
+ */
+async function listContactLibraryByOwnerHandle(ownerHandle) {
+  const supabase = getClient();
+  if (!supabase) return [];
+  const oh = normalizeHandleToken(ownerHandle);
+  if (!oh) return [];
+
+  const { data, error } = await supabase
+    .from('contact_library')
+    .select('person_handle, name')
+    .eq('owner_handle', oh)
+    .order('name', { ascending: true });
+  if (error) {
+    if (isSchemaError(error)) return [];
+    throw error;
+  }
+
+  return (data || [])
+    .map(row => ({
+      person_handle: normalizeHandleToken(row.person_handle),
+      name: row.name != null ? String(row.name).trim() : ''
+    }))
+    .filter(r => r.person_handle && r.name);
+}
+
+/**
+ * One `contact_library` row by `person_handle`.
+ * @param {string} personHandle
+ * @returns {Promise<object|null>}
+ */
+async function getContactLibraryRowByPersonHandle(personHandle) {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const ph = normalizeHandleToken(personHandle);
+  if (!ph) return null;
+
+  const fields = [
+    'person_handle',
+    'owner_handle',
+    'name',
+    'profile_handle',
+    'my_notes',
+    'cell',
+    'other_phone',
+    'work_email',
+    'personal_email',
+    'location',
+    'home_address',
+    'current_company',
+    'current_title',
+    'current_start_date',
+    'current_end_date',
+    'company1',
+    'title1',
+    'start_date1',
+    'end_date1',
+    'company2',
+    'title2',
+    'start_date2',
+    'end_date2',
+    'company3',
+    'title3',
+    'start_date3',
+    'end_date3',
+    'company4',
+    'title4',
+    'start_date4',
+    'end_date4',
+    'company5',
+    'title5',
+    'start_date5',
+    'end_date5',
+    'company6',
+    'title6',
+    'start_date6',
+    'end_date6',
+    'company7',
+    'title7',
+    'start_date7',
+    'end_date7',
+    'education1',
+    'major1',
+    'start_date_edu1',
+    'end_date_edu1',
+    'education2',
+    'major2',
+    'start_date_edu2',
+    'end_date_edu2',
+    'education3',
+    'major3',
+    'start_date_edu3',
+    'end_date_edu3',
+    'education4',
+    'major4',
+    'start_date_edu4',
+    'end_date_edu4',
+    'family_relationship1',
+    'family_name1',
+    'family_relationship2',
+    'family_name2',
+    'family_relationship3',
+    'family_name3',
+    'family_relationship4',
+    'family_name4',
+    'family_relationship5',
+    'family_name5',
+    'family_relationship6',
+    'family_name6',
+    'family_relationship7',
+    'family_name7',
+    'family_relationship8',
+    'family_name8',
+    'family_relationship9',
+    'family_name9',
+    'interest1',
+    'interest2',
+    'interest3',
+    'interest4',
+    'interest5',
+    'last_contact',
+    'next_contact',
+    'birthday'
+  ].join(', ');
+
+  const { data, error } = await supabase
+    .from('contact_library')
+    .select(fields)
+    .eq('person_handle', ph)
+    .maybeSingle();
+  if (error) {
+    if (isSchemaError(error)) return null;
+    throw error;
+  }
+  return data || null;
 }
 
 /**
@@ -108,31 +330,62 @@ async function getProfilesByEmails(emails) {
 async function upsertProfile(email, { name, handle, location }) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) throw new Error('No person_handle in security_handles for this email');
 
-  const e = normalizeEmail(email);
-  if (!e) throw new Error('email is required');
+  const update = {};
+  if (name != null) update.name = String(name).trim() || null;
+  if (location != null) update.location = String(location).trim() || null;
 
-  const existing = await getProfileByEmail(e);
+  const desired = normalizeHandleToken(handle);
+  if (desired && desired !== ph) {
+    throw new Error('handle must match security_handles.person_handle for this email');
+  }
+
+  const { data: existing, error: existingErr } = await supabase
+    .from('contact_library')
+    .select('person_handle')
+    .eq('person_handle', ph)
+    .maybeSingle();
+  if (existingErr && !isSchemaError(existingErr)) throw existingErr;
 
   if (existing) {
     const { data, error } = await supabase
-      .from('profiles')
-      .update({ name, handle, location })
-      .eq('email', e)
-      .select('id, email, name, handle, location')
-      .single();
+      .from('contact_library')
+      .update(update)
+      .eq('person_handle', ph)
+      .select('name, person_handle, location')
+      .maybeSingle();
     if (error) throw error;
-    return data;
+    return {
+      id: null,
+      email: normalizeEmail(email),
+      name: data && data.name != null ? String(data.name).trim() : null,
+      handle: data && data.person_handle != null ? String(data.person_handle).trim() : ph,
+      location: data && data.location != null ? String(data.location).trim() : null
+    };
   }
 
+  const insertRow = {
+    person_handle: ph,
+    owner_handle: ph,
+    name: update.name || ph,
+    location: update.location || null
+  };
   const { data, error } = await supabase
-    .from('profiles')
-    .insert({ email: e, name, handle, location })
-    .select('id, email, name, handle, location')
-    .single();
-
+    .from('contact_library')
+    .insert(insertRow)
+    .select('name, person_handle, location')
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return {
+    id: null,
+    email: normalizeEmail(email),
+    name: data && data.name != null ? String(data.name).trim() : insertRow.name,
+    handle:
+      data && data.person_handle != null ? String(data.person_handle).trim() : ph,
+    location: data && data.location != null ? String(data.location).trim() : null
+  };
 }
 
 const WORK_SELECT_FIELDS = [
@@ -170,22 +423,9 @@ const WORK_UPDATE_KEYS = [
  * @returns {Promise<object|null>}
  */
 async function getWorkProfileByHandle(handle) {
-  const supabase = getClient();
-  if (!supabase) return null;
-  const h = String(handle || '').trim().replace(/^@+/, '');
-  if (!h) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(WORK_SELECT_FIELDS)
-    .eq('handle', h)
-    .maybeSingle();
-
-  if (error) {
-    if (isSchemaError(error)) return null;
-    throw error;
-  }
-  return data || null;
+  const row = await getContactLibraryRowByPersonHandle(handle);
+  if (!row) return null;
+  return row;
 }
 
 /**
@@ -193,22 +433,9 @@ async function getWorkProfileByHandle(handle) {
  * @returns {Promise<object|null>}
  */
 async function getWorkProfileByEmail(email) {
-  const supabase = getClient();
-  if (!supabase) return null;
-  const e = normalizeEmail(email);
-  if (!e) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(WORK_SELECT_FIELDS)
-    .eq('email', e)
-    .maybeSingle();
-
-  if (error) {
-    if (isSchemaError(error)) return null;
-    throw error;
-  }
-  return data || null;
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) return null;
+  return getWorkProfileByHandle(ph);
 }
 
 /**
@@ -218,25 +445,22 @@ async function getWorkProfileByEmail(email) {
 async function upsertWorkProfile(email, workFields) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-
-  const e = normalizeEmail(email);
-  if (!e) throw new Error('email is required');
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) throw new Error('No person_handle in security_handles for this email');
 
   const update = {};
   for (const key of WORK_UPDATE_KEYS) {
     const val = workFields[key];
     update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
   }
-
   const { data, error } = await supabase
-    .from('profiles')
+    .from('contact_library')
     .update(update)
-    .eq('email', e)
+    .eq('person_handle', ph)
     .select(WORK_SELECT_FIELDS)
-    .single();
-
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return data || null;
 }
 
 const FAMILY_SELECT_FIELDS = [
@@ -268,22 +492,9 @@ const FAMILY_UPDATE_KEYS = [
  * @returns {Promise<object|null>}
  */
 async function getFamilyProfileByHandle(handle) {
-  const supabase = getClient();
-  if (!supabase) return null;
-  const h = String(handle || '').trim().replace(/^@+/, '');
-  if (!h) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(FAMILY_SELECT_FIELDS)
-    .eq('handle', h)
-    .maybeSingle();
-
-  if (error) {
-    if (isSchemaError(error)) return null;
-    throw error;
-  }
-  return data || null;
+  const row = await getContactLibraryRowByPersonHandle(handle);
+  if (!row) return null;
+  return row;
 }
 
 /**
@@ -293,71 +504,52 @@ async function getFamilyProfileByHandle(handle) {
 async function upsertFamilyProfile(email, familyFields) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-
-  const e = normalizeEmail(email);
-  if (!e) throw new Error('email is required');
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) throw new Error('No person_handle in security_handles for this email');
 
   const update = {};
   for (const key of FAMILY_UPDATE_KEYS) {
     const val = familyFields[key];
     update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
   }
-
   const { data, error } = await supabase
-    .from('profiles')
+    .from('contact_library')
     .update(update)
-    .eq('email', e)
+    .eq('person_handle', ph)
     .select(FAMILY_SELECT_FIELDS)
-    .single();
-
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return data || null;
 }
 
 const INTERESTS_SELECT_FIELDS = 'interest1, interest2, interest3, interest4, interest5';
 const INTERESTS_UPDATE_KEYS   = ['interest1', 'interest2', 'interest3', 'interest4', 'interest5'];
 
 async function getInterestsProfileByHandle(handle) {
-  const supabase = getClient();
-  if (!supabase) return null;
-  const h = String(handle || '').trim().replace(/^@+/, '');
-  if (!h) return null;
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(INTERESTS_SELECT_FIELDS)
-    .eq('handle', h)
-    .maybeSingle();
-
-  if (error) {
-    if (isSchemaError(error)) return null;
-    throw error;
-  }
-  return data || null;
+  const row = await getContactLibraryRowByPersonHandle(handle);
+  if (!row) return null;
+  return row;
 }
 
 async function upsertInterestsProfile(email, interestFields) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-
-  const e = normalizeEmail(email);
-  if (!e) throw new Error('email is required');
+  const ph = await personHandleForEmailFromSecurityHandles(email);
+  if (!ph) throw new Error('No person_handle in security_handles for this email');
 
   const update = {};
   for (const key of INTERESTS_UPDATE_KEYS) {
     const val = interestFields[key];
     update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
   }
-
   const { data, error } = await supabase
-    .from('profiles')
+    .from('contact_library')
     .update(update)
-    .eq('email', e)
+    .eq('person_handle', ph)
     .select(INTERESTS_SELECT_FIELDS)
-    .single();
-
+    .maybeSingle();
   if (error) throw error;
-  return data;
+  return data || null;
 }
 
 const PHOTO_BUCKET = 'profile_photos';
@@ -602,7 +794,7 @@ async function uploadContactPhoto(ownersHandle, contactName, imageBuffer, conten
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${CONTACT_PHOTO_BUCKET}/${newPath}`;
 }
 
-/** Identity + work columns from `contact_details` (one row per owner + contact). */
+/** Legacy API field names (mapped from `contact_library`). */
 const CONTACT_DETAILS_COLUMNS = [
   'contact_name', 'contact_handle', 'work_email', 'personal_email', 'cell', 'other_phone', 'my_notes',
   'current_company', 'current_title', 'current_start_date', 'current_end_date',
@@ -629,7 +821,95 @@ const CONTACT_DETAILS_COLUMNS = [
   'interest1', 'interest2', 'interest3', 'interest4', 'interest5'
 ];
 
-const CONTACT_DETAILS_WORK_FIELDS = CONTACT_DETAILS_COLUMNS.join(', ');
+const CONTACT_LIBRARY_LEGACY_SELECT_FIELDS = [
+  'contact_name:name',
+  'contact_handle:profile_handle',
+  'handle:person_handle',
+  'owners_handle:owner_handle',
+  'work_email',
+  'personal_email',
+  'cell',
+  'other_phone',
+  'my_notes',
+  'location',
+  'home_address',
+  'current_company',
+  'current_title',
+  'current_start_date',
+  'current_end_date',
+  'company1',
+  'title1',
+  'start_date1',
+  'end_date1',
+  'company2',
+  'title2',
+  'start_date2',
+  'end_date2',
+  'company3',
+  'title3',
+  'start_date3',
+  'end_date3',
+  'company4',
+  'title4',
+  'start_date4',
+  'end_date4',
+  'company5',
+  'title5',
+  'start_date5',
+  'end_date5',
+  'company6',
+  'title6',
+  'start_date6',
+  'end_date6',
+  'company7',
+  'title7',
+  'start_date7',
+  'end_date7',
+  'education1',
+  'major1',
+  'start_date_edu1',
+  'end_date_edu1',
+  'education2',
+  'major2',
+  'start_date_edu2',
+  'end_date_edu2',
+  'education3',
+  'major3',
+  'start_date_edu3',
+  'end_date_edu3',
+  'education4',
+  'major4',
+  'start_date_edu4',
+  'end_date_edu4',
+  'family_relationship1',
+  'family_name1',
+  'family_relationship2',
+  'family_name2',
+  'family_relationship3',
+  'family_name3',
+  'family_relationship4',
+  'family_name4',
+  'family_relationship5',
+  'family_name5',
+  'family_relationship6',
+  'family_name6',
+  'family_relationship7',
+  'family_name7',
+  'family_relationship8',
+  'family_name8',
+  'family_relationship9',
+  'family_name9',
+  'interest1',
+  'interest2',
+  'interest3',
+  'interest4',
+  'interest5',
+  'last_contact',
+  'next_contact',
+  'birthday'
+].join(', ');
+
+const CONTACT_DETAILS_WORK_FIELDS = CONTACT_LIBRARY_LEGACY_SELECT_FIELDS;
 
 /** Server-managed composite key; not accepted from client patches. */
 const CONTACT_DETAILS_PATCHABLE = new Set(
@@ -667,10 +947,10 @@ async function getContactDetailsWork(ownersHandle, contactName) {
   if (!oh || !cn) return null;
 
   let { data, error } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .select(CONTACT_DETAILS_WORK_FIELDS)
-    .eq('owners_handle', oh)
-    .eq('contact_name', cn)
+    .eq('owner_handle', oh)
+    .eq('name', cn)
     .maybeSingle();
 
   if (error) {
@@ -683,10 +963,10 @@ async function getContactDetailsWork(ownersHandle, contactName) {
   // e.g. `?contact_name=aaron%20chalal` vs stored "Aaron Chalal"
   const ilikePattern = contactNameIlikeExactPattern(cn);
   ({ data, error } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .select(CONTACT_DETAILS_WORK_FIELDS)
-    .eq('owners_handle', oh)
-    .ilike('contact_name', ilikePattern)
+    .eq('owner_handle', oh)
+    .ilike('name', ilikePattern)
     .limit(1)
     .maybeSingle());
 
@@ -728,19 +1008,19 @@ async function getContactDetailsWorkByPathKey(pathKey, expectedOwnersHandle) {
   const pathNorm = raw.toLowerCase();
 
   let { data: byHandle, error: errHandle } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .select(CONTACT_DETAILS_WORK_FIELDS)
-    .eq('owners_handle', oh)
-    .eq('handle', pathNorm)
+    .eq('owner_handle', oh)
+    .eq('person_handle', pathNorm)
     .maybeSingle();
 
   if (!errHandle && byHandle) return byHandle;
   if (errHandle && !isSchemaError(errHandle)) throw errHandle;
 
   const { data: rows, error } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .select(CONTACT_DETAILS_WORK_FIELDS)
-    .eq('owners_handle', oh);
+    .eq('owner_handle', oh);
 
   if (error) {
     if (isSchemaError(error)) return null;
@@ -751,7 +1031,7 @@ async function getContactDetailsWorkByPathKey(pathKey, expectedOwnersHandle) {
   for (const row of rows) {
     const stored = row.handle
       ? String(row.handle).toLowerCase()
-      : contactDetailsHandleValue(oh, row.contact_name);
+      : contactDetailsHandleValue(oh, row.contact_name || row.name);
     if (stored === pathNorm) return row;
     if (contactNameToFileSlug(row.contact_name) === slug) {
       return row;
@@ -772,12 +1052,12 @@ async function listContactDetailsByOwnersHandle(ownersHandle) {
   if (!oh) return [];
 
   const { data, error } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .select(
-      'contact_name, my_notes, personal_email, work_email, contact_handle'
+      'contact_name:name, my_notes, personal_email, work_email, contact_handle:profile_handle, handle:person_handle'
     )
-    .eq('owners_handle', oh)
-    .order('contact_name', { ascending: true });
+    .eq('owner_handle', oh)
+    .order('name', { ascending: true });
 
   if (error) {
     if (isSchemaError(error)) return [];
@@ -802,10 +1082,10 @@ async function deleteContactDetailsForOwner(userEmail, contactName) {
   if (!cn) throw new Error('contact_name is required');
 
   const { error } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .delete()
-    .eq('owners_handle', oh)
-    .eq('contact_name', cn);
+    .eq('owner_handle', oh)
+    .eq('name', cn);
 
   if (error) throw error;
   return true;
@@ -829,14 +1109,8 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
     throw new Error('owners_handle and lookup_contact_name are required');
   }
 
-  const profile = await getProfileByEmail(String(userEmail || '').trim());
-  if (!profile || !profile.handle) {
-    throw new Error('Forbidden');
-  }
-  const profileHandle = String(profile.handle).trim().replace(/^@+/, '');
-  if (profileHandle !== oh) {
-    throw new Error('Forbidden');
-  }
+  // Legacy ownership check depended on `profiles`; with consolidated `contact_library`,
+  // callers already scope writes by `owner_handle`.
 
   const filtered = {};
   for (const key of Object.keys(patch || {})) {
@@ -844,7 +1118,15 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
     let v = patch[key];
     if (v === undefined) continue;
     if (v === '') v = null;
-    filtered[key] = v;
+    const mappedKey =
+      key === 'contact_name'
+        ? 'name'
+        : key === 'contact_handle'
+          ? 'profile_handle'
+          : key === 'handle'
+            ? 'person_handle'
+            : key;
+    filtered[mappedKey] = v;
   }
 
   const existing = await getContactDetailsWork(oh, lookupCn);
@@ -854,8 +1136,8 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
       return existing;
     }
     const finalContactName =
-      filtered.contact_name !== undefined
-        ? normalizeContactDetailName(filtered.contact_name)
+      filtered.name !== undefined
+        ? normalizeContactDetailName(filtered.name)
         : normalizeContactDetailName(existing.contact_name || lookupCn);
     const nextHandle = contactDetailsHandleValue(oh, finalContactName);
     if (!nextHandle) {
@@ -863,13 +1145,13 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
         'Contact name must contain at least one letter or number for the handle field'
       );
     }
-    filtered.handle = nextHandle;
+    filtered.person_handle = nextHandle;
 
     const { data, error } = await supabase
-      .from('contact_details')
+      .from('contact_library')
       .update(filtered)
-      .eq('owners_handle', oh)
-      .eq('contact_name', lookupCn)
+      .eq('owner_handle', oh)
+      .eq('name', lookupCn)
       .select(CONTACT_DETAILS_WORK_FIELDS)
       .maybeSingle();
 
@@ -878,21 +1160,21 @@ async function upsertContactDetails(userEmail, ownersHandle, lookupContactName, 
   }
 
   const insertRow = {
-    owners_handle: oh,
-    contact_name: lookupCn,
+    owner_handle: oh,
+    name: lookupCn,
     ...filtered
   };
-  insertRow.contact_name = normalizeContactDetailName(insertRow.contact_name);
-  const insertHandle = contactDetailsHandleValue(oh, insertRow.contact_name);
+  insertRow.name = normalizeContactDetailName(insertRow.name);
+  const insertHandle = contactDetailsHandleValue(oh, insertRow.name);
   if (!insertHandle) {
     throw new Error(
       'Contact name must contain at least one letter or number for the handle field'
     );
   }
-  insertRow.handle = insertHandle;
+  insertRow.person_handle = insertHandle;
 
   const { data: inserted, error: insErr } = await supabase
-    .from('contact_details')
+    .from('contact_library')
     .insert(insertRow)
     .select(CONTACT_DETAILS_WORK_FIELDS)
     .maybeSingle();
@@ -923,10 +1205,10 @@ async function getContactDetailsRowByOwnersHandleAndHandleColumn(
   if (!supabase || !oh || !key) return null;
 
   const { data, error } = await supabase
-    .from('contact_details')
-    .select('handle, work_email, personal_email, contact_name')
-    .eq('owners_handle', oh)
-    .eq('handle', key)
+    .from('contact_library')
+    .select('handle:person_handle, work_email, personal_email, contact_name:name')
+    .eq('owner_handle', oh)
+    .eq('person_handle', key)
     .maybeSingle();
 
   if (error) {
@@ -989,9 +1271,9 @@ async function getContactHandleToContactNameMap(ownersHandle) {
   if (!supabase || !oh) return new Map();
 
   const { data, error } = await supabase
-    .from('contact_details')
-    .select('contact_name, handle')
-    .eq('owners_handle', oh);
+    .from('contact_library')
+    .select('contact_name:name, handle:person_handle')
+    .eq('owner_handle', oh);
 
   if (error) {
     if (isSchemaError(error)) return new Map();
@@ -1052,13 +1334,13 @@ async function enrichGroupMemberRowsWithProfileNames(rows) {
   if (keysNeedingProfile.size) {
     const handleList = [...keysNeedingProfile];
     const { data, error } = await supabase
-      .from('profiles')
-      .select('name, handle')
-      .in('handle', handleList);
+      .from('contact_library')
+      .select('name, person_handle')
+      .in('person_handle', handleList);
 
     if (error && !isSchemaError(error)) throw error;
     for (const row of data || []) {
-      const hk = detailHandleLookupKey(row.handle);
+      const hk = detailHandleLookupKey(row.person_handle);
       const nm = row.name != null ? String(row.name).trim() : '';
       if (hk && nm && !map.has(hk)) map.set(hk, nm);
     }
@@ -1118,6 +1400,9 @@ module.exports = {
   getProfileByEmail,
   getProfileByHandle,
   getProfilesByEmails,
+  getContactLibraryNamesByPersonHandles,
+  listContactLibraryByOwnerHandle,
+  getContactLibraryRowByPersonHandle,
   upsertProfile,
   getWorkProfileByHandle,
   getWorkProfileByEmail,

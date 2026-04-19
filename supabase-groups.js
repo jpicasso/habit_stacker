@@ -70,7 +70,8 @@ async function getGroupHandleForGroupName(supabase, groupName) {
 }
 
 /**
- * Map normalized handle → `groups.group_name` for display.
+ * Map normalized handle → display `group_name` for UI.
+ * Uses `groups` first, then `group_details` for any handle still missing (some rows only exist in one table).
  * @returns {Promise<Map<string, string>>}
  */
 async function groupNamesForHandlesMap(supabase, handlesNorm) {
@@ -81,7 +82,30 @@ async function groupNamesForHandlesMap(supabase, handlesNorm) {
   if (error) throw error;
   for (const g of data || []) {
     const h = g.handle != null ? normalizeGroupHandle(g.handle) : '';
-    if (h && g.group_name != null) map.set(h, String(g.group_name).trim());
+    if (h && g.group_name != null && String(g.group_name).trim() !== '') {
+      map.set(h, String(g.group_name).trim());
+    }
+  }
+
+  const stillNeedName = uniq.filter(u => !map.has(u));
+  if (!stillNeedName.length) return map;
+
+  const gd = await supabase
+    .from('group_details')
+    .select('group_name, handle')
+    .in('handle', stillNeedName);
+  if (gd.error) {
+    const msg = String(gd.error.message || '').toLowerCase();
+    const missingRel =
+      (msg.includes('group_details') || msg.includes('schema cache')) &&
+      (msg.includes('does not exist') || msg.includes('could not find') || gd.error.code === '42P01');
+    if (!missingRel) throw gd.error;
+    return map;
+  }
+  for (const r of gd.data || []) {
+    const h = r.handle != null ? normalizeGroupHandle(r.handle) : '';
+    const gn = r.group_name != null ? String(r.group_name).trim() : '';
+    if (h && gn && !map.has(h)) map.set(h, gn);
   }
   return map;
 }
@@ -223,13 +247,18 @@ async function listGroupsForUser(userId) {
     .select('group_name, visibility, handle')
     .in('handle', distinctHandles);
   const visibilityMap = {};
+  /** @type {Record<string, string|null>} */
+  const visibilityByHandle = {};
   /** @type {Record<string, string>} */
   const handleMapByGn = {};
   for (const g of groupsResult || []) {
     const gn = g.group_name != null ? String(g.group_name).trim() : '';
     const h = g.handle != null ? normalizeGroupHandle(g.handle) : '';
-    if (h) visibilityMap[gn] = g.visibility || null;
-    if (gn && h) handleMapByGn[gn] = h;
+    if (h) visibilityByHandle[h] = g.visibility != null ? g.visibility : null;
+    if (gn && h) {
+      visibilityMap[gn] = g.visibility || null;
+      handleMapByGn[gn] = h;
+    }
   }
 
   const gdRes = await supabase
@@ -307,7 +336,8 @@ async function listGroupsForUser(userId) {
 
   return seenRows.map(row => {
     const gh = normalizeGroupHandle(row.group_handle);
-    const gn = nameByHandle.get(gh) || '';
+    let gn = nameByHandle.get(gh) || '';
+    if (!gn && gh) gn = gh;
     const adminList = adminMap[gh] || [];
     const handle =
       (gn && handleMapByGn[gn]) || gh || null;
@@ -340,7 +370,12 @@ async function listGroupsForUser(userId) {
       is_admin: adminList.some(a => normalizePersonHandle(a) === viewerPh),
       admin_list: adminList,
       admin_profiles,
-      visibility: gn ? visibilityMap[gn] || null : null,
+      visibility:
+        visibilityByHandle[gh] !== undefined
+          ? visibilityByHandle[gh]
+          : gn
+            ? visibilityMap[gn] || null
+            : null,
       handle
     };
   });
@@ -387,6 +422,78 @@ async function listGroupsForContactPage(viewerUserId, contactPersonHandle) {
   return viewerMemberOrAdmin.filter(row =>
     contactSet.has(normalizeGroupHandle(row.group_handle))
   );
+}
+
+/**
+ * For each normalized `person_handle` (e.g. `contact_details.handle` / composite contact key),
+ * returns `group_members.group_handle` and matching `groups.group_name` for rows with status in {@link MEMBER_STATUSES}.
+ *
+ * @param {string[]} personHandles
+ * @returns {Promise<{
+ *   group_names: Record<string, string[]>,
+ *   group_handles: Record<string, string[]>,
+ *   group_entries: Record<string, { group_name: string, group_handle: string }[]>
+ * }>}
+ */
+async function listGroupNamesAndHandlesByPersonHandles(personHandles) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const uniq = [...new Set((personHandles || []).map(h => normalizePersonHandle(h)).filter(Boolean))];
+  /** @type {Record<string, { group_name: string, group_handle: string }[]>} */
+  const entriesOut = {};
+  for (const h of uniq) entriesOut[h] = [];
+  if (!uniq.length) {
+    /** @type {Record<string, string[]>} */
+    const empty = {};
+    for (const h of uniq) empty[h] = [];
+    return { group_names: empty, group_handles: empty, group_entries: entriesOut };
+  }
+
+  const { data: rows, error } = await supabase
+    .from('group_members')
+    .select('person_handle, group_handle')
+    .in('person_handle', uniq)
+    .in('status', MEMBER_STATUSES);
+  if (error) throw error;
+
+  const allGh = [
+    ...new Set((rows || []).map(r => normalizeGroupHandle(r.group_handle)).filter(Boolean))
+  ];
+  const nameByHandle = await groupNamesForHandlesMap(supabase, allGh);
+
+  for (const r of rows || []) {
+    const ph = normalizePersonHandle(r.person_handle);
+    const ghNorm = normalizeGroupHandle(r.group_handle);
+    if (!ph || entriesOut[ph] === undefined || !ghNorm) continue;
+    if (entriesOut[ph].some(e => e.group_handle === ghNorm)) continue;
+    const gnRaw = nameByHandle.get(ghNorm);
+    const displayName =
+      gnRaw != null && String(gnRaw).trim() !== '' ? String(gnRaw).trim() : ghNorm;
+    entriesOut[ph].push({ group_name: displayName, group_handle: ghNorm });
+  }
+  for (const h of uniq) {
+    entriesOut[h].sort((a, b) =>
+      String(a.group_name).localeCompare(String(b.group_name), undefined, {
+        sensitivity: 'base'
+      })
+    );
+  }
+
+  /** @type {Record<string, string[]>} */
+  const namesOut = {};
+  /** @type {Record<string, string[]>} */
+  const handlesOut = {};
+  for (const h of uniq) {
+    namesOut[h] = entriesOut[h].map(e => e.group_name);
+    handlesOut[h] = entriesOut[h].map(e => e.group_handle);
+  }
+  return { group_names: namesOut, group_handles: handlesOut, group_entries: entriesOut };
+}
+
+/** @deprecated Prefer {@link listGroupNamesAndHandlesByPersonHandles}; kept for callers that need names only. */
+async function listGroupNamesByPersonHandles(personHandles) {
+  const { group_names } = await listGroupNamesAndHandlesByPersonHandles(personHandles);
+  return group_names;
 }
 
 /**
@@ -1436,6 +1543,8 @@ module.exports = {
   personHandleForUserEmail,
   listGroupsForUser,
   listGroupsForContactPage,
+  listGroupNamesByPersonHandles,
+  listGroupNamesAndHandlesByPersonHandles,
   listInvitesForUser,
   respondToGroupInvite,
   createGroup,

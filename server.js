@@ -441,6 +441,69 @@ app.get('/api/profile/by-handle', async (req, res) => {
   }
 });
 
+app.post('/api/contact-library/names-by-person-handles', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { person_handles } = req.body || {};
+    if (!Array.isArray(person_handles)) {
+      return res.status(400).json({ error: 'person_handles must be an array' });
+    }
+    const rows = await supabaseProfiles.getContactLibraryNamesByPersonHandles(person_handles);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching contact_library names by person_handle:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json({});
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch contact library names' });
+  }
+});
+
+app.get('/api/contact-library/by-owner-handle', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const ownerHandle = req.query.owner_handle;
+    if (!ownerHandle || !String(ownerHandle).trim()) {
+      return res.status(400).json({ error: 'owner_handle query parameter is required' });
+    }
+    const rows = await supabaseProfiles.listContactLibraryByOwnerHandle(String(ownerHandle).trim());
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching contact_library rows by owner_handle:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json([]);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch contact library rows' });
+  }
+});
+
+app.get('/api/contact-library/by-person-handle', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const personHandle = req.query.person_handle;
+    if (!personHandle || !String(personHandle).trim()) {
+      return res.status(400).json({ error: 'person_handle query parameter is required' });
+    }
+    const row = await supabaseProfiles.getContactLibraryRowByPersonHandle(String(personHandle).trim());
+    res.json(row);
+  } catch (error) {
+    console.error('Error fetching contact_library row by person_handle:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (/does not exist/i.test(msg) || error.code === '42P01' || error.code === '42703') {
+      return res.json(null);
+    }
+    res.status(500).json({ error: error.message || 'Failed to fetch contact library row' });
+  }
+});
+
 app.put('/api/profile', async (req, res) => {
   try {
     if (!supabaseProfiles.isConfigured()) {
@@ -901,6 +964,32 @@ app.get('/api/groups/connections', async (req, res) => {
   } catch (error) {
     console.error('Error fetching connections:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch connections' });
+  }
+});
+
+/**
+ * Batch: for each `person_handles` value (matches `group_members.person_handle`), returns
+ * `group_names` and `group_handles` from `group_members` (active member statuses only);
+ * names are resolved via `groups.handle`.
+ */
+app.post('/api/groups/group-names-by-person-handles', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const { user_id, person_handles } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!Array.isArray(person_handles)) {
+      return res.status(400).json({ error: 'person_handles must be an array' });
+    }
+    const { group_names, group_handles, group_entries } =
+      await supabaseGroups.listGroupNamesAndHandlesByPersonHandles(person_handles);
+    res.json({ group_names, group_handles, group_entries });
+  } catch (error) {
+    console.error('Error listing group names by person handles:', error);
+    res.status(500).json({ error: error.message || 'Failed to load group names' });
   }
 });
 
