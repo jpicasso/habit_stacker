@@ -78,68 +78,65 @@ aboutNav: true
           </div>
 
 
-              <!-- Filter pills -->
-              <div class="mb-3" id="events-filter-pills">
-                <button type="button" class="btn btn-sm btn-primary events-filter-btn mr-1" data-filter="all" style="border-radius: 2rem; min-width: 56px;">All</button>
-                <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="me" style="border-radius: 2rem; min-width: 56px;">Me</button>
-                <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="megan" style="border-radius: 2rem; min-width: 72px;">Megan</button>
-              </div>
-
-              <!-- Advanced filters -->
-              <div id="events-advanced-filters" class="mb-3 px-3 py-2 bg-light rounded border">
-                <div class="d-flex flex-nowrap align-items-end">
-
-                  <!-- Date filter -->
-                  <div class="mr-3">
-                    <div class="small font-weight-bold text-muted mb-1">Event Date</div>
-                    <div class="d-flex align-items-center flex-nowrap">
-                      <select id="date-filter-type" class="form-control form-control-sm mr-1" style="width: auto;">
-                        <option value="">Any date</option>
-                        <option value="before">Before</option>
-                        <option value="after">After</option>
-                        <option value="between">Between</option>
-                      </select>
-                      <input type="date" id="date-filter-1" class="form-control form-control-sm mr-1" style="width: auto; display: none;">
-                      <span id="date-filter-and" class="mr-1 text-muted small" style="display: none;">and</span>
-                      <input type="date" id="date-filter-2" class="form-control form-control-sm" style="width: auto; display: none;">
-                    </div>
+              <!-- Filters: pills + date + type + who + clear + add (one row) -->
+              <div class="mb-3 life-events-toolbar-wrap">
+                <div class="d-flex flex-nowrap align-items-end life-events-toolbar">
+                  <div id="events-filter-pills" class="flex-shrink-0 d-flex flex-nowrap align-items-center mr-2">
+                    <button type="button" class="btn btn-sm btn-primary events-filter-btn mr-1" data-filter="all" style="border-radius: 2rem; min-width: 56px;">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="me" style="border-radius: 2rem; min-width: 56px;">Me</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="megan" style="border-radius: 2rem; min-width: 72px;">Megan</button>
                   </div>
 
-                  <!-- Type filter -->
-                  <div class="mr-3">
-                    <div class="small font-weight-bold text-muted mb-1">Type</div>
-                    <select id="type-filter" class="form-control form-control-sm" style="width: auto;">
-                      <option value="">All</option>
-                      <option value="Life">Life</option>
-                      <option value="Weekly">Weekly</option>
-                    </select>
-                  </div>
-
-                  <!-- Who filter -->
-                  <div class="mr-3" style="min-width: 220px;">
-                    <div class="small font-weight-bold text-muted mb-1">Who</div>
-                    <div class="input-group input-group-sm">
-                      <input type="text" id="who-filter-input" class="form-control" placeholder="Add a name or email…">
-                      <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-secondary" id="who-filter-add">Add</button>
+                  <div id="events-advanced-filters" class="flex-grow-1 min-w-0 px-2 py-1 bg-light rounded border d-flex flex-nowrap align-items-center overflow-auto">
+                    <!-- Date: label + controls on one line -->
+                    <div class="mr-3 flex-shrink-0 d-flex flex-nowrap align-items-center">
+                      <span class="small font-weight-bold text-muted text-nowrap mr-2 mb-0">Event Date</span>
+                      <div class="d-flex align-items-center flex-nowrap">
+                        <select id="date-filter-type" class="form-control form-control-sm mr-1" style="width: auto;">
+                          <option value="">Any date</option>
+                          <option value="before">Before</option>
+                          <option value="after">After</option>
+                          <option value="between">Between</option>
+                        </select>
+                        <input type="date" id="date-filter-1" class="form-control form-control-sm mr-1" style="width: auto; display: none;">
+                        <span id="date-filter-and" class="mr-1 text-muted small" style="display: none;">and</span>
+                        <input type="date" id="date-filter-2" class="form-control form-control-sm" style="width: auto; display: none;">
                       </div>
                     </div>
-                    <div id="who-filter-tags" class="d-flex flex-wrap mt-1"></div>
+
+                    <!-- Type -->
+                    <div class="mr-3 flex-shrink-0 d-flex flex-nowrap align-items-center">
+                      <span class="small font-weight-bold text-muted text-nowrap mr-2 mb-0">Type</span>
+                      <select id="type-filter" class="form-control form-control-sm" style="width: auto;">
+                        <option value="">All</option>
+                        <option value="Life">Life</option>
+                        <option value="Weekly">Weekly</option>
+                      </select>
+                    </div>
+
+                    <!-- Who -->
+                    <div class="mr-2 flex-shrink-0 d-flex flex-nowrap align-items-center life-events-who-filter">
+                      <span class="small font-weight-bold text-muted text-nowrap mr-2 mb-0">Who</span>
+                      <div class="input-group input-group-sm life-events-who-input">
+                        <input type="text" id="who-filter-input" class="form-control" placeholder="Add a name or email…">
+                        <div class="input-group-append">
+                          <button type="button" class="btn btn-outline-secondary" id="who-filter-add">Add</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex-shrink-0 ml-auto">
+                      <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-adv-filters-btn">Clear</button>
+                    </div>
                   </div>
 
-                  <!-- Clear -->
-                  <div class="ml-auto">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-adv-filters-btn">Clear</button>
+                  <div class="flex-shrink-0 ml-2">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addEventModal">
+                      + Add Event
+                    </button>
                   </div>
-
                 </div>
-              </div>
-
-              <!-- Add Event button -->
-              <div class="mb-3 text-right">
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addEventModal">
-                  + Add Event
-                </button>
+                <div id="who-filter-tags" class="d-flex flex-wrap mt-1 pl-1"></div>
               </div>
 
               <!-- Events table -->

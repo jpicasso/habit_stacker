@@ -95,6 +95,13 @@ if (window.location.search.includes('code=') && window.location.search.includes(
 /** Max characters before "..." in Who / Shared / Owner columns (e.g. john.p...). */
 var SHARED_OWNER_MAX_CHARS = 6;
 
+/** Gray silhouette before `/api/profile/photo` or `/api/contact-photo` resolves (profiles Who column). */
+const PROFILES_EVENTS_WHO_AVATAR_PLACEHOLDER =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#dee2e6"/><circle cx="36" cy="27" r="11" fill="#adb5bd"/><path d="M12 60c4-10 14-16 24-16s20 6 24 16" fill="#adb5bd"/></svg>'
+  );
+
 /** Currently active filter pill: 'all' | 'me' | 'megan' */
 var currentEventsFilter = 'all';
 
@@ -105,8 +112,8 @@ var cachedUserEmail = null;
 /** Logged-in user's public handle (normalized, no @) — matches `events.owner` for new rows. */
 var cachedViewerHandle = null;
 
-/** Megan's email used by the Megan filter */
-var MEGAN_EMAIL = 'mdonahey@alumni.princeton.edu';
+/** life_events Megan pill: `who` must contain this substring (case-insensitive) */
+var MEGAN_FILTER_WHO_SUBSTRING = 'meganpicassotest';
 
 /** Emails of members in the currently selected group (populated on group pill click) */
 var currentGroupMembers = [];
@@ -131,6 +138,8 @@ var cachedProfileEmailForFilter = null;
 
 /** Supabase `profiles` row for the current user (profiles page); null if none / other pages. */
 var cachedProfileRow = null;
+/** Latest successful `/api/groups/profile-mutual` response (contact `group_members.status` per group in `groups`). */
+var cachedProfileMutualGroupsPayload = null;
 /** True when current `profiles.html` subject is hydrated from `contact_library`. */
 var cachedProfileFromContactLibrary = false;
 
@@ -174,6 +183,87 @@ function whoFieldReferencesProfileName(who, profileName) {
 
 function normalizeEventOwnerToken(s) {
   return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
+}
+
+/**
+ * Distinct person_handle tokens from events.who (comma/whitespace-separated; @ optional).
+ */
+function splitWhoFieldToDistinctPersonHandles(who) {
+  if (who == null || String(who).trim() === '') return [];
+  const seen = new Set();
+  const out = [];
+  String(who)
+    .split(/[\s,;\n]+/)
+    .forEach(raw => {
+      const normalized = normalizeEventOwnerToken(raw);
+      if (!normalized || seen.has(normalized)) return;
+      seen.add(normalized);
+      const hrefPart = String(raw).trim().replace(/^@+/, '');
+      if (!hrefPart) return;
+      out.push(hrefPart);
+    });
+  return out;
+}
+
+function buildProfilesEventsWhoCellInnerHtml(whoPlain) {
+  const handles = splitWhoFieldToDistinctPersonHandles(whoPlain);
+  if (!handles.length) {
+    return '<span class="text-muted">—</span>';
+  }
+  return handles
+    .map(h => {
+      const href = '/events/@' + encodeURIComponent(h);
+      const title = escapeAttr(h);
+      const ariaLabel = escapeAttr('Open profile ' + h);
+      return (
+        '<a href="' +
+        href +
+        '" class="profiles-events-who-avatar-link d-inline-flex mr-1 mb-1 align-items-center text-decoration-none" title="' +
+        title +
+        '" aria-label="' +
+        ariaLabel +
+        '">' +
+        '<img src="' +
+        PROFILES_EVENTS_WHO_AVATAR_PLACEHOLDER +
+        '" width="32" height="32" class="profiles-events-who-avatar rounded-circle border border-light bg-white" alt="" data-events-who-handle="' +
+        escapeAttr(h) +
+        '" loading="lazy" />' +
+        '</a>'
+      );
+    })
+    .join('');
+}
+
+async function hydrateProfilesEventsWhoPhotos(container) {
+  if (!container) return;
+  const imgs = container.querySelectorAll('img.profiles-events-who-avatar[data-events-who-handle]');
+  await Promise.all(
+    [...imgs].map(async img => {
+      const h = img.getAttribute('data-events-who-handle');
+      if (!h) return;
+      try {
+        const pr = await fetch('/api/profile/photo?handle=' + encodeURIComponent(h));
+        if (pr.ok) {
+          const d = await pr.json();
+          if (d && d.url) {
+            img.src = d.url;
+            return;
+          }
+        }
+      } catch (e) {
+        /* try contact photo */
+      }
+      try {
+        const cr = await fetch('/api/contact-photo?person_handle=' + encodeURIComponent(h));
+        if (cr.ok) {
+          const d = await cr.json();
+          if (d && d.url) img.src = d.url;
+        }
+      } catch (e) {
+        /* keep placeholder */
+      }
+    })
+  );
 }
 
 /** `events.owner` is handle(s); legacy rows may use email. */
@@ -231,7 +321,7 @@ function profileDisplayNameFromUser(user) {
  * all   – shared includes user  OR  owner matches viewer handle (or legacy email)
  * me    – (who includes user AND shared includes user)
  *          OR (who is blank AND owner matches viewer)
- * megan – who includes MEGAN_EMAIL  AND  (shared includes user OR owner matches viewer)
+ * megan – `who` contains MEGAN_FILTER_WHO_SUBSTRING (e.g. handle meganpicassotest)
  */
 function applyEventsFilter(tasks, filter, userEmail) {
   const email = (userEmail || '').toLowerCase().trim();
@@ -239,8 +329,10 @@ function applyEventsFilter(tasks, filter, userEmail) {
   const sharedHasUser  = t => fieldContainsViewerToken(t.shared, email, cachedViewerHandle);
   const ownerIsUser    = t => ownerFieldMatchesViewer(t.owner, email, cachedViewerHandle);
   const whoHasUser     = t => fieldContainsViewerToken(t.who, email, cachedViewerHandle);
-  const whoIsBlank     = t => !t.who || String(t.who).trim() === '';
-  const whoHasMegan    = t => fieldContainsToken(t.who, MEGAN_EMAIL);
+  const whoHasMeganTest = t => {
+    if (!t.who || !MEGAN_FILTER_WHO_SUBSTRING) return false;
+    return String(t.who).toLowerCase().includes(MEGAN_FILTER_WHO_SUBSTRING.toLowerCase());
+  };
 
   if (filter === 'me') {
     return tasks.filter(t =>
@@ -248,9 +340,7 @@ function applyEventsFilter(tasks, filter, userEmail) {
     );
   }
   if (filter === 'megan') {
-    return tasks.filter(t =>
-      whoHasMegan(t) && (sharedHasUser(t) || ownerIsUser(t))
-    );
+    return tasks.filter(t => whoHasMeganTest(t));
   }
   if (filter === 'group_members') {
     // Show events where 'who' contains any member of the selected group
@@ -358,6 +448,8 @@ function renderTaskRows(tasks) {
   emptyEl.style.display = 'none';
   tableEl.style.display = 'table';
 
+  const isProfilesEventsTable = !!document.getElementById('profile-events-stack');
+
   tasks.forEach(task => {
     const eventDate  = task.event_date ? formatDateOnly(task.event_date) : 'Not set';
     const name       = task.event != null ? String(task.event) : task.task != null ? String(task.task) : '';
@@ -376,10 +468,16 @@ function renderTaskRows(tasks) {
     row.style.cursor = 'pointer';
     row.dataset.eventId = String(task.id);
     row.setAttribute('title', 'Click to view or edit');
-    const eventType = task.event_type != null && String(task.event_type).trim() !== ''
-      ? escapeHtml(String(task.event_type).trim())
-      : '<span class="text-muted">—</span>';
-    row.innerHTML = `
+    if (isProfilesEventsTable) {
+      const isLife =
+        task.event_type != null &&
+        String(task.event_type).trim().toLowerCase() === 'life';
+      row.classList.add(isLife ? 'profiles-events-row-life' : 'profiles-events-row-default');
+    } else {
+      const eventType = task.event_type != null && String(task.event_type).trim() !== ''
+        ? escapeHtml(String(task.event_type).trim())
+        : '<span class="text-muted">—</span>';
+      row.innerHTML = `
         <td><strong>${escapeHtml(name)}</strong></td>
         <td><small>${eventDate}</small></td>
         <td><small>${eventType}</small></td>
@@ -387,8 +485,21 @@ function renderTaskRows(tasks) {
         <td class="events-col-shared"${sharedTitleAttr}><small>${sharedHtml}</small></td>
         <td class="events-col-owner"${ownerTitleAttr}><small>${ownerHtml}</small></td>
       `;
+      tbodyEl.appendChild(row);
+      return;
+    }
+    const whoProfilesInner = buildProfilesEventsWhoCellInnerHtml(whoPlain);
+    row.innerHTML = `
+        <td><strong>${escapeHtml(name)}</strong></td>
+        <td><small>${eventDate}</small></td>
+        <td class="events-col-who profiles-events-who-cell"><div class="profiles-events-who-avatars d-flex flex-wrap align-items-center">${whoProfilesInner}</div></td>
+      `;
     tbodyEl.appendChild(row);
   });
+
+  if (isProfilesEventsTable) {
+    hydrateProfilesEventsWhoPhotos(tbodyEl).catch(function() {});
+  }
 }
 
 /**
@@ -524,6 +635,52 @@ var PROFILE_AVATAR_PLACEHOLDER =
 var isOwnProfile = true;
 
 /**
+ * True when the URL `person_handle` is a `contact_library` row owned by the viewer (`owner_handle`).
+ */
+var canEditOwnedContactLibrary = false;
+
+/**
+ * profiles.html: viewing another person's `contact_library` row that you own (not your own @ handle).
+ */
+function isProfileOwnedContactView() {
+  return (
+    hasProfileOrContactHeader() &&
+    !!getProfileHandleFromUrl() &&
+    cachedProfileFromContactLibrary &&
+    canEditOwnedContactLibrary &&
+    !isOwnProfile
+  );
+}
+
+/** Show My Private Notes + hide events stack; or reverse. */
+function applyProfileOwnedContactNotesLayout() {
+  const owned = isProfileOwnedContactView();
+  const notesWrap = document.getElementById('profile-owned-contact-private-notes');
+  const eventsStack = document.getElementById('profile-events-stack');
+  const contentEl = document.getElementById('profile-my-private-notes-content');
+  const contactDetailsPill = document.getElementById('profile-contact-details-pill');
+  if (contactDetailsPill) {
+    contactDetailsPill.style.display = owned ? 'none' : '';
+  }
+  if (notesWrap) notesWrap.style.display = owned ? '' : 'none';
+  if (eventsStack) eventsStack.style.display = owned ? 'none' : '';
+  if (!contentEl || !owned) return;
+  const row = cachedProfileRow || {};
+  const raw = row.my_notes != null ? String(row.my_notes) : '';
+  if (raw.trim()) {
+    contentEl.className = 'small text-body';
+    contentEl.style.whiteSpace = 'pre-wrap';
+    contentEl.style.wordBreak = 'break-word';
+    contentEl.textContent = raw;
+  } else {
+    contentEl.className = 'small text-muted';
+    contentEl.style.whiteSpace = 'normal';
+    contentEl.textContent =
+      'No private notes yet. Click the pencil to add notes in Contact Details.';
+  }
+}
+
+/**
  * Parse the handle out of URLs like /events/@meganpicasso or /events/@meganpicasso/profiles.html.
  * Returns the bare handle string (no @), or null if not present.
  */
@@ -532,14 +689,13 @@ function getProfileHandleFromUrl() {
   return match ? decodeURIComponent(match[1]).replace(/^@+/, '') : null;
 }
 
-/** Contact record page (`contact.html` or `/events/contact/{pathKey}`) loads work from `contact_details`, not `profiles`. */
+/** Legacy contact-path page (`/events/contact/{pathKey}`) loads work from `contact_details`, not `profiles`. */
 function isContactDetailsWorkPage() {
   const p = window.location.pathname;
-  if (p.toLowerCase().includes('contact.html')) return true;
   return /^\/events\/contact\/[^/]+\/?$/.test(p);
 }
 
-/** True if this page uses the profile header (profiles) or contact header (contact.html). */
+/** True if this page uses the profile header (profiles) or legacy contact header. */
 function hasProfileOrContactHeader() {
   return !!(
     document.getElementById('profile-display-name') ||
@@ -682,6 +838,30 @@ async function fetchProfileByHandle(handle) {
 }
 
 /**
+ * Shape a raw `contact_library` API row for profile/work/family/interests renderers.
+ * @param {object} row
+ * @returns {object|null}
+ */
+function shapeContactLibraryProfileRow(row) {
+  if (!row) return null;
+  const personHandle =
+    row.person_handle != null ? String(row.person_handle).trim() : '';
+  const out = { ...row };
+  out.handle = personHandle;
+  out.name =
+    row.name != null && String(row.name).trim() !== ''
+      ? String(row.name).trim()
+      : personHandle;
+  out.email =
+    row.personal_email != null && String(row.personal_email).trim() !== ''
+      ? String(row.personal_email).trim()
+      : row.work_email != null && String(row.work_email).trim() !== ''
+        ? String(row.work_email).trim()
+        : '';
+  return out;
+}
+
+/**
  * Fetch a contact-library-backed profile row by `person_handle` from URL handle.
  * Returns a row shaped for existing profile/work/family/interests renderers.
  * @returns {Promise<object|null>}
@@ -696,21 +876,7 @@ async function fetchContactLibraryProfileByPersonHandle(handle) {
     if (!res.ok) return null;
     const row = await res.json();
     if (!row) return null;
-    const personHandle =
-      row.person_handle != null ? String(row.person_handle).trim() : '';
-    const out = { ...row };
-    out.handle = personHandle;
-    out.name =
-      row.name != null && String(row.name).trim() !== ''
-        ? String(row.name).trim()
-        : personHandle;
-    out.email =
-      row.personal_email != null && String(row.personal_email).trim() !== ''
-        ? String(row.personal_email).trim()
-        : row.work_email != null && String(row.work_email).trim() !== ''
-          ? String(row.work_email).trim()
-          : '';
-    return out;
+    return shapeContactLibraryProfileRow(row);
   } catch (e) {
     console.error('Error loading contact_library profile by person_handle:', e);
     return null;
@@ -743,7 +909,10 @@ function applyProfileEditVisibility(own) {
   const controls = [
     document.getElementById('profile-name-edit-btn'),
     document.getElementById('profile-photo-edit-btn'),
+    document.getElementById('profile-location-edit-btn'),
+    document.getElementById('profile-my-notes-edit-btn'),
     document.getElementById('work-section-edit-btn'),
+    document.getElementById('education-section-edit-btn'),
     document.getElementById('family-section-edit-btn'),
     document.getElementById('interests-section-edit-btn')
   ];
@@ -838,7 +1007,7 @@ async function refreshContactGroupsSummaryLine(row) {
   try {
     const entries = await fetchGroupEntriesByPersonHandle(ph, cachedUserEmail);
     console.log(
-      'contact.html group_handles for person_handle',
+      'profiles.html group_handles for person_handle',
       ph,
       entries.map(e => e.group_handle)
     );
@@ -849,7 +1018,7 @@ async function refreshContactGroupsSummaryLine(row) {
 }
 
 /**
- * contact.html: fill header from `contact_details` (owner handle + contact_name query).
+ * profiles.html: fill header from `contact_details` (owner handle + contact_name query).
  * Sets cachedWorkRow (and family/interests caches) when a row is returned so tabs can reuse it.
  */
 async function applyContactDetailsPageHeader(authUser, ownerProfileRow) {
@@ -1069,6 +1238,11 @@ function applyProfileHeaderFromData(user, profileRow) {
   const emailEl = document.getElementById('profile-user-email');
   const imgEl = document.getElementById('profile-user-photo');
   const locEl = document.getElementById('profile-location-line');
+  const locValueEl = document.getElementById('profile-location-value');
+  const cellLineEl = document.getElementById('profile-cell-line');
+  const workEmailLineEl = document.getElementById('profile-work-email-line');
+  const personalEmailLineEl = document.getElementById('profile-personal-email-line');
+  const homeAddressLineEl = document.getElementById('profile-home-address-line');
   cachedProfileNameForFilter = null;
   cachedProfileEmailForFilter = null;
   if (!nameEl && !emailEl && !imgEl) return;
@@ -1077,7 +1251,12 @@ function applyProfileHeaderFromData(user, profileRow) {
     if (nameEl) nameEl.textContent = '';
     if (handleEl) handleEl.textContent = '';
     if (emailEl) emailEl.textContent = '';
-    if (locEl) locEl.textContent = 'Location: —';
+    if (locValueEl) locValueEl.textContent = 'Location: —';
+    else if (locEl) locEl.textContent = 'Location: —';
+    if (cellLineEl) cellLineEl.textContent = 'Cell: —';
+    if (workEmailLineEl) workEmailLineEl.textContent = 'Work Email: —';
+    if (personalEmailLineEl) personalEmailLineEl.textContent = 'Personal Email: —';
+    if (homeAddressLineEl) homeAddressLineEl.textContent = 'Home Address: —';
     if (imgEl) {
       imgEl.src = PROFILE_AVATAR_PLACEHOLDER;
       imgEl.alt = '';
@@ -1138,17 +1317,168 @@ function applyProfileHeaderFromData(user, profileRow) {
     }
   }
 
-  if (locEl) {
+  if (locEl || locValueEl) {
     const loc =
       profileRow && profileRow.location != null && String(profileRow.location).trim() !== ''
         ? String(profileRow.location).trim()
         : '—';
-    locEl.textContent = 'Location: ' + loc;
+    if (locValueEl) locValueEl.textContent = 'Location: ' + loc;
+    else if (locEl) locEl.textContent = 'Location: ' + loc;
   }
+
+  const cellVal =
+    profileRow && profileRow.cell != null && String(profileRow.cell).trim() !== ''
+      ? String(profileRow.cell).trim()
+      : '—';
+  const workEmailVal =
+    profileRow && profileRow.work_email != null && String(profileRow.work_email).trim() !== ''
+      ? String(profileRow.work_email).trim()
+      : '—';
+  const personalEmailVal =
+    profileRow && profileRow.personal_email != null && String(profileRow.personal_email).trim() !== ''
+      ? String(profileRow.personal_email).trim()
+      : '—';
+  const homeAddressVal =
+    profileRow && profileRow.home_address != null && String(profileRow.home_address).trim() !== ''
+      ? String(profileRow.home_address).trim()
+      : profileRow && profileRow.address != null && String(profileRow.address).trim() !== ''
+        ? String(profileRow.address).trim()
+        : '—';
+
+  if (cellLineEl) cellLineEl.textContent = 'Cell: ' + cellVal;
+  if (workEmailLineEl) workEmailLineEl.textContent = 'Work Email: ' + workEmailVal;
+  if (personalEmailLineEl) personalEmailLineEl.textContent = 'Personal Email: ' + personalEmailVal;
+  if (homeAddressLineEl) homeAddressLineEl.textContent = 'Home Address: ' + homeAddressVal;
 }
 
 function getEditProfileFormEl(suffix) {
   return document.getElementById('edit-profile-' + suffix) || document.getElementById('edit-contact-' + suffix);
+}
+
+function populateEditProfileContactLibraryModal() {
+  const row = cachedProfileRow || {};
+  const errEl = document.getElementById('pcd-error');
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+  const ph =
+    row.person_handle != null && String(row.person_handle).trim() !== ''
+      ? String(row.person_handle).trim()
+      : row.handle != null
+        ? String(row.handle).trim().replace(/^@+/, '')
+        : '';
+  const set = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.value = v != null ? String(v) : '';
+  };
+  set('pcd-person_handle', ph);
+  set(
+    'pcd-name',
+    row.name != null && String(row.name).trim() !== ''
+      ? String(row.name).trim()
+      : ''
+  );
+  set(
+    'pcd-profile_handle',
+    row.profile_handle != null ? String(row.profile_handle).trim().replace(/^@+/, '') : ''
+  );
+  set('pcd-my_notes', row.my_notes != null ? String(row.my_notes) : '');
+  set('pcd-cell', row.cell != null ? String(row.cell).trim() : '');
+  set('pcd-other_phone', row.other_phone != null ? String(row.other_phone).trim() : '');
+  set('pcd-work_email', row.work_email != null ? String(row.work_email).trim() : '');
+  set('pcd-personal_email', row.personal_email != null ? String(row.personal_email).trim() : '');
+  set('pcd-location', row.location != null ? String(row.location).trim() : '');
+  set(
+    'pcd-home_address',
+    row.home_address != null
+      ? String(row.home_address).trim()
+      : row.address != null
+        ? String(row.address).trim()
+        : ''
+  );
+}
+
+async function submitEditProfileContactLibraryForm() {
+  const errEl = document.getElementById('pcd-error');
+  const submitBtn = document.getElementById('edit-profile-contact-library-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+  if (!cachedProfileFromContactLibrary || (!isOwnProfile && !canEditOwnedContactLibrary)) {
+    if (errEl) {
+      errEl.textContent = 'You cannot edit this contact.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+  const personHandle = getProfileHandleFromUrl();
+  if (!personHandle) return;
+
+  function trimOrNull(id) {
+    const el = document.getElementById(id);
+    const t = el ? String(el.value).trim() : '';
+    return t ? t : null;
+  }
+
+  const patch = {
+    profile_handle: trimOrNull('pcd-profile_handle'),
+    my_notes: trimOrNull('pcd-my_notes'),
+    cell: trimOrNull('pcd-cell'),
+    other_phone: trimOrNull('pcd-other_phone'),
+    work_email: trimOrNull('pcd-work_email'),
+    personal_email: trimOrNull('pcd-personal_email'),
+    location: trimOrNull('pcd-location'),
+    home_address: trimOrNull('pcd-home_address')
+  };
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    const res = await fetch('/api/contact-library/row', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: cachedUserEmail,
+        person_handle: personHandle,
+        patch: patch
+      })
+    });
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (e) {
+      /* ignore */
+    }
+    if (res.status === 503) {
+      if (errEl) {
+        errEl.textContent = data.error || 'Profiles require Supabase.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    if (!res.ok) {
+      if (errEl) {
+        errEl.textContent = data.error || 'Failed to save contact details.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    cachedProfileRow = shapeContactLibraryProfileRow(data) || cachedProfileRow;
+    cachedWorkRow = cachedProfileRow;
+    cachedFamilyRow = cachedProfileRow;
+    cachedInterestsRow = cachedProfileRow;
+    applyProfileHeaderFromData(cachedAuthUser, cachedProfileRow);
+    applyProfileOwnedContactNotesLayout();
+    renderWithAllFilters();
+    if (window.jQuery) window.jQuery('#editProfileContactLibraryModal').modal('hide');
+  } catch (e) {
+    console.error(e);
+    if (errEl) {
+      errEl.textContent = 'Failed to save contact details.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
 }
 
 function populateEditProfileModal() {
@@ -1168,8 +1498,18 @@ function populateEditProfileModal() {
     row && row.name != null && String(row.name).trim() !== ''
       ? String(row.name).trim()
       : profileDisplayNameFromUser(user) || '';
-  handleEl.value =
-    row && row.handle != null ? String(row.handle).replace(/^@+/, '') : '';
+  if (canEditOwnedContactLibrary && !isOwnProfile && row) {
+    const pub =
+      row.profile_handle != null && String(row.profile_handle).trim() !== ''
+        ? String(row.profile_handle).trim().replace(/^@+/, '')
+        : '';
+    handleEl.value =
+      pub ||
+      (row.handle != null ? String(row.handle).replace(/^@+/, '') : '');
+  } else {
+    handleEl.value =
+      row && row.handle != null ? String(row.handle).replace(/^@+/, '') : '';
+  }
   emailEl.value = cachedUserEmail || user.email || '';
   locationEl.value = row && row.location != null ? String(row.location) : '';
 }
@@ -1194,6 +1534,53 @@ async function submitEditProfileForm() {
   if (errEl) errEl.style.display = 'none';
   try {
     submitBtn.disabled = true;
+    if (canEditOwnedContactLibrary && !isOwnProfile && getProfileHandleFromUrl()) {
+      const res = await fetch('/api/contact-library/row', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: cachedUserEmail,
+          person_handle: getProfileHandleFromUrl(),
+          patch: {
+            name: n,
+            location: l,
+            profile_handle: h.replace(/^@+/, '').trim() || null
+          }
+        })
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        /* ignore */
+      }
+      if (res.status === 503) {
+        if (errEl) {
+          errEl.textContent = data.error || 'Profiles require Supabase.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      if (!res.ok) {
+        if (errEl) {
+          errEl.textContent = data.error || 'Failed to save profile.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      cachedProfileRow = shapeContactLibraryProfileRow(data) || cachedProfileRow;
+      cachedWorkRow = cachedProfileRow;
+      cachedFamilyRow = cachedProfileRow;
+      cachedInterestsRow = cachedProfileRow;
+      applyProfileHeaderFromData(cachedAuthUser, cachedProfileRow);
+      renderWithAllFilters();
+      if (window.jQuery) {
+        window.jQuery('#editProfileModal').modal('hide');
+        window.jQuery('#editContactDetailsModal').modal('hide');
+      }
+      return;
+    }
+
     const res = await fetch('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -1313,9 +1700,16 @@ async function loadTasks() {
     setMyProfileNavHref(myPersonHandle);
 
     let profileRow = null;
+    canEditOwnedContactLibrary = false;
     if (hasProfileOrContactHeader()) {
       const urlHandle = getProfileHandleFromUrl();
       if (urlHandle) {
+        const viewedHandle = String(urlHandle).trim().replace(/^@+/, '').toLowerCase();
+        const myHandle = myPersonHandle != null
+          ? String(myPersonHandle).trim().replace(/^@+/, '').toLowerCase()
+          : '';
+        isOwnProfile = !!myHandle && !!viewedHandle && myHandle === viewedHandle;
+
         // profiles.html handle route prefers `contact_library.person_handle` source.
         profileRow = await fetchContactLibraryProfileByPersonHandle(urlHandle);
         if (profileRow) {
@@ -1324,22 +1718,21 @@ async function loadTasks() {
           cachedWorkRow = profileRow;
           cachedFamilyRow = profileRow;
           cachedInterestsRow = profileRow;
-          isOwnProfile = false;
+          const oh =
+            profileRow.owner_handle != null
+              ? String(profileRow.owner_handle).trim().replace(/^@+/, '').toLowerCase()
+              : '';
+          const ph =
+            profileRow.person_handle != null
+              ? String(profileRow.person_handle).trim().replace(/^@+/, '').toLowerCase()
+              : '';
+          canEditOwnedContactLibrary =
+            !!myHandle && !!oh && !!ph && oh === myHandle && ph === viewedHandle;
         } else {
           // Fallback for legacy profile-handle rows from `profiles`.
           cachedProfileFromContactLibrary = false;
           profileRow = await fetchProfileByHandle(urlHandle);
           cachedProfileRow = profileRow;
-          // Determine if the logged-in user owns this profile
-          if (profileRow && profileRow.email) {
-            const normalize = e => {
-              const [local, domain] = e.toLowerCase().split('@');
-              return (local || '').replace(/\./g, '') + '@' + (domain || '');
-            };
-            isOwnProfile = normalize(currentUserEmail) === normalize(profileRow.email);
-          } else {
-            isOwnProfile = false;
-          }
         }
       } else {
         cachedProfileFromContactLibrary = false;
@@ -1378,10 +1771,11 @@ async function loadTasks() {
 
     if (isContactDetailsWorkPage()) {
       await applyContactDetailsPageHeader(authUser, cachedProfileRow);
-      applyProfileEditVisibility(isOwnProfile);
+      applyProfileEditVisibility(isOwnProfile || canEditOwnedContactLibrary);
     } else {
       applyProfileHeaderFromData(authUser, profileRow);
-      applyProfileEditVisibility(isOwnProfile);
+      applyProfileEditVisibility(isOwnProfile || canEditOwnedContactLibrary);
+      applyProfileOwnedContactNotesLayout();
       if (!getProfileHandleFromUrl()) fetchAndDisplayHandle(currentUserEmail);
     }
 
@@ -1395,6 +1789,14 @@ async function loadTasks() {
     loadProfilePageMutualGroups(currentUserEmail);
 
     if (!hasEventsUI) {
+      return;
+    }
+
+    if (isProfileOwnedContactView()) {
+      loadingEl.style.display = 'none';
+      errorEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+      tableEl.style.display = 'none';
       return;
     }
 
@@ -1678,19 +2080,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  ['editProfileModal', 'editContactDetailsModal'].forEach(mid => {
-    const editProfileModalEl = document.getElementById(mid);
-    if (editProfileModalEl && window.jQuery) {
-      window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
-        if (mid === 'editContactDetailsModal') populateEditContactDetailsModal();
-        else populateEditProfileModal();
-      });
+  ['editProfileModal', 'editContactDetailsModal', 'editProfileContactLibraryModal'].forEach(
+    mid => {
+      const editProfileModalEl = document.getElementById(mid);
+      if (editProfileModalEl && window.jQuery) {
+        window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
+          if (mid === 'editContactDetailsModal') populateEditContactDetailsModal();
+          else if (mid === 'editProfileContactLibraryModal') populateEditProfileContactLibraryModal();
+          else populateEditProfileModal();
+        });
+      }
     }
-  });
+  );
   const editProfileSubmit = document.getElementById('edit-profile-submit');
   if (editProfileSubmit) {
     editProfileSubmit.addEventListener('click', function() {
       submitEditProfileForm();
+    });
+  }
+
+  const editProfileContactLibrarySubmit = document.getElementById(
+    'edit-profile-contact-library-submit'
+  );
+  if (editProfileContactLibrarySubmit) {
+    editProfileContactLibrarySubmit.addEventListener('click', function() {
+      submitEditProfileContactLibraryForm();
+    });
+  }
+
+  function openProfileContactLibraryEditModal() {
+    if (!window.jQuery) return;
+    populateEditProfileContactLibraryModal();
+    window.jQuery('#editProfileContactLibraryModal').modal('show');
+  }
+
+  const profileNameEditBtn = document.getElementById('profile-name-edit-btn');
+  if (profileNameEditBtn && window.jQuery) {
+    profileNameEditBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (cachedProfileFromContactLibrary) {
+        openProfileContactLibraryEditModal();
+      } else if (isOwnProfile) {
+        populateEditProfileModal();
+        window.jQuery('#editProfileModal').modal('show');
+      }
+    });
+  }
+
+  const profileContactDetailsEditBtn = document.getElementById('profile-location-edit-btn');
+  if (profileContactDetailsEditBtn && window.jQuery) {
+    profileContactDetailsEditBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (cachedProfileFromContactLibrary) {
+        openProfileContactLibraryEditModal();
+      } else if (isOwnProfile) {
+        populateEditProfileModal();
+        window.jQuery('#editProfileModal').modal('show');
+      }
+    });
+  }
+
+  const profileMyNotesEditBtn = document.getElementById('profile-my-notes-edit-btn');
+  if (profileMyNotesEditBtn && window.jQuery) {
+    profileMyNotesEditBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (cachedProfileFromContactLibrary) {
+        openProfileContactLibraryEditModal();
+      }
     });
   }
 
@@ -1724,6 +2180,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (editWorkSubmit) {
     editWorkSubmit.addEventListener('click', function() {
       submitEditWorkForm();
+    });
+  }
+
+  const editEducationModalEl = document.getElementById('editEducationModal');
+  if (editEducationModalEl && window.jQuery) {
+    window.jQuery(editEducationModalEl).on('show.bs.modal', function() {
+      populateEditEducationModal();
+    });
+  }
+  const editEducationSubmit = document.getElementById('edit-education-submit');
+  if (editEducationSubmit) {
+    editEducationSubmit.addEventListener('click', function() {
+      submitEditEducationForm();
     });
   }
 
@@ -1821,7 +2290,7 @@ function groupPageUrlFromHandle(handleRaw) {
 }
 
 /**
- * contact.html: mutual groups — contact's `group_members.person_handle` matches the URL composite key
+ * profiles.html: mutual groups — contact's `group_members.person_handle` matches the URL composite key
  * and the viewer is `member` or `admin` in the same group; blind member pills omitted for the viewer.
  */
 async function loadContactPageGroupPills(userEmail) {
@@ -1881,8 +2350,9 @@ async function loadProfilePageMutualGroups(userEmail) {
   const urlHandle = getProfileHandleFromUrl();
   const onProfileChrome = !!document.getElementById('profile-display-name');
   if (!onProfileChrome || !urlHandle || isOwnProfile) {
+    cachedProfileMutualGroupsPayload = null;
     block.style.display = 'none';
-    summaryEl.textContent = 'Mutual groups: —';
+    summaryEl.textContent = 'Mutual Groups: —';
     pillsContainer.innerHTML = '';
     wrap.style.display = 'none';
     return;
@@ -1895,36 +2365,66 @@ async function loadProfilePageMutualGroups(userEmail) {
   try {
     const viewerPh = await fetchPersonHandleByEmail(userEmail);
     if (!viewerPh) {
-      summaryEl.textContent = 'Mutual groups: —';
+      cachedProfileMutualGroupsPayload = null;
+      summaryEl.textContent = 'Mutual Groups: —';
       return;
     }
     const res = await fetch(
-      '/api/groups/profile-mutual?person_handle=' +
+      '/api/groups/profile-mutual?user_id=' +
+        encodeURIComponent(userEmail) +
+        '&person_handle=' +
         encodeURIComponent(viewerPh) +
         '&profile_person_handle=' +
         encodeURIComponent(urlHandle)
     );
-    if (!res.ok) return;
+    if (!res.ok) {
+      cachedProfileMutualGroupsPayload = null;
+      return;
+    }
     const payload = await res.json();
-    const profile_groups = Array.isArray(payload.profile_groups) ? payload.profile_groups : [];
+    cachedProfileMutualGroupsPayload = payload;
+    /** `group_members` rows for URL `person_handle`: `{ group_handle, status }[]` */
+    const profile_groups = Array.isArray(payload.profile_groups)
+      ? payload.profile_groups
+      : [];
+    /** `group_handle` values where the logged-in user has status `member` or `admin` */
     const user_groups = Array.isArray(payload.user_groups) ? payload.user_groups : [];
-    const mutual_handles = Array.isArray(payload.mutual_handles) ? payload.mutual_handles : [];
-    console.log('[profiles] profile_groups (group_handle):', profile_groups);
-    console.log('[profiles] user_groups (group_handle):', user_groups);
-    console.log('[profiles] mutual group handles:', mutual_handles);
+    const mutual_handles = Array.isArray(payload.mutual_handles)
+      ? payload.mutual_handles
+      : [];
+    console.log('[profiles] user_groups (viewer person_handle → member or admin only):', user_groups);
+    console.log(
+      '[profiles] profile_groups (URL person_handle → all group_handle + status):',
+      profile_groups
+    );
+    console.log(
+      '[profiles] mutual group_handles (in both user_groups and profile_groups):',
+      mutual_handles
+    );
 
     const sorted = Array.isArray(payload.groups) ? payload.groups : [];
-    if (!sorted.length) {
-      summaryEl.textContent = 'Mutual groups: —';
+    const seenHandles = new Set();
+    const uniqueGroups = [];
+    for (const g of sorted) {
+      const handleRaw =
+        g.group_handle != null ? String(g.group_handle).trim() : '';
+      const gh = handleRaw.replace(/^@+/, '').toLowerCase();
+      if (!gh || seenHandles.has(gh)) continue;
+      seenHandles.add(gh);
+      uniqueGroups.push(g);
+    }
+
+    if (!uniqueGroups.length) {
+      summaryEl.textContent = 'Mutual Groups: —';
       return;
     }
 
-    const names = sorted.map(g => g.group_name).filter(Boolean);
-    summaryEl.textContent = names.length ? 'Mutual groups: ' + names.join(', ') : 'Mutual groups: —';
+    summaryEl.textContent = 'Mutual Groups:';
 
-    for (const group of sorted) {
+    for (const group of uniqueGroups) {
       const name = group.group_name != null ? String(group.group_name).trim() : '';
-      const handleRaw = group.handle != null ? String(group.handle).trim() : '';
+      const handleRaw =
+        group.group_handle != null ? String(group.group_handle).trim() : '';
       if (!name || !handleRaw) continue;
 
       const href = groupPageUrlFromHandle(handleRaw);
@@ -1945,6 +2445,7 @@ async function loadProfilePageMutualGroups(userEmail) {
 
     if (pillsContainer.children.length) wrap.style.display = '';
   } catch (e) {
+    cachedProfileMutualGroupsPayload = null;
     console.error('Error loading profile mutual groups:', e);
   }
 }
@@ -2537,7 +3038,7 @@ async function deleteEventFromModal() {
   }
 }
 
-// ── Work & Education section (profiles.html only) ────────────────────────────
+// ── Work & Education sections (profiles.html: two blocks + modals) ───────────
 
 let cachedWorkRow = null;
 let workSectionLoaded = false;
@@ -2554,7 +3055,9 @@ function showProfileSection(section) {
   const p = isContactDetailsWorkPage() ? 'contact' : 'profile';
   const idMap = {
     notes: p + '-section-notes',
+    'contact-details': p + '-section-contact-details',
     work: p + '-section-work',
+    education: p + '-section-education',
     family: p + '-section-family',
     interests: p + '-section-interests'
   };
@@ -2562,7 +3065,12 @@ function showProfileSection(section) {
   if (target && typeof target.scrollIntoView === 'function') {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  if (section === 'work'      && !workSectionLoaded) loadWorkSection();
+  if (
+    (section === 'work' || section === 'education') &&
+    !workSectionLoaded
+  ) {
+    loadWorkSection();
+  }
   if (section === 'family'    && !familySectionLoaded) loadFamilySection();
   if (section === 'interests' && !interestsSectionLoaded) loadInterestsSection();
 }
@@ -2603,7 +3111,7 @@ function renderWorkSection(row) {
   if (!contentEl) return;
   const emptyMsg = isContactDetailsWorkPage()
     ? '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>'
-    : '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+    : '<p class="text-muted small">No work info yet. Click the pencil to add.</p>';
   if (!row) {
     contentEl.innerHTML = emptyMsg;
     return;
@@ -2616,34 +3124,25 @@ function renderWorkSection(row) {
       workEntryHtml(row['company'+i], row['title'+i], row['start_date'+i], row['end_date'+i], false))
   ].join('');
   if (jobs) {
-    html += isContactDetailsWorkPage()
-      ? jobs
-      : '<h6 class="text-uppercase text-muted small font-weight-bold mb-2">Work</h6>' + jobs;
-  }
-
-  if (!isContactDetailsWorkPage()) {
-    const edu = [1,2,3,4].map(i =>
-      eduEntryHtml(row['education'+i], row['major'+i], row['start_date_edu'+i], row['end_date_edu'+i])
-    ).join('');
-    if (edu) {
-      html += '<h6 class="text-uppercase text-muted small font-weight-bold mb-2 mt-3">Education</h6>' + edu;
-    }
+    html += jobs;
   }
 
   const bottomEmpty = isContactDetailsWorkPage()
     ? '<p class="text-muted small">No work entries on this contact record.</p>'
-    : '<p class="text-muted small">No work or education info yet. Click the pencil to add.</p>';
+    : '<p class="text-muted small">No work info yet. Click the pencil to add.</p>';
   contentEl.innerHTML = html || bottomEmpty;
 }
 
-/** Education block on contact.html only; data from same `contact_details` row as work. */
+/** Education block; data from same row as work (`contact_library` / `contact_details`). */
 function renderEducationSection(row) {
   const contentEl = document.getElementById('education-section-content');
   if (!contentEl) return;
-  const emptyNoRow =
-    '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>';
-  const emptyNoEntries =
-    '<p class="text-muted small">No education entries on this contact record.</p>';
+  const emptyNoRow = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No matching row in <code>contact_details</code> for this owner handle and contact name.</p>'
+    : '<p class="text-muted small">No education info yet. Click the pencil to add.</p>';
+  const emptyNoEntries = isContactDetailsWorkPage()
+    ? '<p class="text-muted small">No education entries on this contact record.</p>'
+    : '<p class="text-muted small">No education info yet. Click the pencil to add.</p>';
   if (!row) {
     contentEl.innerHTML = emptyNoRow;
     return;
@@ -2661,7 +3160,7 @@ function renderEducationSection(row) {
   contentEl.innerHTML = edu || emptyNoEntries;
 }
 
-/** My Private Notes (`contact_details.my_notes`) on contact.html only. */
+/** My Private Notes (`contact_details.my_notes`) on profiles.html only. */
 function renderMyNotesSection(row) {
   const contentEl = document.getElementById('my-notes-section-content');
   if (!contentEl) return;
@@ -2686,6 +3185,7 @@ function renderMyNotesSection(row) {
 
 async function loadWorkSection() {
   const loadingEl = document.getElementById('work-section-loading');
+  const eduLoadingEl = document.getElementById('education-section-loading');
   const errorEl   = document.getElementById('work-section-error');
   const contentEl = document.getElementById('work-section-content');
   const eduContentEl = document.getElementById('education-section-content');
@@ -2698,6 +3198,7 @@ async function loadWorkSection() {
   ) {
     try {
       if (loadingEl) loadingEl.style.display = '';
+      if (eduLoadingEl) eduLoadingEl.style.display = '';
       if (errorEl) errorEl.style.display = 'none';
       cachedFamilyRow = cachedWorkRow;
       cachedInterestsRow = cachedWorkRow;
@@ -2712,6 +3213,7 @@ async function loadWorkSection() {
       }
     } finally {
       if (loadingEl) loadingEl.style.display = 'none';
+      if (eduLoadingEl) eduLoadingEl.style.display = 'none';
       workSectionLoaded = true;
     }
     return;
@@ -2760,6 +3262,7 @@ async function loadWorkSection() {
       cachedInterestsRow = cachedWorkRow;
       try {
         if (loadingEl) loadingEl.style.display = '';
+        if (eduLoadingEl) eduLoadingEl.style.display = '';
         if (errorEl) errorEl.style.display = 'none';
         renderWorkSection(cachedWorkRow);
         renderEducationSection(cachedWorkRow);
@@ -2780,6 +3283,7 @@ async function loadWorkSection() {
         }
       } finally {
         if (loadingEl) loadingEl.style.display = 'none';
+        if (eduLoadingEl) eduLoadingEl.style.display = 'none';
         workSectionLoaded = true;
       }
       return;
@@ -2787,6 +3291,7 @@ async function loadWorkSection() {
 
     try {
       if (loadingEl) loadingEl.style.display = '';
+      if (eduLoadingEl) eduLoadingEl.style.display = '';
       if (errorEl)   errorEl.style.display   = 'none';
 
       const workFetchUrl = buildContactDetailsWorkApiUrl(ownersHandle);
@@ -2813,6 +3318,7 @@ async function loadWorkSection() {
       }
     } finally {
       if (loadingEl) loadingEl.style.display = 'none';
+      if (eduLoadingEl) eduLoadingEl.style.display = 'none';
       workSectionLoaded = true;
     }
     return;
@@ -2820,6 +3326,7 @@ async function loadWorkSection() {
 
   try {
     if (loadingEl) loadingEl.style.display = '';
+    if (eduLoadingEl) eduLoadingEl.style.display = '';
     if (errorEl)   errorEl.style.display   = 'none';
 
     const res = await fetch('/api/profile/work?handle=' + encodeURIComponent(ownersHandle));
@@ -2827,11 +3334,17 @@ async function loadWorkSection() {
     const row = await res.json();
     cachedWorkRow = row;
     renderWorkSection(row);
+    renderEducationSection(row);
   } catch (err) {
     console.error('Error loading work section:', err);
     if (errorEl) { errorEl.textContent = 'Failed to load work data.'; errorEl.style.display = ''; }
+    if (eduContentEl) {
+      eduContentEl.innerHTML =
+        '<p class="text-muted small">Failed to load education data.</p>';
+    }
   } finally {
     if (loadingEl) loadingEl.style.display = 'none';
+    if (eduLoadingEl) eduLoadingEl.style.display = 'none';
     workSectionLoaded = true;
   }
 }
@@ -2846,17 +3359,29 @@ function populateEditWorkModal() {
     'company4','title4','start_date4','end_date4',
     'company5','title5','start_date5','end_date5',
     'company6','title6','start_date6','end_date6',
-    'company7','title7','start_date7','end_date7',
-    'education1','major1','start_date_edu1','end_date_edu1',
-    'education2','major2','start_date_edu2','end_date_edu2',
-    'education3','major3','start_date_edu3','end_date_edu3',
-    'education4','major4','start_date_edu4','end_date_edu4'
+    'company7','title7','start_date7','end_date7'
   ];
   fields.forEach(key => {
     const el = document.getElementById('ew-' + key);
     if (el) el.value = row[key] != null ? String(row[key]) : '';
   });
   const errEl = document.getElementById('edit-work-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+}
+
+function populateEditEducationModal() {
+  const row = cachedWorkRow || {};
+  const fields = [
+    'education1','major1','start_date_edu1','end_date_edu1',
+    'education2','major2','start_date_edu2','end_date_edu2',
+    'education3','major3','start_date_edu3','end_date_edu3',
+    'education4','major4','start_date_edu4','end_date_edu4'
+  ];
+  fields.forEach(key => {
+    const el = document.getElementById('ee-' + key);
+    if (el) el.value = row[key] != null ? String(row[key]) : '';
+  });
+  const errEl = document.getElementById('edit-education-error');
   if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
 }
 
@@ -3065,11 +3590,7 @@ async function submitEditWorkForm() {
     'company4','title4','start_date4','end_date4',
     'company5','title5','start_date5','end_date5',
     'company6','title6','start_date6','end_date6',
-    'company7','title7','start_date7','end_date7',
-    'education1','major1','start_date_edu1','end_date_edu1',
-    'education2','major2','start_date_edu2','end_date_edu2',
-    'education3','major3','start_date_edu3','end_date_edu3',
-    'education4','major4','start_date_edu4','end_date_edu4'
+    'company7','title7','start_date7','end_date7'
   ];
   const workFields = {};
   keys.forEach(key => {
@@ -3098,6 +3619,32 @@ async function submitEditWorkForm() {
       if (!res.ok) throw new Error(data.error || 'Failed to save');
       await applySavedContactDetailsRow(data);
       if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
+    } else if (
+      cachedProfileFromContactLibrary &&
+      canEditOwnedContactLibrary &&
+      !isOwnProfile &&
+      getProfileHandleFromUrl()
+    ) {
+      const res = await fetch('/api/contact-library/row', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: cachedUserEmail,
+          person_handle: getProfileHandleFromUrl(),
+          patch: workFields
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      const shaped = shapeContactLibraryProfileRow(data);
+      cachedWorkRow = shaped;
+      cachedProfileRow = shaped;
+      cachedFamilyRow = shaped;
+      cachedInterestsRow = shaped;
+      workSectionLoaded = false;
+      renderWorkSection(shaped);
+      renderEducationSection(shaped);
+      if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
     } else {
       const res = await fetch('/api/profile/work', {
         method: 'PUT',
@@ -3109,10 +3656,97 @@ async function submitEditWorkForm() {
       cachedWorkRow = data;
       workSectionLoaded = false;
       renderWorkSection(data);
+      renderEducationSection(data);
       if (window.jQuery) window.jQuery('#editWorkModal').modal('hide');
     }
   } catch (err) {
     console.error('Error saving work:', err);
+    if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+async function submitEditEducationForm() {
+  const errEl     = document.getElementById('edit-education-error');
+  const submitBtn = document.getElementById('edit-education-submit');
+  if (!cachedUserEmail || !submitBtn) return;
+
+  const keys = [
+    'education1','major1','start_date_edu1','end_date_edu1',
+    'education2','major2','start_date_edu2','end_date_edu2',
+    'education3','major3','start_date_edu3','end_date_edu3',
+    'education4','major4','start_date_edu4','end_date_edu4'
+  ];
+  const eduFields = {};
+  keys.forEach(key => {
+    const el = document.getElementById('ee-' + key);
+    eduFields[key] = el ? el.value.trim() || null : null;
+  });
+
+  if (errEl) errEl.style.display = 'none';
+  try {
+    submitBtn.disabled = true;
+    if (isContactDetailsWorkPage()) {
+      const ownersHandle =
+        cachedProfileRow && cachedProfileRow.handle
+          ? String(cachedProfileRow.handle).trim().replace(/^@+/, '')
+          : '';
+      const lookup = getContactNameForContactDetailsPage();
+      if (!ownersHandle || !lookup) {
+        throw new Error('Owner handle and contact name are required.');
+      }
+      const res = await fetch('/api/contact-details', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildContactDetailsRequestBody(eduFields))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      await applySavedContactDetailsRow(data);
+      if (window.jQuery) window.jQuery('#editEducationModal').modal('hide');
+    } else if (
+      cachedProfileFromContactLibrary &&
+      canEditOwnedContactLibrary &&
+      !isOwnProfile &&
+      getProfileHandleFromUrl()
+    ) {
+      const res = await fetch('/api/contact-library/row', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: cachedUserEmail,
+          person_handle: getProfileHandleFromUrl(),
+          patch: eduFields
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      const shaped = shapeContactLibraryProfileRow(data);
+      cachedWorkRow = shaped;
+      cachedProfileRow = shaped;
+      cachedFamilyRow = shaped;
+      cachedInterestsRow = shaped;
+      workSectionLoaded = false;
+      renderWorkSection(shaped);
+      renderEducationSection(shaped);
+      if (window.jQuery) window.jQuery('#editEducationModal').modal('hide');
+    } else {
+      const res = await fetch('/api/profile/work', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: cachedUserEmail, ...eduFields })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      cachedWorkRow = data;
+      workSectionLoaded = false;
+      renderWorkSection(data);
+      renderEducationSection(data);
+      if (window.jQuery) window.jQuery('#editEducationModal').modal('hide');
+    }
+  } catch (err) {
+    console.error('Error saving education:', err);
     if (errEl) { errEl.textContent = err.message || 'Failed to save.'; errEl.style.display = ''; }
   } finally {
     submitBtn.disabled = false;
@@ -3315,6 +3949,31 @@ async function submitEditFamilyForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Failed to save');
       await applySavedContactDetailsRow(data);
+      if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
+    } else if (
+      cachedProfileFromContactLibrary &&
+      canEditOwnedContactLibrary &&
+      !isOwnProfile &&
+      getProfileHandleFromUrl()
+    ) {
+      const res = await fetch('/api/contact-library/row', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: cachedUserEmail,
+          person_handle: getProfileHandleFromUrl(),
+          patch: familyFields
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      const shaped = shapeContactLibraryProfileRow(data);
+      cachedFamilyRow = shaped;
+      cachedProfileRow = shaped;
+      cachedWorkRow = shaped;
+      cachedInterestsRow = shaped;
+      familySectionLoaded = false;
+      renderFamilySection(shaped);
       if (window.jQuery) window.jQuery('#editFamilyModal').modal('hide');
     } else {
       const res = await fetch('/api/profile/family', {
@@ -3524,6 +4183,31 @@ async function submitEditInterestsForm() {
       if (!res.ok) throw new Error(data.error || 'Failed to save');
       await applySavedContactDetailsRow(data);
       if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
+    } else if (
+      cachedProfileFromContactLibrary &&
+      canEditOwnedContactLibrary &&
+      !isOwnProfile &&
+      getProfileHandleFromUrl()
+    ) {
+      const res = await fetch('/api/contact-library/row', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: cachedUserEmail,
+          person_handle: getProfileHandleFromUrl(),
+          patch: interestFields
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      const shaped = shapeContactLibraryProfileRow(data);
+      cachedInterestsRow = shaped;
+      cachedProfileRow = shaped;
+      cachedWorkRow = shaped;
+      cachedFamilyRow = shaped;
+      interestsSectionLoaded = false;
+      renderInterestsSection(shaped);
+      if (window.jQuery) window.jQuery('#editInterestsModal').modal('hide');
     } else {
       const res = await fetch('/api/profile/interests', {
         method: 'PUT',
@@ -3565,6 +4249,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('tasks-tbody');
   if (tbody) {
     tbody.addEventListener('click', function(e) {
+      if (e.target.closest('.profiles-events-who-avatar-link')) return;
       const tr = e.target.closest('tr');
       if (!tr || !tr.classList.contains('events-table-row')) return;
       const id = tr.dataset.eventId;

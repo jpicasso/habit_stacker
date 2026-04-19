@@ -405,9 +405,19 @@ app.get(['/events/@:handle', '/events/@:handle/profiles.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'events', 'profiles.html'));
 });
 
-// Contact record page: /events/contact/{owners_handle}_{contactNameSlug} (same key as contact_photos stem)
+// Legacy contact page URLs now redirect to profiles page.
+app.get('/events/contact.html', (req, res) => {
+  res.redirect('/events/profiles.html');
+});
+
 app.get('/events/contact/:pathKey', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'events', 'contact.html'));
+  const raw = String(req.params.pathKey || '').trim();
+  const ownerHandle = raw.split('_')[0] || '';
+  const normalized = ownerHandle.replace(/^@+/, '').toLowerCase();
+  if (normalized) {
+    return res.redirect('/events/@' + encodeURIComponent(normalized));
+  }
+  return res.redirect('/events/profiles.html');
 });
 
 // Group page: /events/group/@collegefriends_johnpicasso (handle in path segment)
@@ -519,6 +529,44 @@ app.get('/api/contact-library/by-person-handle', async (req, res) => {
       return res.json(null);
     }
     res.status(500).json({ error: error.message || 'Failed to fetch contact library row' });
+  }
+});
+
+/**
+ * Patch a `contact_library` row when `owner_handle` matches the logged-in user's `person_handle`
+ * and `person_handle` matches the row being edited (see `updateContactLibraryOwnedRow`).
+ */
+app.put('/api/contact-library/row', async (req, res) => {
+  try {
+    if (!supabaseProfiles.isConfigured()) {
+      return res.status(503).json({ error: 'Profiles require Supabase' });
+    }
+    const { user_id, person_handle, patch } = req.body || {};
+    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
+      return res.status(400).json({ error: 'user_id is required' });
+    }
+    if (!person_handle || typeof person_handle !== 'string' || !String(person_handle).trim()) {
+      return res.status(400).json({ error: 'person_handle is required' });
+    }
+    if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+      return res.status(400).json({ error: 'patch object is required' });
+    }
+    const row = await supabaseProfiles.updateContactLibraryOwnedRow(
+      user_id.trim(),
+      String(person_handle).trim(),
+      patch
+    );
+    res.json(row);
+  } catch (error) {
+    console.error('Error updating contact_library row:', error);
+    const code = error && error.statusCode;
+    if (code === 403) {
+      return res.status(403).json({ error: error.message || 'Forbidden' });
+    }
+    if (code === 404) {
+      return res.status(404).json({ error: error.message || 'Not found' });
+    }
+    res.status(500).json({ error: error.message || 'Failed to update contact library row' });
   }
 });
 
@@ -926,7 +974,7 @@ app.put('/api/profile/interests', async (req, res) => {
 
 // --- Groups API (Supabase `group_members` + `groups` tables) ---
 
-/** Resolve `group_name` by handle: `group_details` first (`handle` matches URL, often without `@`), then legacy `groups`. */
+/** Resolve `group_name` by handle: `group_details` first (`handle` matches URL, often without `@`), then `groups` (`group_handle`). */
 app.get('/api/groups/by-handle', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured()) {
@@ -947,7 +995,7 @@ app.get('/api/groups/by-handle', async (req, res) => {
   }
 });
 
-/** All `group_members` rows whose `group_handle` matches the URL handle (`groups.handle`). Optional `user_id` (email) enriches with `contact_name` from the viewer's `contact_details`. */
+/** All `group_members` rows whose `group_handle` matches the URL (`groups.group_handle`). Optional `user_id` (email) enriches with `contact_name` from the viewer's `contact_details`. */
 app.get('/api/groups/members-by-group-handle', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured()) {
@@ -988,7 +1036,7 @@ app.get('/api/groups/connections', async (req, res) => {
 /**
  * Batch: for each `person_handles` value (matches `group_members.person_handle`), returns
  * `group_names` and `group_handles` from `group_members` (active member statuses only);
- * names are resolved via `groups.handle`.
+ * names are resolved via `groups.group_name` / `groups.group_handle`.
  */
 app.post('/api/groups/group-names-by-person-handles', async (req, res) => {
   try {
@@ -1430,7 +1478,10 @@ app.get('/api/groups', async (req, res) => {
   }
 });
 
-/** Profile page: `group_members` intersection (profile vs viewer) + `groups.group_name` for mutual handles. */
+/**
+ * Profile page: `profile_groups` = `{ group_handle, status }[]` for URL person_handle;
+ * `user_groups` = handles where viewer is `member` or `admin`; intersection → names + `groups[].status` for pills.
+ */
 app.get('/api/groups/profile-mutual', async (req, res) => {
   try {
     if (!supabaseGroups.isConfigured()) {

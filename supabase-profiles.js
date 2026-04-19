@@ -450,8 +450,12 @@ async function upsertWorkProfile(email, workFields) {
 
   const update = {};
   for (const key of WORK_UPDATE_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(workFields, key)) continue;
     const val = workFields[key];
     update[key] = val != null && String(val).trim() !== '' ? String(val).trim() : null;
+  }
+  if (Object.keys(update).length === 0) {
+    return getWorkProfileByHandle(ph);
   }
   const { data, error } = await supabase
     .from('contact_library')
@@ -548,6 +552,84 @@ async function upsertInterestsProfile(email, interestFields) {
     .eq('person_handle', ph)
     .select(INTERESTS_SELECT_FIELDS)
     .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
+const CONTACT_LIBRARY_OWNER_PATCH_KEYS = new Set([
+  'name',
+  'location',
+  'profile_handle',
+  'cell',
+  'other_phone',
+  'work_email',
+  'personal_email',
+  'home_address',
+  'my_notes',
+  'last_contact',
+  'next_contact',
+  'birthday',
+  ...WORK_UPDATE_KEYS,
+  ...FAMILY_UPDATE_KEYS,
+  ...INTERESTS_UPDATE_KEYS
+]);
+
+/**
+ * Patch one `contact_library` row when the viewer's `person_handle` matches `owner_handle`
+ * and the row is keyed by `subjectPersonHandle` (`person_handle` column).
+ * @param {string} userEmail
+ * @param {string} subjectPersonHandle
+ * @param {object} patch
+ * @returns {Promise<object|null>}
+ */
+async function updateContactLibraryOwnedRow(userEmail, subjectPersonHandle, patch) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const viewerPh = await personHandleForEmailFromSecurityHandles(userEmail);
+  if (!viewerPh) throw new Error('No person_handle in security_handles for this email');
+  const subjPh = normalizeHandleToken(subjectPersonHandle);
+  if (!subjPh) throw new Error('person_handle is required');
+
+  const existing = await getContactLibraryRowByPersonHandle(subjPh);
+  if (!existing) {
+    const err = new Error('Contact not found');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (normalizeHandleToken(existing.owner_handle) !== viewerPh) {
+    const err = new Error('Forbidden');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  const update = {};
+  for (const [k, v] of Object.entries(patch || {})) {
+    if (!CONTACT_LIBRARY_OWNER_PATCH_KEYS.has(k)) continue;
+    if (v === undefined) continue;
+    if (v === null) {
+      update[k] = null;
+      continue;
+    }
+    if (typeof v === 'string') {
+      const t = v.trim();
+      update[k] = t === '' ? null : t;
+      continue;
+    }
+    update[k] = v;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return getContactLibraryRowByPersonHandle(subjPh);
+  }
+
+  const { data, error } = await supabase
+    .from('contact_library')
+    .update(update)
+    .eq('person_handle', subjPh)
+    .eq('owner_handle', viewerPh)
+    .select()
+    .maybeSingle();
+
   if (error) throw error;
   return data || null;
 }
@@ -1403,6 +1485,7 @@ module.exports = {
   getContactLibraryNamesByPersonHandles,
   listContactLibraryByOwnerHandle,
   getContactLibraryRowByPersonHandle,
+  updateContactLibraryOwnedRow,
   upsertProfile,
   getWorkProfileByHandle,
   getWorkProfileByEmail,

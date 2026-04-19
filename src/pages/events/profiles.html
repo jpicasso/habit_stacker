@@ -8,8 +8,8 @@ aboutNav: true
 
 <link rel="stylesheet" href="/events/events.css">
 
-<main class="main main--interior">
-  <div class="i-section mb-4">
+<main class="main main--interior profiles-page-tight">
+  <div class="i-section mb-0">
     <div class="container-fluid">
       <div class="row">
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
@@ -21,7 +21,7 @@ aboutNav: true
           <!-- Protected content (hidden by default) -->
           <div id="private-content" style="display: none;">
             <!-- Event Management Section -->
-            <div class="mt-5">
+            <div>
             
           <!-- View / edit event (opened by clicking a table row) -->
           <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
@@ -78,36 +78,33 @@ aboutNav: true
           </div>
 
               <!-- Profile header (profiles page only) -->
-              <div class="profile-page-header mb-4">
+              <div class="profile-page-header mb-2">
                 <div class="d-flex align-items-start">
                   <div class="profile-avatar-wrap mr-3 position-relative">
                     <img id="profile-user-photo" class="rounded-circle profile-avatar-img" width="72" height="72" alt="">
                     <button type="button" id="profile-photo-edit-btn" class="btn btn-sm btn-light border shadow-sm position-absolute" aria-label="Edit profile photo">Edit</button>
                     <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
                   </div>
-                  <div class="flex-grow-1 min-w-0 pt-1">
+                  <div class="flex-grow-1 min-w-0 pt-0">
                     <div class="d-flex align-items-center profile-name-row mb-1 flex-wrap">
                       <h2 id="profile-display-name" class="h4 mb-0 text-break font-weight-normal"></h2>
-                      <button type="button" id="profile-name-edit-btn" class="btn btn-link p-0 border-0" data-toggle="modal" data-target="#editProfileModal" aria-label="Edit profile">
+                      <button type="button" id="profile-name-edit-btn" class="btn btn-link p-0 border-0" aria-label="Edit profile">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                           <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                         </svg>
                       </button>
                     </div>
                     <div id="profile-user-handle" class="text-muted small mb-1 text-break"></div>
-                    <div id="profile-user-email" class="text-muted small mb-2 text-break"></div>
-                    <div id="profile-mutual-groups-block" class="mb-2" style="display: none;">
-                      <div id="profile-mutual-groups-summary" class="text-muted small text-break mb-1">Mutual groups: —</div>
-                      <div id="profile-mutual-groups-wrap" style="display: none;" aria-label="Mutual groups">
-                        <div id="profile-mutual-groups-pills" class="d-flex flex-wrap align-items-center"></div>
+                    <div id="profile-user-email" class="text-muted small mb-1 text-break"></div>
+                    <div id="profile-mutual-groups-block" class="mb-1" style="display: none;">
+                      <div id="profile-mutual-groups-summary" class="text-muted small mb-1">Mutual Groups: —</div>
+                      <div id="profile-mutual-groups-wrap" style="display: none;" aria-label="Mutual Groups">
+                        <div id="profile-mutual-groups-pills" class="d-flex flex-wrap align-items-center" role="navigation"></div>
                       </div>
                     </div>
-                    <div id="profile-location-line" class="text-muted small mb-3">Location: —</div>
-                    <div class="mb-3 d-flex flex-wrap align-items-center" id="profile-section-pills" role="navigation" aria-label="Profile sections">
-                      <button type="button" class="btn btn-sm btn-primary profile-section-btn mr-1 mb-1" data-section="notes" style="border-radius: 2rem;">My notes</button>
-                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="work" style="border-radius: 2rem;">Work/School</button>
-                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="family" style="border-radius: 2rem;">Family</button>
-                      <button type="button" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="interests" style="border-radius: 2rem;">Interests</button>
+                    <div id="profile-cell-line" class="text-muted small mb-1">Cell: —</div>
+                    <div class="mb-1 d-flex flex-wrap align-items-center" id="profile-section-pills" role="navigation" aria-label="Profile sections">
+                      <button type="button" id="profile-contact-details-pill" class="btn btn-sm btn-outline-primary profile-section-btn mr-1 mb-1" data-section="contact-details" style="border-radius: 2rem;">Contact Details</button>
                     </div>
                   </div>
                 </div>
@@ -115,13 +112,26 @@ aboutNav: true
 
               <div id="profile-section-notes">
 
-              <!-- Advanced filters (no "Who" on profiles) -->
-              <div id="events-advanced-filters" class="mb-3 px-3 py-2 bg-light rounded border">
-                <div class="d-flex flex-nowrap align-items-end flex-wrap">
+              <!-- Shown when viewing a contact_library row you own (URL person_handle = contact, owner_handle = you) -->
+              <div id="profile-owned-contact-private-notes" class="mb-2" style="display: none;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h5 class="mb-0">My Private Notes</h5>
+                  <button type="button" id="profile-my-notes-edit-btn" class="btn btn-link p-0 border-0 text-muted" aria-label="Edit private notes">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div id="profile-my-private-notes-content" class="small text-body" style="white-space: pre-wrap; word-break: break-word;"></div>
+              </div>
 
-                  <!-- Date filter -->
-                  <div class="mr-3 mb-2">
-                    <div class="small font-weight-bold text-muted mb-1">Event Date</div>
+              <div id="profile-events-stack">
+              <!-- Advanced filters + Add Event (single row on profiles) -->
+              <div class="mb-2 d-flex flex-nowrap align-items-end profile-events-toolbar">
+                <div id="events-advanced-filters" class="flex-grow-1 min-w-0 px-2 py-1 bg-light rounded border d-flex flex-nowrap align-items-end overflow-auto">
+                  <!-- Date filter: label + dropdowns on one line -->
+                  <div class="mr-3 flex-shrink-0 d-flex flex-nowrap align-items-center">
+                    <span class="small font-weight-bold text-muted text-nowrap mr-2 mb-0">Event Date</span>
                     <div class="d-flex align-items-center flex-nowrap">
                       <select id="date-filter-type" class="form-control form-control-sm mr-1" style="width: auto;">
                         <option value="">Any date</option>
@@ -135,9 +145,9 @@ aboutNav: true
                     </div>
                   </div>
 
-                  <!-- Type filter -->
-                  <div class="mr-3 mb-2">
-                    <div class="small font-weight-bold text-muted mb-1">Type</div>
+                  <!-- Type filter: label + dropdown on one line -->
+                  <div class="mr-3 flex-shrink-0 d-flex flex-nowrap align-items-center">
+                    <span class="small font-weight-bold text-muted text-nowrap mr-2 mb-0">Type</span>
                     <select id="type-filter" class="form-control form-control-sm" style="width: auto;">
                       <option value="">All</option>
                       <option value="Life">Life</option>
@@ -146,23 +156,20 @@ aboutNav: true
                   </div>
 
                   <!-- Clear -->
-                  <div class="ml-auto mb-2">
+                  <div class="flex-shrink-0">
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-adv-filters-btn">Clear</button>
                   </div>
-
+                </div>
+                <div class="flex-shrink-0 ml-2">
+                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addEventModal">
+                    + Add Event
+                  </button>
                 </div>
               </div>
 
-              <!-- Add Event button -->
-              <div class="mb-3 text-right">
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addEventModal">
-                  + Add Event
-                </button>
-              </div>
-
               <!-- Events table -->
-              <div class="mb-4">
-                <div id="tasks-loading" class="text-center py-3">
+              <div class="mb-2">
+                <div id="tasks-loading" class="text-center py-2">
                   <div class="spinner-border" role="status">
                     <span class="sr-only">Loading...</span>
                   </div>
@@ -170,15 +177,12 @@ aboutNav: true
                 <div id="tasks-error" class="alert alert-danger" style="display: none;"></div>
                 <div id="tasks-empty" class="alert alert-info" style="display: none;">No events yet. Click "+ Add Event" to create one.</div>
                 <div class="table-responsive">
-                  <table class="table table-striped table-hover events-table" id="tasks-table" style="display: none;">
+                  <table class="table table-hover events-table profiles-events-table" id="tasks-table" style="display: none;">
                     <thead>
                       <tr>
                         <th>Event</th>
                         <th style="width: 130px;">Event Date</th>
-                        <th style="width: 100px;">Type</th>
                         <th class="events-col-who">Who</th>
-                        <th class="events-col-shared">Shared</th>
-                        <th class="events-col-owner">Owner</th>
                       </tr>
                     </thead>
                     <tbody id="tasks-tbody">
@@ -188,29 +192,68 @@ aboutNav: true
                 </div>
               </div>
 
+              </div><!-- /#profile-events-stack -->
+
               </div><!-- /#profile-section-notes -->
 
-              <!-- Work & Education section -->
-              <div id="profile-section-work" class="profile-page-section border-top pt-4 mt-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+              <!-- Contact Details: location, emails, address (IDs unchanged for JS) -->
+              <div id="profile-section-contact-details" class="profile-page-section border-top pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h5 class="mb-0">Contact Details</h5>
+                  <button type="button" id="profile-location-edit-btn" class="btn btn-link p-0 border-0 text-muted"
+                    aria-label="Edit contact details">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div id="profile-location-line" class="text-muted small mb-1">
+                  <span id="profile-location-value">Location: —</span>
+                </div>
+                <div id="profile-work-email-line" class="text-muted small mb-1">Work Email: —</div>
+                <div id="profile-personal-email-line" class="text-muted small mb-1">Personal Email: —</div>
+                <div id="profile-home-address-line" class="text-muted small mb-0">Home Address: —</div>
+              </div><!-- /#profile-section-contact-details -->
+
+              <!-- Work section -->
+              <div id="profile-section-work" class="profile-page-section border-top pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <h5 class="mb-0">Work</h5>
                   <button type="button" id="work-section-edit-btn" class="btn btn-link p-0 border-0 text-muted"
-                    data-toggle="modal" data-target="#editWorkModal" aria-label="Edit work &amp; education">
+                    data-toggle="modal" data-target="#editWorkModal" aria-label="Edit work">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                     </svg>
                   </button>
                 </div>
-                <div id="work-section-loading" style="display:none;" class="text-center py-3">
+                <div id="work-section-loading" style="display:none;" class="text-center py-2">
                   <div class="spinner-border spinner-border-sm" role="status"><span class="sr-only">Loading…</span></div>
                 </div>
                 <div id="work-section-error" class="alert alert-danger" style="display:none;"></div>
                 <div id="work-section-content"></div>
               </div><!-- /#profile-section-work -->
 
+              <!-- Education section -->
+              <div id="profile-section-education" class="profile-page-section border-top pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h5 class="mb-0">Education</h5>
+                  <button type="button" id="education-section-edit-btn" class="btn btn-link p-0 border-0 text-muted"
+                    data-toggle="modal" data-target="#editEducationModal" aria-label="Edit education">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div id="education-section-loading" style="display:none;" class="text-center py-2">
+                  <div class="spinner-border spinner-border-sm" role="status"><span class="sr-only">Loading…</span></div>
+                </div>
+                <div id="education-section-error" class="alert alert-danger" style="display:none;"></div>
+                <div id="education-section-content"></div>
+              </div><!-- /#profile-section-education -->
+
               <!-- Family section -->
-              <div id="profile-section-family" class="profile-page-section border-top pt-4 mt-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+              <div id="profile-section-family" class="profile-page-section border-top pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <h5 class="mb-0">Family</h5>
                   <button type="button" id="family-section-edit-btn" class="btn btn-link p-0 border-0 text-muted"
                     data-toggle="modal" data-target="#editFamilyModal" aria-label="Edit family">
@@ -219,7 +262,7 @@ aboutNav: true
                     </svg>
                   </button>
                 </div>
-                <div id="family-section-loading" style="display:none;" class="text-center py-3">
+                <div id="family-section-loading" style="display:none;" class="text-center py-2">
                   <div class="spinner-border spinner-border-sm" role="status"><span class="sr-only">Loading…</span></div>
                 </div>
                 <div id="family-section-error" class="alert alert-danger" style="display:none;"></div>
@@ -227,8 +270,8 @@ aboutNav: true
               </div><!-- /#profile-section-family -->
 
               <!-- Interests section -->
-              <div id="profile-section-interests" class="profile-page-section border-top pt-4 mt-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+              <div id="profile-section-interests" class="profile-page-section border-top pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <h5 class="mb-0">Interests</h5>
                   <button type="button" id="interests-section-edit-btn" class="btn btn-link p-0 border-0 text-muted"
                     data-toggle="modal" data-target="#editInterestsModal" aria-label="Edit interests">
@@ -237,7 +280,7 @@ aboutNav: true
                     </svg>
                   </button>
                 </div>
-                <div id="interests-section-loading" style="display:none;" class="text-center py-3">
+                <div id="interests-section-loading" style="display:none;" class="text-center py-2">
                   <div class="spinner-border spinner-border-sm" role="status"><span class="sr-only">Loading…</span></div>
                 </div>
                 <div id="interests-section-error" class="alert alert-danger" style="display:none;"></div>
@@ -343,12 +386,81 @@ aboutNav: true
   </div>
 </div>
 
-<!-- Edit Work & Education -->
+<!-- Contact Details (`contact_library` fields) — opened from Contact Details pencil when profile is loaded from contact_library -->
+<div class="modal fade" id="editProfileContactLibraryModal" tabindex="-1" role="dialog" aria-labelledby="editProfileContactLibraryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProfileContactLibraryModalLabel">Contact Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-profile-contact-library-form" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="pcd-person_handle">Person handle</label>
+              <input type="text" class="form-control" id="pcd-person_handle" readonly tabindex="-1">
+            </div>
+            <div class="form-group col-md-6">
+              <label for="pcd-name">Name</label>
+              <input type="text" class="form-control" id="pcd-name" readonly tabindex="-1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pcd-profile_handle">Profile handle</label>
+            <input type="text" class="form-control" id="pcd-profile_handle" autocomplete="username" placeholder="Public profile handle">
+          </div>
+          <div class="form-group">
+            <label for="pcd-my_notes">My notes</label>
+            <textarea class="form-control" id="pcd-my_notes" rows="4" placeholder="Private notes"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="pcd-cell">Cell</label>
+              <input type="text" class="form-control" id="pcd-cell" autocomplete="tel">
+            </div>
+            <div class="form-group col-md-6">
+              <label for="pcd-other_phone">Other phone</label>
+              <input type="text" class="form-control" id="pcd-other_phone" autocomplete="tel">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="pcd-work_email">Work email</label>
+              <input type="email" class="form-control" id="pcd-work_email" autocomplete="email">
+            </div>
+            <div class="form-group col-md-6">
+              <label for="pcd-personal_email">Personal email</label>
+              <input type="email" class="form-control" id="pcd-personal_email" autocomplete="email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pcd-location">Location</label>
+            <input type="text" class="form-control" id="pcd-location" autocomplete="address-level2" placeholder="City, State">
+          </div>
+          <div class="form-group mb-0">
+            <label for="pcd-home_address">Home address</label>
+            <input type="text" class="form-control" id="pcd-home_address" autocomplete="street-address">
+          </div>
+        </form>
+        <div id="pcd-error" class="alert alert-danger mt-3 mb-0" style="display: none;" role="alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="edit-profile-contact-library-submit">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Work -->
 <div class="modal fade" id="editWorkModal" tabindex="-1" role="dialog" aria-labelledby="editWorkModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editWorkModalLabel">Edit Work &amp; Education</h5>
+        <h5 class="modal-title" id="editWorkModalLabel">Edit Work</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
@@ -374,22 +486,41 @@ aboutNav: true
           <div class="form-row"><div class="form-group col-sm-5"><label class="small">Company</label><input type="text" class="form-control form-control-sm" id="ew-company6"></div><div class="form-group col-sm-4"><label class="small">Title</label><input type="text" class="form-control form-control-sm" id="ew-title6"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date6"></div></div>
           <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date6"></div></div>
           <div class="form-row"><div class="form-group col-sm-5"><label class="small">Company</label><input type="text" class="form-control form-control-sm" id="ew-company7"></div><div class="form-group col-sm-4"><label class="small">Title</label><input type="text" class="form-control form-control-sm" id="ew-title7"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date7"></div></div>
-          <div class="form-row mb-3"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date7"></div></div>
-
-          <h6 class="text-uppercase text-muted small font-weight-bold mb-2">Education</h6>
-          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ew-education1"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ew-major1"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date_edu1"></div></div>
-          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date_edu1"></div></div>
-          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ew-education2"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ew-major2"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date_edu2"></div></div>
-          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date_edu2"></div></div>
-          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ew-education3"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ew-major3"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date_edu3"></div></div>
-          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date_edu3"></div></div>
-          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ew-education4"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ew-major4"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ew-start_date_edu4"></div></div>
-          <div class="form-row mb-0"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date_edu4"></div></div>
+          <div class="form-row mb-0"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ew-end_date7"></div></div>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="edit-work-submit">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Education -->
+<div class="modal fade" id="editEducationModal" tabindex="-1" role="dialog" aria-labelledby="editEducationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editEducationModalLabel">Edit Education</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div id="edit-education-error" class="alert alert-danger mb-3" style="display:none;" role="alert"></div>
+        <form id="edit-education-form" onsubmit="return false;">
+          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ee-education1"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ee-major1"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ee-start_date_edu1"></div></div>
+          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ee-end_date_edu1"></div></div>
+          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ee-education2"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ee-major2"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ee-start_date_edu2"></div></div>
+          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ee-end_date_edu2"></div></div>
+          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ee-education3"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ee-major3"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ee-start_date_edu3"></div></div>
+          <div class="form-row mb-2"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ee-end_date_edu3"></div></div>
+          <div class="form-row"><div class="form-group col-sm-5"><label class="small">School</label><input type="text" class="form-control form-control-sm" id="ee-education4"></div><div class="form-group col-sm-4"><label class="small">Major</label><input type="text" class="form-control form-control-sm" id="ee-major4"></div><div class="form-group col-sm-3"><label class="small">Start</label><input type="date" class="form-control form-control-sm" id="ee-start_date_edu4"></div></div>
+          <div class="form-row mb-0"><div class="form-group col-sm-3 offset-sm-9 mb-0"><label class="small">End</label><input type="date" class="form-control form-control-sm" id="ee-end_date_edu4"></div></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="edit-education-submit">Save</button>
       </div>
     </div>
   </div>

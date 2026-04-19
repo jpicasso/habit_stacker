@@ -18,6 +18,34 @@
   box-sizing: border-box;
 }
 
+/* Profiles events table: row tint by type (Type column hidden on profiles only) */
+#tasks-table.profiles-events-table tbody tr.profiles-events-row-life {
+  background-color: #e3f2fd;
+}
+#tasks-table.profiles-events-table tbody tr.profiles-events-row-default {
+  background-color: #fff;
+}
+#tasks-table.profiles-events-table.table-hover tbody tr.profiles-events-row-life:hover {
+  background-color: #d4eafc;
+}
+#tasks-table.profiles-events-table.table-hover tbody tr.profiles-events-row-default:hover {
+  background-color: #f8f9fa;
+}
+
+/* Profiles: Who column = wrapping avatar row (Shared / Owner hidden on profiles only) */
+#tasks-table.profiles-events-table th.events-col-who,
+#tasks-table.profiles-events-table td.events-col-who.profiles-events-who-cell {
+  width: auto;
+  max-width: none;
+  min-width: 6rem;
+  white-space: normal;
+  vertical-align: middle;
+}
+#tasks-table.profiles-events-table .profiles-events-who-avatars {
+  gap: 0.15rem 0;
+  max-width: 100%;
+}
+
 
 /* ------------------------------------------------------------
    Profile page header
@@ -58,7 +86,7 @@
   color: #007bff;
 }
 
-/* Contact record page header (contact.html) */
+/* Contact record page header (profiles.html) */
 .contact-page-header .contact-avatar-wrap {
   flex-shrink: 0;
 }
@@ -94,7 +122,7 @@
   color: #007bff;
 }
 
-/* contact.html — dense vertical layout (font sizes unchanged) */
+/* profiles.html — dense vertical layout (font sizes unchanged) */
 main.contact-page-compact .contact-compact-line {
   margin-bottom: 0.1rem;
   line-height: 1.25;
@@ -250,6 +278,25 @@ img.groups-list-admin-avatar {
   scroll-margin-top: 1rem;
 }
 
+/* profiles.html — reduce vertical gaps (main content only) */
+main.profiles-page-tight .profile-page-section {
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  scroll-margin-top: 0.5rem;
+}
+
+main.profiles-page-tight #profile-section-notes {
+  scroll-margin-top: 0.5rem;
+}
+
+main.profiles-page-tight .content {
+  padding-top: 0.5rem;
+}
+
+main.profiles-page-tight .profile-page-header .text-muted.small {
+  line-height: 1.35;
+}
+
 /* Friends / contact list — thumbnails from `contact_photos` bucket */
 img.friends-list-contact-photo {
   width: 36px;
@@ -263,8 +310,9 @@ a.friends-name-link:hover .text-primary {
   text-decoration: underline !important;
 }
 
-/* contact.html — logged-in viewer’s group shortcuts (member vs blind member) */
-#contact-my-groups-pills a.contact-my-group-pill {
+/* profiles.html / contact — mutual group pill nav (member vs blind member) */
+#contact-my-groups-pills a.contact-my-group-pill,
+#profile-mutual-groups-pills a.contact-my-group-pill {
   border-radius: 2rem;
   font-size: 0.875rem;
   padding: 0.25rem 0.75rem;
@@ -274,26 +322,71 @@ a.friends-name-link:hover .text-primary {
   border: 1px solid transparent;
 }
 
-#contact-my-groups-pills a.contact-my-group-pill--member {
+#contact-my-groups-pills a.contact-my-group-pill--member,
+#profile-mutual-groups-pills a.contact-my-group-pill--member {
   background: #e9ecef;
   color: #212529;
   border-color: #ced4da;
 }
 
 #contact-my-groups-pills a.contact-my-group-pill--member:hover,
-#contact-my-groups-pills a.contact-my-group-pill--member:focus {
+#contact-my-groups-pills a.contact-my-group-pill--member:focus,
+#profile-mutual-groups-pills a.contact-my-group-pill--member:hover,
+#profile-mutual-groups-pills a.contact-my-group-pill--member:focus {
   background: #dee2e6;
   color: #121416;
 }
 
-#contact-my-groups-pills a.contact-my-group-pill--blind {
+#contact-my-groups-pills a.contact-my-group-pill--blind,
+#profile-mutual-groups-pills a.contact-my-group-pill--blind {
   background: #495057;
   color: #f8f9fa;
   border-color: #343a40;
 }
 
 #contact-my-groups-pills a.contact-my-group-pill--blind:hover,
-#contact-my-groups-pills a.contact-my-group-pill--blind:focus {
+#contact-my-groups-pills a.contact-my-group-pill--blind:focus,
+#profile-mutual-groups-pills a.contact-my-group-pill--blind:hover,
+#profile-mutual-groups-pills a.contact-my-group-pill--blind:focus {
   background: #343a40;
   color: #fff;
+}
+
+/* profiles.html — mutual groups: blue pill when contact is member/admin; light grey when blind member */
+#profile-mutual-groups-pills a.contact-my-group-pill--member {
+  background: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}
+
+#profile-mutual-groups-pills a.contact-my-group-pill--member:hover,
+#profile-mutual-groups-pills a.contact-my-group-pill--member:focus {
+  background: #0b5ed7;
+  color: #fff;
+  border-color: #0a58ca;
+}
+
+#profile-mutual-groups-pills a.contact-my-group-pill--blind {
+  background: #e9ecef;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+#profile-mutual-groups-pills a.contact-my-group-pill--blind:hover,
+#profile-mutual-groups-pills a.contact-my-group-pill--blind:focus {
+  background: #dee2e6;
+  color: #495057;
+  border-color: #ced4da;
+}
+
+/* life_events.html — pills + Event Date + Type + Who + Clear + Add on one row */
+.life-events-toolbar .life-events-who-filter {
+  min-width: 0;
+  flex: 1 1 10rem;
+  max-width: 24rem;
+}
+
+.life-events-toolbar .life-events-who-input {
+  min-width: 8rem;
+  flex: 1 1 auto;
 }

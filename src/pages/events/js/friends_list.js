@@ -87,7 +87,7 @@ const LIST_CONTACT_PHOTO_PLACEHOLDER =
   );
 
 /**
- * Resolve public URLs from bucket `contact_photos` via API (same as contact.html).
+ * Resolve public URLs from bucket `contact_photos` via API (same as profiles.html).
  */
 async function hydrateFriendsListContactPhotos(tbodyEl, ownersHandle) {
   if (!tbodyEl || !ownersHandle) return;
@@ -235,31 +235,26 @@ function contactDisplayNameToUrlSlug(name) {
 }
 
 /**
- * Contact record URL: `/events/contact/{owners_handle}_{contactNameSlug}` (matches `contact_photos` stem).
- * @param {string} name Display name (`contact_details.contact_name`)
+ * Contact list row now links to profiles page.
+ * @param {string} _name Display name (unused for profile URL)
  * @param {string} ownersHandle Profile handle (`contact_details.owners_handle`)
  */
-function contactPageHrefForListName(name, ownersHandle) {
-  const cn = String(name || '').trim();
+function contactPageHrefForListName(_name, ownersHandle) {
   const oh = String(ownersHandle || '')
     .trim()
     .replace(/^@+/, '')
     .toLowerCase();
-  if (!oh || !cn) {
-    return '/events/contact.html?contact_name=' + encodeURIComponent(cn);
-  }
-  return (
-    '/events/contact/' + encodeURIComponent(oh + '_' + contactDisplayNameToUrlSlug(cn))
-  );
+  if (!oh) return '/events/profiles.html';
+  return '/events/@' + encodeURIComponent(oh);
 }
 
-/** Group member row → `/events/contact/<person_handle>` (same stem as `contact_details.handle`). */
+/** Group member row -> `/events/@<person_handle>`. */
 function contactPageHrefForPersonHandle(personHandle) {
   const raw = String(personHandle || '')
     .trim()
     .replace(/^@+/, '');
-  if (!raw) return '/events/contact_library.html';
-  return '/events/contact/' + encodeURIComponent(raw);
+  if (!raw) return '/events/profiles.html';
+  return '/events/@' + encodeURIComponent(raw);
 }
 
 /** Public profile page from `profiles.handle`, e.g. `/events/@picasso20` (see server `/events/@:handle`). */
@@ -271,7 +266,7 @@ function profilePageUrlFromHandle(handleRaw) {
   return '/events/@' + encodeURIComponent(noAt);
 }
 
-/** Group page URL from `groups.handle` / `group_members.group_handle` (see `/events/group/@…`). */
+/** Group page URL from `groups.group_handle` / `group_members.group_handle` (see `/events/group/@…`). */
 function groupPageUrlFromHandle(handleRaw) {
   const h = handleRaw != null ? String(handleRaw).trim() : '';
   if (!h) return '';

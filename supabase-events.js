@@ -131,7 +131,7 @@ async function getUserGroupsMap(userId) {
     .select('group_name, visibility')
     .in('group_handle', handles);
   if (e2) {
-    // Some schemas no longer have `groups.handle`; skip group-expansion rather than fail /api/events.
+    // Schema mismatch on `groups`; skip group-expansion rather than fail /api/events.
     if (isSchemaError(e2)) return new Map();
     throw e2;
   }

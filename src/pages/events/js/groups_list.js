@@ -289,9 +289,10 @@ async function loadGroups(email) {
       const visibilityCell = row.visibility
         ? escapeHtml(String(row.visibility))
         : '<span class="text-muted">—</span>';
-      const handleRaw = row.handle != null && String(row.handle).trim()
-        ? String(row.handle).trim()
-        : '';
+      const handleRaw =
+        row.group_handle != null && String(row.group_handle).trim()
+          ? String(row.group_handle).trim()
+          : '';
       const handleCell = handleRaw
         ? escapeHtml(formatGroupHandleForDisplay(handleRaw))
         : '<span class="text-muted">—</span>';
