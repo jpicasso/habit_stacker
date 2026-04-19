@@ -3,7 +3,7 @@
  *
  * Table: `groups` — group_name, owner, visibility, group_handle (public slug for URLs / FK from group_members)
  * Table: `group_details` — display metadata for group pages: `group_name`, `handle` (matches URL segment after `/events/group/`; DB value is usually without `@`, e.g. `collegefriends_johnpicasso` for `@collegefriends_johnpicasso`)
- * Table: `group_members` — `group_handle` (matches `groups.group_handle`), person_handle, status (no `group_name`; title lives on `groups` only)
+ * Table: `group_members` — `group_handle` (matches `groups.group_handle`), person_handle, status (values include: admin, member, blind member)
  *
  * Admins are rows in group_members where status = 'admin'.
  *
@@ -1415,26 +1415,23 @@ async function removeGroupMemberByGroupHandleAndPersonHandle({
   const ph = normalizePersonHandle(person_handle);
   if (!ph) throw new Error('person_handle is required');
 
-  const candidates = groupHandleCandidates(groupHandleRaw);
-  const candNorm = [...new Set(candidates.map(c => normalizeGroupHandle(c)).filter(Boolean))];
-
-  const r1 = await supabase
-    .from('group_members')
-    .delete()
-    .in('group_handle', candNorm)
-    .ilike('person_handle', ph)
-    .select('id');
-
-  if (r1.error) {
-    const msg = String(r1.error.message || '').toLowerCase();
-    const missingCol =
-      msg.includes('group_handle') && (msg.includes('does not exist') || r1.error.code === '42703');
-    if (!missingCol) throw r1.error;
-  } else if (r1.data && r1.data.length) {
-    return { ok: true };
+  const rows = await loadGroupMemberRowsCore(supabase, groupHandleRaw, groupRow);
+  const matches = rows.filter(r => normalizePersonHandle(r.person_handle) === ph);
+  if (!matches.length) {
+    throw Object.assign(new Error('Membership not found'), { status: 404 });
   }
-
-  throw Object.assign(new Error('Membership not found'), { status: 404 });
+  const ids = matches.map(r => r.id).filter(id => id != null);
+  if (!ids.length) {
+    throw Object.assign(new Error('Membership not found'), { status: 404 });
+  }
+  const { error } = await supabase.from('group_members').delete().in('id', ids);
+  if (error) {
+    const msg = String(error.message || '').toLowerCase();
+    const missingCol =
+      msg.includes('group_handle') && (msg.includes('does not exist') || error.code === '42703');
+    if (!missingCol) throw error;
+  }
+  return { ok: true };
 }
 
 /**
@@ -1583,17 +1580,11 @@ async function getGroupRowByHandle(handleRaw) {
 }
 
 /**
- * All `group_members` for this group (`group_handle` matches URL / `groups.group_handle`).
- * When `viewerUserId` is set, rows may include `contact_name` from `contact_details` (viewer's address book).
- * Rows without a contact match get `profile_name` from `profiles.handle` = `person_handle`.
- * `display_name` / `display_status` append `, contact` or `, friend` to the stored `status` for the UI.
+ * Raw `group_members` rows for a group URL segment — same handle resolution as the members list
+ * (try normalized URL candidates, then canonical slug from `groupRow` when the first query is empty).
  */
-async function listMembersRowsByGroupHandle(handleRaw, viewerUserId) {
-  const supabase = getClient();
-  if (!supabase) throw new Error('Supabase not configured');
-  const groupRow = await getGroupRowByHandle(handleRaw);
+async function loadGroupMemberRowsCore(supabase, handleRaw, groupRow) {
   const candidates = groupHandleCandidates(handleRaw);
-
   const candNorm = [...new Set(candidates.map(c => normalizeGroupHandle(c)).filter(Boolean))];
   const r1 = await supabase
     .from('group_members')
@@ -1627,6 +1618,21 @@ async function listMembersRowsByGroupHandle(handleRaw, viewerUserId) {
       rows = r2.data || [];
     }
   }
+
+  return rows;
+}
+
+/**
+ * All `group_members` for this group (`group_handle` matches URL / `groups.group_handle`).
+ * When `viewerUserId` is set, rows may include `contact_name` from `contact_details` (viewer's address book).
+ * Rows without a contact match get `profile_name` from `profiles.handle` = `person_handle`.
+ * `display_name` / `display_status` append `, contact` or `, friend` to the stored `status` for the UI.
+ */
+async function listMembersRowsByGroupHandle(handleRaw, viewerUserId) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const groupRow = await getGroupRowByHandle(handleRaw);
+  let rows = await loadGroupMemberRowsCore(supabase, handleRaw, groupRow);
 
   const uid = normalizeEmail(viewerUserId);
   if (rows.length && supabaseProfiles.isConfigured()) {
