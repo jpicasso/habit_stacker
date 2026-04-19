@@ -53,20 +53,37 @@ function normalizeGroupHandle(s) {
   return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
 }
 
+/** Slug column on `public.groups` (FK target for `group_members.group_handle`). Prod uses `group_handle`. */
+const GROUPS_SLUG_COL = 'group_handle';
+
+function groupSlugFromGroupsRow(g) {
+  if (!g) return '';
+  const v =
+    g[GROUPS_SLUG_COL] != null ? g[GROUPS_SLUG_COL] : g.handle != null ? g.handle : '';
+  return v !== '' && v != null ? normalizeGroupHandle(String(v)) : '';
+}
+
 /**
- * Resolves normalized `groups.handle` from display `groups.group_name`.
+ * Resolves normalized group slug from display `groups.group_name`.
  */
 async function getGroupHandleForGroupName(supabase, groupName) {
   const gn = (groupName || '').trim();
   if (!gn) return null;
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('groups')
-    .select('handle')
+    .select(GROUPS_SLUG_COL)
     .eq('group_name', gn)
     .maybeSingle();
-  if (error) throw error;
-  if (!data || data.handle == null || !String(data.handle).trim()) return null;
-  return normalizeGroupHandle(data.handle);
+  if (error && error.code === '42703') {
+    const r2 = await supabase.from('groups').select('handle').eq('group_name', gn).maybeSingle();
+    if (r2.error) throw r2.error;
+    data = r2.data;
+    error = null;
+  } else if (error) {
+    throw error;
+  }
+  const slug = data ? groupSlugFromGroupsRow(data) : '';
+  return slug || null;
 }
 
 /**
@@ -78,10 +95,13 @@ async function groupNamesForHandlesMap(supabase, handlesNorm) {
   const uniq = [...new Set((handlesNorm || []).map(h => normalizeGroupHandle(h)).filter(Boolean))];
   const map = new Map();
   if (!uniq.length) return map;
-  const { data, error } = await supabase.from('groups').select('group_name, handle').in('handle', uniq);
+  const { data, error } = await supabase
+    .from('groups')
+    .select(`group_name, ${GROUPS_SLUG_COL}`)
+    .in(GROUPS_SLUG_COL, uniq);
   if (error) throw error;
   for (const g of data || []) {
-    const h = g.handle != null ? normalizeGroupHandle(g.handle) : '';
+    const h = groupSlugFromGroupsRow(g);
     if (h && g.group_name != null && String(g.group_name).trim() !== '') {
       map.set(h, String(g.group_name).trim());
     }
@@ -151,7 +171,11 @@ async function allocateUniqueGroupHandle(supabase, baseHandle) {
   const seed = alphanumericHandleSegment(baseHandle) || 'group';
   for (let i = 0; i < 100; i++) {
     const candidate = i === 0 ? seed : `${seed}${i + 1}`;
-    const g = await supabase.from('groups').select('group_name').eq('handle', candidate).maybeSingle();
+    const g = await supabase
+      .from('groups')
+      .select('group_name')
+      .eq(GROUPS_SLUG_COL, candidate)
+      .maybeSingle();
     if (g.error) {
       const msg = String(g.error.message || '').toLowerCase();
       const missingCol =
@@ -213,17 +237,17 @@ async function resolvePersonHandleForGroupRow(token) {
 const MEMBER_STATUSES = ['member', 'blind member', 'admin'];
 
 /**
- * Returns group_member rows where person_handle matches the user's public handle AND status IN MEMBER_STATUSES,
+ * Returns group_member rows where person_handle matches the viewer's public handle AND status IN MEMBER_STATUSES,
  * plus admin_list (person_handles with status admin) and is_admin flag.
+ *
+ * @param {string} viewerPhRaw normalized `person_handle` (no @)
  */
-async function listGroupsForUser(userId) {
+async function listGroupsForViewerPersonHandle(viewerPhRaw) {
+  const viewerPh = normalizePersonHandle(viewerPhRaw);
+  if (!viewerPh) return [];
+
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
-  const uid = normalizeEmail(userId);
-  if (!uid) return [];
-
-  const viewerPh = await personHandleForUserEmail(uid);
-  if (!viewerPh) return [];
 
   const { data: memberRows, error: e1 } = await supabase
     .from('group_members')
@@ -244,8 +268,8 @@ async function listGroupsForUser(userId) {
 
   const { data: groupsResult } = await supabase
     .from('groups')
-    .select('group_name, visibility, handle')
-    .in('handle', distinctHandles);
+    .select(`group_name, visibility, ${GROUPS_SLUG_COL}`)
+    .in(GROUPS_SLUG_COL, distinctHandles);
   const visibilityMap = {};
   /** @type {Record<string, string|null>} */
   const visibilityByHandle = {};
@@ -253,7 +277,7 @@ async function listGroupsForUser(userId) {
   const handleMapByGn = {};
   for (const g of groupsResult || []) {
     const gn = g.group_name != null ? String(g.group_name).trim() : '';
-    const h = g.handle != null ? normalizeGroupHandle(g.handle) : '';
+    const h = groupSlugFromGroupsRow(g);
     if (h) visibilityByHandle[h] = g.visibility != null ? g.visibility : null;
     if (gn && h) {
       visibilityMap[gn] = g.visibility || null;
@@ -381,6 +405,14 @@ async function listGroupsForUser(userId) {
   });
 }
 
+async function listGroupsForUser(userId) {
+  const uid = normalizeEmail(userId);
+  if (!uid) return [];
+  const viewerPh = await personHandleForUserEmail(uid);
+  if (!viewerPh) return [];
+  return listGroupsForViewerPersonHandle(viewerPh);
+}
+
 /** Viewer must be `member` or `admin` (not `blind member`) for contact-page mutual group pills. */
 const VIEWER_CONTACT_PAGE_STATUSES = ['member', 'admin'];
 
@@ -390,7 +422,19 @@ const VIEWER_CONTACT_PAGE_STATUSES = ['member', 'admin'];
  * - the viewer has status in {@link VIEWER_CONTACT_PAGE_STATUSES} for that `group_handle`.
  */
 async function listGroupsForContactPage(viewerUserId, contactPersonHandle) {
-  const all = await listGroupsForUser(viewerUserId);
+  const uid = normalizeEmail(viewerUserId);
+  if (!uid) return [];
+  const viewerPh = await personHandleForUserEmail(uid);
+  if (!viewerPh) return [];
+  return listGroupsForContactPageForViewerPh(viewerPh, contactPersonHandle);
+}
+
+/**
+ * Same as {@link listGroupsForContactPage} but the viewer is identified by normalized `person_handle`
+ * (not derived from email).
+ */
+async function listGroupsForContactPageForViewerPh(viewerPh, contactPersonHandle) {
+  const all = await listGroupsForViewerPersonHandle(viewerPh);
   const contactPh = normalizePersonHandle(contactPersonHandle);
   if (!contactPh || !all.length) return [];
 
@@ -422,6 +466,93 @@ async function listGroupsForContactPage(viewerUserId, contactPersonHandle) {
   return viewerMemberOrAdmin.filter(row =>
     contactSet.has(normalizeGroupHandle(row.group_handle))
   );
+}
+
+/**
+ * Profiles page: `group_handle` lists from `group_members` (MEMBER_STATUSES) for the profile
+ * `person_handle` vs the viewer's resolved `person_handle`, their intersection, and display rows.
+ *
+ * @returns {Promise<{
+ *   profile_groups: string[],
+ *   user_groups: string[],
+ *   mutual_handles: string[],
+ *   groups: { handle: string, group_name: string, status: string }[]
+ * }>}
+ */
+async function listProfileMutualGroupsByPersonHandles(viewerUserId, profilePersonHandle, viewerPersonHandleOpt) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  const profilePh = normalizePersonHandle(profilePersonHandle);
+  let viewerPh;
+  if (viewerPersonHandleOpt != null && String(viewerPersonHandleOpt).trim() !== '') {
+    viewerPh = normalizePersonHandle(viewerPersonHandleOpt);
+  } else {
+    viewerPh = await personHandleForUserEmail(
+      typeof viewerUserId === 'string' ? viewerUserId : ''
+    );
+  }
+  if (!profilePh || !viewerPh) {
+    return { profile_groups: [], user_groups: [], mutual_handles: [], groups: [] };
+  }
+
+  async function groupHandlesForPerson(ph) {
+    const { data, error } = await supabase
+      .from('group_members')
+      .select('group_handle')
+      .ilike('person_handle', ph)
+      .in('status', MEMBER_STATUSES);
+    if (error) throw error;
+    const raw = [
+      ...new Set((data || []).map(r => normalizeGroupHandle(r.group_handle)).filter(Boolean))
+    ];
+    raw.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    return raw;
+  }
+
+  const [profile_groups, user_groups] = await Promise.all([
+    groupHandlesForPerson(profilePh),
+    groupHandlesForPerson(viewerPh)
+  ]);
+
+  const userSet = new Set(user_groups);
+  const mutual_handles = profile_groups.filter(h => userSet.has(h));
+
+  if (!mutual_handles.length) {
+    return { profile_groups, user_groups, mutual_handles: [], groups: [] };
+  }
+
+  const nameByHandle = await groupNamesForHandlesMap(supabase, mutual_handles);
+  const { data: viewerRows, error: vErr } = await supabase
+    .from('group_members')
+    .select('group_handle, status')
+    .ilike('person_handle', viewerPh)
+    .in('group_handle', mutual_handles)
+    .in('status', MEMBER_STATUSES);
+  if (vErr) throw vErr;
+
+  const statusByGh = new Map();
+  for (const r of viewerRows || []) {
+    const gh = normalizeGroupHandle(r.group_handle);
+    if (!gh) continue;
+    if (!statusByGh.has(gh)) statusByGh.set(gh, r.status != null ? String(r.status).trim() : '');
+  }
+
+  /** @type {{ handle: string, group_name: string, status: string }[]} */
+  const groups = mutual_handles.map(gh => {
+    const gnRaw = nameByHandle.get(gh);
+    const displayName =
+      gnRaw != null && String(gnRaw).trim() !== '' ? String(gnRaw).trim() : gh;
+    return {
+      handle: gh,
+      group_name: displayName,
+      status: statusByGh.get(gh) || 'member'
+    };
+  });
+  groups.sort((a, b) =>
+    String(a.group_name).localeCompare(String(b.group_name), undefined, { sensitivity: 'base' })
+  );
+
+  return { profile_groups, user_groups, mutual_handles, groups };
 }
 
 /**
@@ -586,15 +717,19 @@ async function createGroup({ group_name, visibility, owner, admins, invited_memb
   const baseRow = { group_name: name, visibility: visibility || null, owner: ownerEmail };
   let { error: groupErr } = await supabase
     .from('groups')
-    .insert({ ...baseRow, handle: storedHandle });
+    .insert({ ...baseRow, [GROUPS_SLUG_COL]: storedHandle });
   if (groupErr) {
     const msg = String(groupErr.message || '').toLowerCase();
-    const missingHandleCol =
-      msg.includes('handle') && (msg.includes('does not exist') || groupErr.code === '42703');
-    if (missingHandleCol) {
-      storedHandle = null;
-      const r2 = await supabase.from('groups').insert(baseRow);
-      if (r2.error) throw r2.error;
+    const missingSlug =
+      (msg.includes('group_handle') || msg.includes('handle')) &&
+      (msg.includes('does not exist') || groupErr.code === '42703');
+    if (missingSlug) {
+      const rAlt = await supabase.from('groups').insert({ ...baseRow, handle: storedHandle });
+      if (rAlt.error) {
+        storedHandle = null;
+        const r2 = await supabase.from('groups').insert(baseRow);
+        if (r2.error) throw r2.error;
+      }
     } else {
       throw groupErr;
     }
@@ -892,13 +1027,13 @@ async function getConnectionsForUser(userId) {
 
   const { data: ownedRows, error: eOwned } = await supabase
     .from('groups')
-    .select('group_name, handle, visibility, owner')
+    .select(`group_name, ${GROUPS_SLUG_COL}, visibility, owner`)
     .ilike('owner', uid);
   if (eOwned) throw eOwned;
   const ownedHandles = [
     ...new Set(
       (ownedRows || [])
-        .map(r => normalizeGroupHandle(r.handle))
+        .map(r => groupSlugFromGroupsRow(r))
         .filter(Boolean)
     )
   ];
@@ -907,12 +1042,12 @@ async function getConnectionsForUser(userId) {
   if (userHandles.length) {
     const { data: groupRows, error: e2 } = await supabase
       .from('groups')
-      .select('group_name, visibility, handle')
-      .in('handle', userHandles);
+      .select(`group_name, visibility, ${GROUPS_SLUG_COL}`)
+      .in(GROUPS_SLUG_COL, userHandles);
     if (e2) throw e2;
     memberOnlyHandles = (groupRows || [])
       .filter(g => isMembersOnlyVisibility(g.visibility))
-      .map(g => normalizeGroupHandle(g.handle))
+      .map(g => groupSlugFromGroupsRow(g))
       .filter(Boolean);
   }
 
@@ -928,12 +1063,12 @@ async function getConnectionsForUser(userId) {
 
   const { data: groupMetaRows, error: eMeta } = await supabase
     .from('groups')
-    .select('group_name, owner, handle')
-    .in('handle', relevantHandles);
+    .select(`group_name, owner, ${GROUPS_SLUG_COL}`)
+    .in(GROUPS_SLUG_COL, relevantHandles);
   if (eMeta) throw eMeta;
   const groupMetaByHandle = new Map();
   for (const g of groupMetaRows || []) {
-    const h = g.handle != null ? normalizeGroupHandle(g.handle) : '';
+    const h = groupSlugFromGroupsRow(g);
     if (h) groupMetaByHandle.set(h, g);
   }
 
@@ -1441,11 +1576,14 @@ async function getGroupRowByHandle(handleRaw) {
     return rGd.data[0];
   }
 
-  const r1 = await supabase.from('groups').select('*').in('handle', candidates).limit(1);
+  const r1 = await supabase.from('groups').select('*').in(GROUPS_SLUG_COL, candidates).limit(1);
   if (r1.error) {
     const msg = String(r1.error.message || '').toLowerCase();
     const missingCol = msg.includes('handle') && (msg.includes('does not exist') || r1.error.code === '42703');
     if (!missingCol) throw r1.error;
+    const r1b = await supabase.from('groups').select('*').in('handle', candidates).limit(1);
+    if (r1b.error) throw r1b.error;
+    if (r1b.data && r1b.data.length) return r1b.data[0];
   } else if (r1.data && r1.data.length) {
     return r1.data[0];
   }
@@ -1465,9 +1603,14 @@ async function getGroupRowByHandle(handleRaw) {
     } else if (gm.data && gm.data.length) {
       const ghw = normalizeGroupHandle(gm.data[0].group_handle);
       if (ghw) {
-        const rGx = await supabase.from('groups').select('*').eq('handle', ghw).limit(1);
-        if (rGx.error) throw rGx.error;
-        if (rGx.data && rGx.data.length) return rGx.data[0];
+        const rGx = await supabase.from('groups').select('*').eq(GROUPS_SLUG_COL, ghw).limit(1);
+        if (rGx.error) {
+          const rGxb = await supabase.from('groups').select('*').eq('handle', ghw).limit(1);
+          if (rGxb.error) throw rGxb.error;
+          if (rGxb.data && rGxb.data.length) return rGxb.data[0];
+        } else if (rGx.data && rGx.data.length) {
+          return rGx.data[0];
+        }
         const rGd3 = await supabase.from('group_details').select('*').eq('handle', ghw).limit(1);
         if (!rGd3.error && rGd3.data && rGd3.data.length) return rGd3.data[0];
       }
@@ -1506,15 +1649,17 @@ async function listMembersRowsByGroupHandle(handleRaw, viewerUserId) {
     if (!missingCol) throw r1.error;
   }
 
-  if (!rows.length && groupRow && groupRow.handle != null && String(groupRow.handle).trim()) {
-    const gh = normalizeGroupHandle(groupRow.handle);
-    const r2 = await supabase
-      .from('group_members')
-      .select('id, status, person_handle, group_handle')
-      .eq('group_handle', gh)
-      .order('person_handle', { ascending: true });
-    if (r2.error) throw r2.error;
-    rows = r2.data || [];
+  if (!rows.length && groupRow) {
+    const gh = groupSlugFromGroupsRow(groupRow);
+    if (gh) {
+      const r2 = await supabase
+        .from('group_members')
+        .select('id, status, person_handle, group_handle')
+        .eq('group_handle', gh)
+        .order('person_handle', { ascending: true });
+      if (r2.error) throw r2.error;
+      rows = r2.data || [];
+    }
   }
 
   const uid = normalizeEmail(viewerUserId);
@@ -1542,7 +1687,10 @@ module.exports = {
   isConfigured,
   personHandleForUserEmail,
   listGroupsForUser,
+  listGroupsForViewerPersonHandle,
   listGroupsForContactPage,
+  listGroupsForContactPageForViewerPh,
+  listProfileMutualGroupsByPersonHandles,
   listGroupNamesByPersonHandles,
   listGroupNamesAndHandlesByPersonHandles,
   listInvitesForUser,

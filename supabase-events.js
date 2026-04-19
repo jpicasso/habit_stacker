@@ -26,6 +26,19 @@ function normalizeUserId(s) {
   return s != null ? String(s).trim().toLowerCase() : '';
 }
 
+function isSchemaError(error) {
+  if (!error) return false;
+  const code = error.code || '';
+  const msg = String(error.message || '').toLowerCase();
+  return (
+    code === '42P01' ||
+    code === '42703' ||
+    code === 'PGRST200' ||
+    /does not exist/i.test(msg) ||
+    /schema cache/i.test(msg)
+  );
+}
+
 /** Normalize handle or email token for comparison (lowercase, no leading @). */
 function normalizeOwnerToken(s) {
   return s != null ? String(s).trim().replace(/^@+/, '').toLowerCase() : '';
@@ -59,14 +72,17 @@ function parseSharedTokens(shared) {
 }
 
 /** True if userId is included in shared (string, comma list, JSON array, or substring fallback). */
-function userInSharedField(shared, userId) {
-  const u = normalizeUserId(userId);
-  if (!u) return false;
+function userInSharedField(shared, viewerHandle, viewerEmail) {
+  const h = normalizeOwnerToken(viewerHandle);
+  const e = normalizeUserId(viewerEmail);
+  if (!h && !e) return false;
   if (shared == null || shared === '') return false;
   const tokens = parseSharedTokens(shared);
-  if (tokens.map(t => t.toLowerCase()).includes(u)) return true;
+  const normalized = tokens.map(t => normalizeOwnerToken(t));
+  if ((h && normalized.includes(h)) || (e && normalized.includes(e))) return true;
   // substring fallback for legacy data
-  return String(shared).toLowerCase().includes(u);
+  const raw = String(shared).toLowerCase();
+  return (h && raw.includes(h)) || (e && raw.includes(e));
 }
 
 async function rowVisibleForUser(row, userEmail) {
@@ -74,7 +90,8 @@ async function rowVisibleForUser(row, userEmail) {
   if (!uid) return false;
   const viewerPh = await supabaseGroups.personHandleForUserEmail(uid);
   return (
-    userInOwnerField(row.owner, viewerPh, uid) || userInSharedField(row.shared, uid)
+    userInOwnerField(row.owner, viewerPh, uid) ||
+    userInSharedField(row.shared, viewerPh, uid)
   );
 }
 
@@ -95,7 +112,10 @@ async function getUserGroupsMap(userId) {
     .select('group_handle')
     .ilike('person_handle', viewerPh)
     .in('status', ['member', 'blind member', 'admin']);
-  if (e1) throw e1;
+  if (e1) {
+    if (isSchemaError(e1)) return new Map();
+    throw e1;
+  }
 
   const handles = [
     ...new Set(
@@ -109,8 +129,12 @@ async function getUserGroupsMap(userId) {
   const { data: groupRows, error: e2 } = await supabase
     .from('groups')
     .select('group_name, visibility')
-    .in('handle', handles);
-  if (e2) throw e2;
+    .in('group_handle', handles);
+  if (e2) {
+    // Some schemas no longer have `groups.handle`; skip group-expansion rather than fail /api/events.
+    if (isSchemaError(e2)) return new Map();
+    throw e2;
+  }
 
   const map = new Map();
   for (const g of (groupRows || [])) {
@@ -147,12 +171,13 @@ function transformSharedForDisplay(shared, userEmail, groupsMap) {
   );
 
   const uid = normalizeUserId(userEmail);
+  const fallbackLocal = uid && uid.includes('@') ? uid.split('@')[0] : uid;
   let changed = false;
   const transformed = tokens.map(token => {
     const entry = lowerMap.get(token.toLowerCase());
     if (entry && entry.visibility && entry.visibility.toLowerCase() === 'only me') {
       changed = true;
-      return uid; // viewer sees their own email, not the private group name
+      return fallbackLocal || uid; // viewer sees own person-handle style token
     }
     return token;
   });
@@ -203,7 +228,7 @@ async function getEventsForUser(userId) {
   const visible = rows.filter(
     row =>
       userInOwnerField(row.owner, viewerPh, uid) ||
-      userInSharedField(row.shared, uid) ||
+      userInSharedField(row.shared, viewerPh, uid) ||
       userInSharedViaGroup(row.shared, groupsMap)
   );
 

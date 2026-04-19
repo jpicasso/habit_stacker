@@ -138,11 +138,24 @@ var cachedProfileFromContactLibrary = false;
 var cachedAuthUser = null;
 
 /**
- * Returns true if the comma/newline-separated `field` value contains `email`.
+ * True if comma/newline-separated field contains token (person_handle or legacy email).
  */
-function fieldContainsEmail(field, email) {
-  if (!field || !email) return false;
-  return String(field).toLowerCase().split(/[\s,;]+/).some(e => e.trim() === email.toLowerCase());
+function fieldContainsToken(field, token) {
+  if (!field || !token) return false;
+  const needle = normalizeEventOwnerToken(token);
+  if (!needle) return false;
+  return String(field)
+    .split(/[\s,;\n]+/)
+    .map(t => normalizeEventOwnerToken(t))
+    .filter(Boolean)
+    .some(t => t === needle);
+}
+
+/** shared/who can contain person_handle tokens (preferred) or legacy emails. */
+function fieldContainsViewerToken(field, viewerEmail, viewerHandle) {
+  const h = normalizeEventOwnerToken(viewerHandle);
+  const e = normalizeEventOwnerToken(viewerEmail);
+  return (h && fieldContainsToken(field, h)) || (e && fieldContainsToken(field, e));
 }
 
 /**
@@ -154,7 +167,7 @@ function whoFieldReferencesProfileName(who, profileName) {
   if (!p) return false;
   const w = String(who);
   if (p.includes('@')) {
-    return fieldContainsEmail(w, p) || w.toLowerCase().includes(p.toLowerCase());
+    return fieldContainsToken(w, p) || w.toLowerCase().includes(p.toLowerCase());
   }
   return w.toLowerCase().includes(p.toLowerCase());
 }
@@ -175,25 +188,28 @@ function ownerFieldMatchesViewer(owner, userEmail, viewerHandle) {
 }
 
 /**
- * Profiles page:
- * - `who` includes profile display name AND `shared` lists the logged-in user, OR
- * - `who` includes the profile person's email AND `owner` is the viewer (handle or legacy email).
+ * Profiles page (`/events/@person_handle`):
+ * - `events.who` contains the URL handle token, and
+ * - logged-in viewer handle appears in `owner` or `shared`.
  */
-function applyProfilePageEventFilter(tasks, profileName, profileEmail, viewerEmail) {
+function applyProfilePageEventFilter(tasks, _profileName, _profileEmail, viewerEmail) {
   const viewer = (viewerEmail || '').toLowerCase().trim();
-  const name = (profileName || '').trim();
-  const profileEm = (profileEmail || '').trim();
-  if (!viewer) return [];
-  if (!name && !profileEm) return [];
+  const viewedHandle = normalizeEventOwnerToken(getProfileHandleFromUrl());
+  if (!viewer || !viewedHandle) return [];
 
   return tasks.filter(t => {
-    const whoHasName = name && whoFieldReferencesProfileName(t.who, name);
-    const whoHasProfileEmail =
-      profileEm && whoFieldReferencesProfileName(t.who, profileEm);
-    const sharedHasViewer = fieldContainsEmail(t.shared, viewer);
-    const ownerIsViewer = ownerFieldMatchesViewer(t.owner, viewer, cachedViewerHandle);
-
-    return (whoHasName && sharedHasViewer) || (whoHasProfileEmail && ownerIsViewer);
+    const whoHasViewedHandle = fieldContainsToken(t.who, viewedHandle);
+    const sharedHasViewer = fieldContainsViewerToken(
+      t.shared,
+      viewer,
+      cachedViewerHandle
+    );
+    const ownerIsViewer = ownerFieldMatchesViewer(
+      t.owner,
+      viewer,
+      cachedViewerHandle
+    );
+    return whoHasViewedHandle && (ownerIsViewer || sharedHasViewer);
   });
 }
 
@@ -220,11 +236,11 @@ function profileDisplayNameFromUser(user) {
 function applyEventsFilter(tasks, filter, userEmail) {
   const email = (userEmail || '').toLowerCase().trim();
 
-  const sharedHasUser  = t => fieldContainsEmail(t.shared, email);
+  const sharedHasUser  = t => fieldContainsViewerToken(t.shared, email, cachedViewerHandle);
   const ownerIsUser    = t => ownerFieldMatchesViewer(t.owner, email, cachedViewerHandle);
-  const whoHasUser     = t => fieldContainsEmail(t.who, email);
+  const whoHasUser     = t => fieldContainsViewerToken(t.who, email, cachedViewerHandle);
   const whoIsBlank     = t => !t.who || String(t.who).trim() === '';
-  const whoHasMegan    = t => fieldContainsEmail(t.who, MEGAN_EMAIL);
+  const whoHasMegan    = t => fieldContainsToken(t.who, MEGAN_EMAIL);
 
   if (filter === 'me') {
     return tasks.filter(t =>
@@ -239,7 +255,7 @@ function applyEventsFilter(tasks, filter, userEmail) {
   if (filter === 'group_members') {
     // Show events where 'who' contains any member of the selected group
     return tasks.filter(t =>
-      currentGroupMembers.some(m => fieldContainsEmail(t.who, m))
+      currentGroupMembers.some(m => fieldContainsToken(t.who, m))
     );
   }
   // 'all'
@@ -992,6 +1008,33 @@ async function fetchProfileByEmail(userEmail) {
   }
 }
 
+async function fetchPersonHandleByEmail(userEmail) {
+  if (!userEmail) return null;
+  try {
+    const res = await fetch('/api/person-handle?user_id=' + encodeURIComponent(userEmail));
+    if (!res.ok) return null;
+    const row = await res.json();
+    if (!row || !row.person_handle) return null;
+    return String(row.person_handle).trim().replace(/^@+/, '');
+  } catch (e) {
+    console.error('Error loading person_handle by email:', e);
+    return null;
+  }
+}
+
+function setMyProfileNavHref(personHandle) {
+  if (!personHandle) return;
+  const h = String(personHandle).trim().replace(/^@+/, '');
+  if (!h) return;
+  const links = document.querySelectorAll(
+    'a[href="/events/profiles.html"], a[data-nav="my-profile"]'
+  );
+  links.forEach(a => {
+    a.href = '/events/@' + encodeURIComponent(h);
+    a.setAttribute('data-nav', 'my-profile');
+  });
+}
+
 /**
  * Fetches `profiles` row for the logged-in user (profiles page only).
  */
@@ -1266,6 +1309,8 @@ async function loadTasks() {
     }
 
     cachedUserEmail = currentUserEmail;
+    const myPersonHandle = await fetchPersonHandleByEmail(currentUserEmail);
+    setMyProfileNavHref(myPersonHandle);
 
     let profileRow = null;
     if (hasProfileOrContactHeader()) {
@@ -1733,7 +1778,11 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadGroupPills(userEmail) {
   if (!userEmail) return;
   try {
-    const res = await fetch('/api/groups?user_id=' + encodeURIComponent(userEmail));
+    const personHandle = await fetchPersonHandleByEmail(userEmail);
+    if (!personHandle) return;
+    const res = await fetch(
+      '/api/groups?person_handle=' + encodeURIComponent(personHandle)
+    );
     if (!res.ok) return;
     const groups = await res.json();
     if (!groups.length) return;
@@ -1819,8 +1868,8 @@ async function loadContactPageGroupPills(userEmail) {
 }
 
 /**
- * profiles.html (handle URL): same mutual-groups rules as contact page — `group_members.person_handle`
- * matches the profile handle and the viewer is member or admin in that group.
+ * profiles.html (handle URL): `group_members` rows for profile `person_handle` vs viewer `person_handle`
+ * (MEMBER_STATUSES), intersection of `group_handle` values; names from `groups`; pills link to group pages.
  */
 async function loadProfilePageMutualGroups(userEmail) {
   const block = document.getElementById('profile-mutual-groups-block');
@@ -1844,24 +1893,31 @@ async function loadProfilePageMutualGroups(userEmail) {
   wrap.style.display = 'none';
 
   try {
-    const res = await fetch(
-      '/api/groups?user_id=' +
-        encodeURIComponent(userEmail) +
-        '&contact_person_handle=' +
-        encodeURIComponent(urlHandle)
-    );
-    if (!res.ok) return;
-    const groups = await res.json();
-    if (!groups || !groups.length) {
+    const viewerPh = await fetchPersonHandleByEmail(userEmail);
+    if (!viewerPh) {
       summaryEl.textContent = 'Mutual groups: —';
       return;
     }
+    const res = await fetch(
+      '/api/groups/profile-mutual?person_handle=' +
+        encodeURIComponent(viewerPh) +
+        '&profile_person_handle=' +
+        encodeURIComponent(urlHandle)
+    );
+    if (!res.ok) return;
+    const payload = await res.json();
+    const profile_groups = Array.isArray(payload.profile_groups) ? payload.profile_groups : [];
+    const user_groups = Array.isArray(payload.user_groups) ? payload.user_groups : [];
+    const mutual_handles = Array.isArray(payload.mutual_handles) ? payload.mutual_handles : [];
+    console.log('[profiles] profile_groups (group_handle):', profile_groups);
+    console.log('[profiles] user_groups (group_handle):', user_groups);
+    console.log('[profiles] mutual group handles:', mutual_handles);
 
-    const sorted = [...groups].sort((a, b) => {
-      const na = (a.group_name && String(a.group_name)) || '';
-      const nb = (b.group_name && String(b.group_name)) || '';
-      return na.localeCompare(nb, undefined, { sensitivity: 'base' });
-    });
+    const sorted = Array.isArray(payload.groups) ? payload.groups : [];
+    if (!sorted.length) {
+      summaryEl.textContent = 'Mutual groups: —';
+      return;
+    }
 
     const names = sorted.map(g => g.group_name).filter(Boolean);
     summaryEl.textContent = names.length ? 'Mutual groups: ' + names.join(', ') : 'Mutual groups: —';

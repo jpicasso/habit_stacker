@@ -69,6 +69,19 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+async function fetchPersonHandleByEmail(userEmail) {
+  if (!userEmail) return null;
+  try {
+    const res = await fetch('/api/person-handle?user_id=' + encodeURIComponent(userEmail));
+    if (!res.ok) return null;
+    const row = await res.json();
+    if (!row || !row.person_handle) return null;
+    return String(row.person_handle).trim().replace(/^@+/, '');
+  } catch (e) {
+    return null;
+  }
+}
+
 /** Display handle with a leading @ when missing (matches `/events/group/@…` URLs). */
 function formatGroupHandleForDisplay(handle) {
   const h = handle != null ? String(handle).trim() : '';
@@ -241,8 +254,14 @@ async function loadGroups(email) {
   tbodyEl.innerHTML = '';
 
   try {
+    const personHandle = await fetchPersonHandleByEmail(email);
+    if (!personHandle) {
+      loadingEl.style.display = 'none';
+      emptyEl.style.display = 'block';
+      return;
+    }
     const response = await fetch(
-      '/api/groups?user_id=' + encodeURIComponent(email)
+      '/api/groups?person_handle=' + encodeURIComponent(personHandle)
     );
     if (response.status === 503) {
       loadingEl.style.display = 'none';

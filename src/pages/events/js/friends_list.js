@@ -346,16 +346,29 @@ async function getLoggedInUserId() {
 async function fetchProfileHandle(userId) {
   try {
     const res = await fetch(
-      '/api/profile?user_id=' + encodeURIComponent(userId)
+      '/api/person-handle?user_id=' + encodeURIComponent(userId)
     );
     if (!res.ok) return null;
     const row = await res.json();
-    if (!row || !row.handle) return null;
-    return String(row.handle).trim().replace(/^@+/, '');
+    if (!row || !row.person_handle) return null;
+    return String(row.person_handle).trim().replace(/^@+/, '');
   } catch (e) {
     console.error(e);
     return null;
   }
+}
+
+function setMyProfileNavHref(personHandle) {
+  if (!personHandle) return;
+  const h = String(personHandle).trim().replace(/^@+/, '');
+  if (!h) return;
+  const links = document.querySelectorAll(
+    'a[href="/events/profiles.html"], a[data-nav="my-profile"]'
+  );
+  links.forEach(a => {
+    a.href = '/events/@' + encodeURIComponent(h);
+    a.setAttribute('data-nav', 'my-profile');
+  });
 }
 
 async function loadIncomingRequests(email) {
@@ -636,6 +649,32 @@ async function loadFriendsAndContacts(email) {
 
     const entries = [];
 
+    // Always include connected friends from `friends` DT.
+    friendRows.forEach(row => {
+      const friendHandle =
+        row.other_user != null ? String(row.other_user).trim() : '';
+      const displayName =
+        row.friend_display_name != null &&
+            String(row.friend_display_name).trim() !== ''
+          ? String(row.friend_display_name).trim()
+          : friendHandle;
+      const lookupEmail =
+        row.other_user_email != null && String(row.other_user_email).trim() !== ''
+          ? String(row.other_user_email).trim()
+          : friendHandle;
+      if (!friendHandle) return;
+      entries.push({
+        name: displayName,
+        friendHandle: friendHandle || undefined,
+        lookupEmail,
+        type: 'friend',
+        connectionLabel: 'Connected',
+        id: String(row.id),
+        notes: ''
+      });
+    });
+
+    // On contact library page, also include contacts from `contact_library` DT.
     if (contactLibraryOnly && contactLibraryRows.length) {
       contactLibraryRows.forEach((row, idx) => {
         const personHandle =
@@ -652,29 +691,34 @@ async function loadFriendsAndContacts(email) {
           notes: ''
         });
       });
-    } else {
-      friendRows.forEach(row => {
-        const friendHandle =
-          row.other_user != null ? String(row.other_user).trim() : '';
-        const displayName =
-          row.friend_display_name != null &&
-              String(row.friend_display_name).trim() !== ''
-            ? String(row.friend_display_name).trim()
-            : friendHandle;
-        const lookupEmail =
-          row.other_user_email != null && String(row.other_user_email).trim() !== ''
-            ? String(row.other_user_email).trim()
-            : friendHandle;
-        entries.push({
-          name: displayName,
-          friendHandle: friendHandle || undefined,
-          lookupEmail,
-          type: 'friend',
-          connectionLabel: 'Connected',
-          id: String(row.id),
-          notes: ''
-        });
+    }
+
+    // Deduplicate by handle: keep Connected over Contact.
+    if (contactLibraryOnly) {
+      const byHandle = new Map();
+      entries.forEach(e => {
+        const h = e.friendHandle ? String(e.friendHandle).trim() : '';
+        if (!h) return;
+        const key = personHandleKey(h);
+        const existing = byHandle.get(key);
+        if (!existing) {
+          byHandle.set(key, e);
+          return;
+        }
+        const existingConnected = existing.connectionLabel === 'Connected';
+        const nextConnected = e.connectionLabel === 'Connected';
+        if (!existingConnected && nextConnected) {
+          byHandle.set(key, e);
+          return;
+        }
+        if (existingConnected === nextConnected) {
+          const en = existing.name ? String(existing.name).trim() : '';
+          const nn = e.name ? String(e.name).trim() : '';
+          if (!en && nn) byHandle.set(key, e);
+        }
       });
+      entries.length = 0;
+      entries.push(...Array.from(byHandle.values()));
     }
 
     if (!entries.length) {
@@ -818,6 +862,8 @@ async function loadFriendsPage() {
     }
     return;
   }
+  const myHandle = await fetchProfileHandle(email);
+  setMyProfileNavHref(myHandle);
 
   const re = document.getElementById('requests-empty');
   if (re) re.textContent = 'No pending friend requests.';

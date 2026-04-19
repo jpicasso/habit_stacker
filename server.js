@@ -166,6 +166,24 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
+app.get('/api/person-handle', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'user_id query parameter is required' });
+    }
+    const personHandle = await supabaseGroups.personHandleForUserEmail(userId.trim());
+    if (!personHandle) return res.json(null);
+    res.json({ person_handle: personHandle });
+  } catch (error) {
+    console.error('Error resolving person_handle:', error);
+    res.status(500).json({ error: error.message || 'Failed to resolve person handle' });
+  }
+});
+
 app.post('/api/events', async (req, res) => {
   try {
     if (!supabaseEvents.isConfigured()) {
@@ -1384,18 +1402,63 @@ app.get('/api/groups', async (req, res) => {
       return res.status(503).json({ error: 'Groups require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
     }
     const userId = req.query.user_id;
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
+    const viewerPersonHandle = req.query.person_handle;
+    if (
+      (!userId || typeof userId !== 'string' || !userId.trim()) &&
+      (!viewerPersonHandle || typeof viewerPersonHandle !== 'string' || !viewerPersonHandle.trim())
+    ) {
+      return res.status(400).json({ error: 'user_id or person_handle query parameter is required' });
     }
     const contactPersonHandle = req.query.contact_person_handle;
-    const rows =
-      contactPersonHandle && typeof contactPersonHandle === 'string' && contactPersonHandle.trim()
+    const hasContact =
+      contactPersonHandle && typeof contactPersonHandle === 'string' && contactPersonHandle.trim();
+    let rows;
+    if (viewerPersonHandle && String(viewerPersonHandle).trim()) {
+      const ph = String(viewerPersonHandle).trim();
+      rows = hasContact
+        ? await supabaseGroups.listGroupsForContactPageForViewerPh(ph, contactPersonHandle.trim())
+        : await supabaseGroups.listGroupsForViewerPersonHandle(ph);
+    } else {
+      rows = hasContact
         ? await supabaseGroups.listGroupsForContactPage(userId.trim(), contactPersonHandle.trim())
         : await supabaseGroups.listGroupsForUser(userId.trim());
+    }
     res.json(rows);
   } catch (error) {
     console.error('Error fetching groups:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch groups' });
+  }
+});
+
+/** Profile page: `group_members` intersection (profile vs viewer) + `groups.group_name` for mutual handles. */
+app.get('/api/groups/profile-mutual', async (req, res) => {
+  try {
+    if (!supabaseGroups.isConfigured()) {
+      return res.status(503).json({ error: 'Groups require Supabase' });
+    }
+    const userId = req.query.user_id;
+    const viewerPersonHandle = req.query.person_handle;
+    const profilePersonHandle = req.query.profile_person_handle;
+    if (!profilePersonHandle || typeof profilePersonHandle !== 'string' || !profilePersonHandle.trim()) {
+      return res.status(400).json({ error: 'profile_person_handle query parameter is required' });
+    }
+    if (
+      (!userId || typeof userId !== 'string' || !userId.trim()) &&
+      (!viewerPersonHandle || typeof viewerPersonHandle !== 'string' || !viewerPersonHandle.trim())
+    ) {
+      return res.status(400).json({ error: 'user_id or person_handle query parameter is required' });
+    }
+    const payload = await supabaseGroups.listProfileMutualGroupsByPersonHandles(
+      userId && String(userId).trim() ? String(userId).trim() : '',
+      profilePersonHandle.trim(),
+      viewerPersonHandle && String(viewerPersonHandle).trim()
+        ? String(viewerPersonHandle).trim()
+        : undefined
+    );
+    res.json(payload);
+  } catch (error) {
+    console.error('Error fetching profile mutual groups:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch profile mutual groups' });
   }
 });
 
