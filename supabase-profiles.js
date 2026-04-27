@@ -1479,6 +1479,8 @@ function attachGroupMemberDisplayFields(rows) {
 
 module.exports = {
   isConfigured,
+  /** Email → `security_handles.person_handle` (no @, lowercased). Used by server for events owner + `/api/person-handle`. */
+  personHandleForUserEmail: personHandleForEmailFromSecurityHandles,
   getProfileByEmail,
   getProfileByHandle,
   getProfilesByEmails,

@@ -310,9 +310,10 @@ a.friends-name-link:hover .text-primary {
   text-decoration: underline !important;
 }
 
-/* profiles.html / contact — mutual group pill nav (member vs blind member) */
+/* profiles.html / contact_library.html — mutual group pill nav (member vs blind member) */
 #contact-my-groups-pills a.contact-my-group-pill,
-#profile-mutual-groups-pills a.contact-my-group-pill {
+#profile-mutual-groups-pills a.contact-my-group-pill,
+#friends-tbody a.contact-my-group-pill {
   border-radius: 2rem;
   font-size: 0.875rem;
   padding: 0.25rem 0.75rem;
@@ -322,64 +323,64 @@ a.friends-name-link:hover .text-primary {
   border: 1px solid transparent;
 }
 
-#contact-my-groups-pills a.contact-my-group-pill--member,
-#profile-mutual-groups-pills a.contact-my-group-pill--member {
+#contact-my-groups-pills a.contact-my-group-pill--member {
   background: #e9ecef;
   color: #212529;
   border-color: #ced4da;
 }
 
 #contact-my-groups-pills a.contact-my-group-pill--member:hover,
-#contact-my-groups-pills a.contact-my-group-pill--member:focus,
-#profile-mutual-groups-pills a.contact-my-group-pill--member:hover,
-#profile-mutual-groups-pills a.contact-my-group-pill--member:focus {
+#contact-my-groups-pills a.contact-my-group-pill--member:focus {
   background: #dee2e6;
   color: #121416;
 }
 
-#contact-my-groups-pills a.contact-my-group-pill--blind,
-#profile-mutual-groups-pills a.contact-my-group-pill--blind {
+#contact-my-groups-pills a.contact-my-group-pill--blind {
   background: #495057;
   color: #f8f9fa;
   border-color: #343a40;
 }
 
 #contact-my-groups-pills a.contact-my-group-pill--blind:hover,
-#contact-my-groups-pills a.contact-my-group-pill--blind:focus,
-#profile-mutual-groups-pills a.contact-my-group-pill--blind:hover,
-#profile-mutual-groups-pills a.contact-my-group-pill--blind:focus {
+#contact-my-groups-pills a.contact-my-group-pill--blind:focus {
   background: #343a40;
   color: #fff;
 }
 
-/* profiles.html — mutual groups: blue pill when contact is member/admin; light grey when blind member */
-#profile-mutual-groups-pills a.contact-my-group-pill--member {
+/* profiles.html + contact_library.html — blue pill when member/admin; light grey when blind member */
+#profile-mutual-groups-pills a.contact-my-group-pill--member,
+#friends-tbody a.contact-my-group-pill--member {
   background: #0d6efd;
   color: #fff;
   border-color: #0d6efd;
 }
 
 #profile-mutual-groups-pills a.contact-my-group-pill--member:hover,
-#profile-mutual-groups-pills a.contact-my-group-pill--member:focus {
+#profile-mutual-groups-pills a.contact-my-group-pill--member:focus,
+#friends-tbody a.contact-my-group-pill--member:hover,
+#friends-tbody a.contact-my-group-pill--member:focus {
   background: #0b5ed7;
   color: #fff;
   border-color: #0a58ca;
 }
 
-#profile-mutual-groups-pills a.contact-my-group-pill--blind {
+#profile-mutual-groups-pills a.contact-my-group-pill--blind,
+#friends-tbody a.contact-my-group-pill--blind {
   background: #e9ecef;
   color: #6c757d;
   border-color: #dee2e6;
 }
 
 #profile-mutual-groups-pills a.contact-my-group-pill--blind:hover,
-#profile-mutual-groups-pills a.contact-my-group-pill--blind:focus {
+#profile-mutual-groups-pills a.contact-my-group-pill--blind:focus,
+#friends-tbody a.contact-my-group-pill--blind:hover,
+#friends-tbody a.contact-my-group-pill--blind:focus {
   background: #dee2e6;
   color: #495057;
   border-color: #ced4da;
 }
 
-/* life_events.html — pills + Event Date + Type + Who + Clear + Add on one row */
+/* life_events.html — row 1: pills; row 2: Event Date + Type + Who + Clear + Add */
 .life-events-toolbar .life-events-who-filter {
   min-width: 0;
   flex: 1 1 10rem;

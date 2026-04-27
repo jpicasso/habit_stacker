@@ -53,16 +53,16 @@ aboutNav: true
                       <textarea class="form-control" id="edit-shared" rows="3" placeholder="People or list this event is shared with"></textarea>
                     </div>
                     <div class="form-group">
-                      <label for="edit-owner">Owner</label>
-                      <input type="text" class="form-control" id="edit-owner" placeholder="Your public handle (e.g. picasso20)" autocomplete="username">
+                      <label for="edit-event-type">Type</label>
+                      <select class="form-control" id="edit-event-type">
+                        <option value="">—</option>
+                        <option value="Life">Life</option>
+                        <option value="Weekly">Weekly</option>
+                      </select>
                     </div>
                     <div class="form-group">
-                      <label for="edit-copied">Copied</label>
-                      <select class="form-control" id="edit-copied">
-                        <option value="">—</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
+                      <label for="edit-owner">Owner</label>
+                      <input type="text" class="form-control" id="edit-owner" placeholder="Your public handle (e.g. picasso20)" autocomplete="username" readonly>
                     </div>
                   </form>
                 </div>
@@ -408,41 +408,43 @@ aboutNav: true
               <input type="text" class="form-control" id="pcd-name" readonly tabindex="-1">
             </div>
           </div>
-          <div class="form-group">
-            <label for="pcd-profile_handle">Profile handle</label>
-            <input type="text" class="form-control" id="pcd-profile_handle" autocomplete="username" placeholder="Public profile handle">
-          </div>
-          <div class="form-group">
-            <label for="pcd-my_notes">My notes</label>
-            <textarea class="form-control" id="pcd-my_notes" rows="4" placeholder="Private notes"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group col-md-6">
-              <label for="pcd-cell">Cell</label>
-              <input type="text" class="form-control" id="pcd-cell" autocomplete="tel">
+          <div id="pcd-fields-contact-details-only">
+            <div class="form-group">
+              <label for="pcd-profile_handle">Profile handle</label>
+              <input type="text" class="form-control" id="pcd-profile_handle" autocomplete="username" placeholder="Public profile handle">
             </div>
-            <div class="form-group col-md-6">
-              <label for="pcd-other_phone">Other phone</label>
-              <input type="text" class="form-control" id="pcd-other_phone" autocomplete="tel">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="pcd-cell">Cell</label>
+                <input type="text" class="form-control" id="pcd-cell" autocomplete="tel">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="pcd-other_phone">Other phone</label>
+                <input type="text" class="form-control" id="pcd-other_phone" autocomplete="tel">
+              </div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group col-md-6">
-              <label for="pcd-work_email">Work email</label>
-              <input type="email" class="form-control" id="pcd-work_email" autocomplete="email">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="pcd-work_email">Work email</label>
+                <input type="email" class="form-control" id="pcd-work_email" autocomplete="email">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="pcd-personal_email">Personal email</label>
+                <input type="email" class="form-control" id="pcd-personal_email" autocomplete="email">
+              </div>
             </div>
-            <div class="form-group col-md-6">
-              <label for="pcd-personal_email">Personal email</label>
-              <input type="email" class="form-control" id="pcd-personal_email" autocomplete="email">
+            <div class="form-group">
+              <label for="pcd-location">Location</label>
+              <input type="text" class="form-control" id="pcd-location" autocomplete="address-level2" placeholder="City, State">
             </div>
-          </div>
-          <div class="form-group">
-            <label for="pcd-location">Location</label>
-            <input type="text" class="form-control" id="pcd-location" autocomplete="address-level2" placeholder="City, State">
+            <div class="form-group mb-0">
+              <label for="pcd-home_address">Home address</label>
+              <input type="text" class="form-control" id="pcd-home_address" autocomplete="street-address">
+            </div>
           </div>
           <div class="form-group mb-0">
-            <label for="pcd-home_address">Home address</label>
-            <input type="text" class="form-control" id="pcd-home_address" autocomplete="street-address">
+            <label for="pcd-my_notes">My private notes</label>
+            <textarea class="form-control" id="pcd-my_notes" rows="4" placeholder="Private notes only you can see"></textarea>
           </div>
         </form>
         <div id="pcd-error" class="alert alert-danger mt-3 mb-0" style="display: none;" role="alert"></div>

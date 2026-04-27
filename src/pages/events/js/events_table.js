@@ -160,6 +160,14 @@ function fieldContainsToken(field, token) {
     .some(t => t === needle);
 }
 
+/** Matches server `whoFieldContainsPersonHandle`: token list and legacy substring. */
+function whoFieldContainsPersonHandleClient(who, personHandle) {
+  if (!personHandle) return false;
+  if (fieldContainsToken(who, personHandle)) return true;
+  const n = normalizeEventOwnerToken(personHandle);
+  return !!(n && String(who || '').toLowerCase().includes(n));
+}
+
 /** shared/who can contain person_handle tokens (preferred) or legacy emails. */
 function fieldContainsViewerToken(field, viewerEmail, viewerHandle) {
   const h = normalizeEventOwnerToken(viewerHandle);
@@ -279,28 +287,14 @@ function ownerFieldMatchesViewer(owner, userEmail, viewerHandle) {
 
 /**
  * Profiles page (`/events/@person_handle`):
- * - `events.who` contains the URL handle token, and
- * - logged-in viewer handle appears in `owner` or `shared`.
+ * Show every loaded event whose `who` field lists the URL person_handle (token or substring).
+ * Server also unions in rows where `who` matches this handle via `who_match_handles` query param.
  */
-function applyProfilePageEventFilter(tasks, _profileName, _profileEmail, viewerEmail) {
-  const viewer = (viewerEmail || '').toLowerCase().trim();
+function applyProfilePageEventFilter(tasks, _profileName, _profileEmail, _viewerEmail) {
   const viewedHandle = normalizeEventOwnerToken(getProfileHandleFromUrl());
-  if (!viewer || !viewedHandle) return [];
+  if (!viewedHandle) return [];
 
-  return tasks.filter(t => {
-    const whoHasViewedHandle = fieldContainsToken(t.who, viewedHandle);
-    const sharedHasViewer = fieldContainsViewerToken(
-      t.shared,
-      viewer,
-      cachedViewerHandle
-    );
-    const ownerIsViewer = ownerFieldMatchesViewer(
-      t.owner,
-      viewer,
-      cachedViewerHandle
-    );
-    return whoHasViewedHandle && (ownerIsViewer || sharedHasViewer);
-  });
+  return tasks.filter(t => whoFieldContainsPersonHandleClient(t.who, viewedHandle));
 }
 
 /** Auth0 user → single line display name for profile header and who-column matching. */
@@ -329,10 +323,8 @@ function applyEventsFilter(tasks, filter, userEmail) {
   const sharedHasUser  = t => fieldContainsViewerToken(t.shared, email, cachedViewerHandle);
   const ownerIsUser    = t => ownerFieldMatchesViewer(t.owner, email, cachedViewerHandle);
   const whoHasUser     = t => fieldContainsViewerToken(t.who, email, cachedViewerHandle);
-  const whoHasMeganTest = t => {
-    if (!t.who || !MEGAN_FILTER_WHO_SUBSTRING) return false;
-    return String(t.who).toLowerCase().includes(MEGAN_FILTER_WHO_SUBSTRING.toLowerCase());
-  };
+  const whoHasMeganTest = t =>
+    whoFieldContainsPersonHandleClient(t.who, MEGAN_FILTER_WHO_SUBSTRING);
 
   if (filter === 'me') {
     return tasks.filter(t =>
@@ -448,7 +440,9 @@ function renderTaskRows(tasks) {
   emptyEl.style.display = 'none';
   tableEl.style.display = 'table';
 
-  const isProfilesEventsTable = !!document.getElementById('profile-events-stack');
+  const isProfilesEventsTable =
+    !!document.getElementById('profile-events-stack') ||
+    !!(tableEl && tableEl.classList && tableEl.classList.contains('profiles-events-table'));
 
   tasks.forEach(task => {
     const eventDate  = task.event_date ? formatDateOnly(task.event_date) : 'Not set';
@@ -467,6 +461,7 @@ function renderTaskRows(tasks) {
     row.className = 'events-table-row';
     row.style.cursor = 'pointer';
     row.dataset.eventId = String(task.id);
+    row.id = 'event-row-' + String(task.id);
     row.setAttribute('title', 'Click to view or edit');
     if (isProfilesEventsTable) {
       const isLife =
@@ -640,6 +635,12 @@ var isOwnProfile = true;
 var canEditOwnedContactLibrary = false;
 
 /**
+ * Which fields to show in `#editProfileContactLibraryModal`:
+ * `full` — Contact Details (all fields); `notes` — Person handle, Name, My private notes only.
+ */
+var contactLibraryContactModalMode = 'full';
+
+/**
  * profiles.html: viewing another person's `contact_library` row that you own (not your own @ handle).
  */
 function isProfileOwnedContactView() {
@@ -701,6 +702,27 @@ function hasProfileOrContactHeader() {
     document.getElementById('profile-display-name') ||
     document.getElementById('contact-display-name')
   );
+}
+
+/**
+ * GET /api/events URL including `who_match_handles` for profiles (URL person_handle) and life_events (Megan pill).
+ */
+function buildEventsListFetchUrl(currentUserEmail) {
+  const whoMatchParts = [];
+  if (hasProfileOrContactHeader()) {
+    const ph = getProfileHandleFromUrl();
+    if (ph) whoMatchParts.push(String(ph).trim());
+  }
+  if (/\/life_events/i.test(window.location.pathname)) {
+    whoMatchParts.push(MEGAN_FILTER_WHO_SUBSTRING);
+  }
+  let url = '/api/events?user_id=' + encodeURIComponent(currentUserEmail);
+  if (whoMatchParts.length) {
+    url +=
+      '&who_match_handles=' +
+      encodeURIComponent(whoMatchParts.map(s => String(s).trim()).join(','));
+  }
+  return url;
 }
 
 /**
@@ -1399,6 +1421,19 @@ function populateEditProfileContactLibraryModal() {
   );
 }
 
+function applyContactLibraryModalMode() {
+  const extra = document.getElementById('pcd-fields-contact-details-only');
+  const title = document.getElementById('editProfileContactLibraryModalLabel');
+  const dlg = document.querySelector('#editProfileContactLibraryModal .modal-dialog');
+  const notesOnly = contactLibraryContactModalMode === 'notes';
+  if (extra) extra.style.display = notesOnly ? 'none' : '';
+  if (title) title.textContent = notesOnly ? 'My Private Notes' : 'Contact Details';
+  if (dlg) {
+    if (notesOnly) dlg.classList.remove('modal-lg');
+    else dlg.classList.add('modal-lg');
+  }
+}
+
 async function submitEditProfileContactLibraryForm() {
   const errEl = document.getElementById('pcd-error');
   const submitBtn = document.getElementById('edit-profile-contact-library-submit');
@@ -1800,9 +1835,7 @@ async function loadTasks() {
       return;
     }
 
-    const response = await fetch(
-      '/api/events?user_id=' + encodeURIComponent(currentUserEmail)
-    );
+    const response = await fetch(buildEventsListFetchUrl(currentUserEmail));
     if (response.status === 503) {
       loadingEl.style.display = 'none';
       errorEl.textContent =
@@ -2086,8 +2119,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editProfileModalEl && window.jQuery) {
         window.jQuery(editProfileModalEl).on('show.bs.modal', function() {
           if (mid === 'editContactDetailsModal') populateEditContactDetailsModal();
-          else if (mid === 'editProfileContactLibraryModal') populateEditProfileContactLibraryModal();
-          else populateEditProfileModal();
+          else if (mid === 'editProfileContactLibraryModal') {
+            populateEditProfileContactLibraryModal();
+            applyContactLibraryModalMode();
+          } else populateEditProfileModal();
         });
       }
     }
@@ -2108,9 +2143,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function openProfileContactLibraryEditModal() {
+  function openProfileContactLibraryEditModal(mode) {
+    contactLibraryContactModalMode = mode === 'notes' ? 'notes' : 'full';
     if (!window.jQuery) return;
     populateEditProfileContactLibraryModal();
+    applyContactLibraryModalMode();
     window.jQuery('#editProfileContactLibraryModal').modal('show');
   }
 
@@ -2119,7 +2156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     profileNameEditBtn.addEventListener('click', function(e) {
       e.preventDefault();
       if (cachedProfileFromContactLibrary) {
-        openProfileContactLibraryEditModal();
+        openProfileContactLibraryEditModal('full');
       } else if (isOwnProfile) {
         populateEditProfileModal();
         window.jQuery('#editProfileModal').modal('show');
@@ -2132,7 +2169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     profileContactDetailsEditBtn.addEventListener('click', function(e) {
       e.preventDefault();
       if (cachedProfileFromContactLibrary) {
-        openProfileContactLibraryEditModal();
+        openProfileContactLibraryEditModal('full');
       } else if (isOwnProfile) {
         populateEditProfileModal();
         window.jQuery('#editProfileModal').modal('show');
@@ -2145,7 +2182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     profileMyNotesEditBtn.addEventListener('click', function(e) {
       e.preventDefault();
       if (cachedProfileFromContactLibrary) {
-        openProfileContactLibraryEditModal();
+        openProfileContactLibraryEditModal('notes');
       }
     });
   }
@@ -2819,6 +2856,24 @@ function readCopiedFromSelect(el) {
   return undefined;
 }
 
+/** Owner-only edit rules apply wherever the event edit modal is rendered (life_events + profiles). */
+function eventEditModalEnforcesOwnerOnly() {
+  return !!document.getElementById('editEventModal');
+}
+
+/** Hide the edit modal footer (Delete / Cancel / Submit) when viewer is not the event owner. */
+function setEventEditModalFooterVisible(canEdit) {
+  if (!eventEditModalEnforcesOwnerOnly()) return;
+  const footer = document.querySelector('#editEventModal .modal-footer');
+  if (footer) footer.style.display = canEdit ? '' : 'none';
+}
+
+async function viewerOwnsEventOwnerField(ownerRaw, userEmail) {
+  if (!userEmail) return false;
+  const ph = await fetchPersonHandleByEmail(userEmail);
+  return ownerFieldMatchesViewer(ownerRaw, userEmail, ph);
+}
+
 /** Open modal with event data (called when a table row is clicked). */
 async function openEventModalFromRow(id) {
   try {
@@ -2835,9 +2890,7 @@ async function openEventModalFromRow(id) {
       return;
     }
 
-    const response = await fetch(
-      '/api/events?user_id=' + encodeURIComponent(currentUserEmail)
-    );
+    const response = await fetch(buildEventsListFetchUrl(currentUserEmail));
     if (!response.ok) {
       throw new Error('Failed to fetch events');
     }
@@ -2870,7 +2923,23 @@ async function openEventModalFromRow(id) {
     document.getElementById('edit-shared').value = sharedToFormString(task.shared);
     document.getElementById('edit-owner').value =
       task.owner != null && task.owner !== '' ? String(task.owner) : '';
+
+    const editEventTypeEl = document.getElementById('edit-event-type');
+    if (editEventTypeEl) {
+      const typeStr =
+        task.event_type != null && String(task.event_type).trim() !== ''
+          ? String(task.event_type).trim()
+          : '';
+      const hasMatchingOption = [...editEventTypeEl.options].some(o => o.value === typeStr);
+      editEventTypeEl.value = hasMatchingOption ? typeStr : '';
+    }
+
     setCopiedSelectEl(document.getElementById('edit-copied'), task.copied);
+
+    if (eventEditModalEnforcesOwnerOnly()) {
+      const canAct = await viewerOwnsEventOwnerField(task.owner, currentUserEmail);
+      setEventEditModalFooterVisible(canAct);
+    }
 
     $('#editEventModal').modal('show');
   } catch (error) {
@@ -2886,7 +2955,7 @@ async function saveEditTask() {
   const whoInput = document.getElementById('edit-who');
   const sharedInput = document.getElementById('edit-shared');
   const ownerInput = document.getElementById('edit-owner');
-  const copiedSelect = document.getElementById('edit-copied');
+  const eventTypeSelect = document.getElementById('edit-event-type');
   const submitBtn = document.getElementById('edit-event-submit');
 
   const task = taskInput.value.trim();
@@ -2928,17 +2997,26 @@ async function saveEditTask() {
 
     const whoVal = whoInput.value.trim();
     const ownerVal = ownerInput.value.trim();
+
+    if (eventEditModalEnforcesOwnerOnly()) {
+      const canEdit = await viewerOwnsEventOwnerField(ownerVal, userId);
+      if (!canEdit) {
+        alert('You can only edit events you own.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+        return;
+      }
+    }
     const sharedVal = sharedInput.value.trim();
+    const eventTypeVal = eventTypeSelect ? eventTypeSelect.value.trim() : '';
     const payload = {
       event: task,
       event_date: eventDate,
       user_id: userId,
       who: whoVal === '' ? null : whoVal,
-      owner: ownerVal === '' ? null : ownerVal,
-      shared: sharedVal === '' ? null : sharedVal
+      shared: sharedVal === '' ? null : sharedVal,
+      event_type: eventTypeVal === '' ? null : eventTypeVal
     };
-    const copiedVal = readCopiedFromSelect(copiedSelect);
-    if (copiedVal !== undefined) payload.copied = copiedVal;
 
     const response = await fetch('/api/events/' + encodeURIComponent(taskId), {
       method: 'PUT',
@@ -2970,9 +3048,36 @@ async function deleteEventFromModal() {
     return;
   }
 
+  let userId = null;
+  try {
+    if (window.auth0) {
+      const isAuthenticated = await window.auth0.isAuthenticated();
+      if (isAuthenticated) {
+        const user = await window.auth0.getUser();
+        userId = user?.email || user?.nickname || user?.sub || null;
+      }
+    }
+  } catch (authError) {
+    console.error('Error getting Auth0 user:', authError);
+  }
+  const ownerInput = document.getElementById('edit-owner');
+  const ownerVal = ownerInput && ownerInput.value != null ? ownerInput.value.trim() : '';
+  if (eventEditModalEnforcesOwnerOnly() && userId) {
+    const canDelete = await viewerOwnsEventOwnerField(ownerVal, userId);
+    if (!canDelete) {
+      alert('You can only delete events you own.');
+      return;
+    }
+  }
+
   const evName = document.getElementById('edit-task-input').value.trim();
   const label = evName ? '"' + evName + '"' : 'this event';
   if (!confirm('Delete ' + label + '? This cannot be undone.')) {
+    return;
+  }
+
+  if (!userId) {
+    alert('You must be logged in to delete an event.');
     return;
   }
 
@@ -2985,24 +3090,6 @@ async function deleteEventFromModal() {
       deleteBtn.textContent = 'Deleting...';
     }
     if (submitBtn) submitBtn.disabled = true;
-
-    let userId = null;
-    try {
-      if (window.auth0) {
-        const isAuthenticated = await window.auth0.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await window.auth0.getUser();
-          userId = user?.email || user?.nickname || user?.sub || null;
-        }
-      }
-    } catch (authError) {
-      console.error('Error getting Auth0 user:', authError);
-    }
-
-    if (!userId) {
-      alert('You must be logged in to delete an event.');
-      return;
-    }
 
     const response = await fetch(
       '/api/events/' + encodeURIComponent(taskId) + '?user_id=' + encodeURIComponent(userId),

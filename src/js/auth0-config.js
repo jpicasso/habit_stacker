@@ -100,9 +100,9 @@ async function updateUI() {
     if (logoutButton) {
       logoutButton.style.display = isAuthenticated ? 'block' : 'none';
     }
-    // Private links: always visible (logged in or out)
+    // Private links: visible only when logged in
     privateNavItems.forEach(el => {
-      el.style.display = 'block';
+      el.style.display = isAuthenticated ? 'block' : 'none';
     });
     
     // If user is authenticated, you can get user info
@@ -118,6 +118,11 @@ async function updateUI() {
 // Login handler
 async function handleLogin() {
   try {
+    // Optimistically show private nav items during login flow.
+    document.querySelectorAll('.private-nav-item').forEach(el => {
+      el.style.display = 'block';
+    });
+
     const auth0 = await auth0Promise;
     const redirectUri = window.location.origin;
     console.log('Attempting login with redirect URI:', redirectUri);
@@ -136,6 +141,11 @@ async function handleLogin() {
 // Logout handler
 async function handleLogout() {
   try {
+    // Hide private nav items immediately on logout.
+    document.querySelectorAll('.private-nav-item').forEach(el => {
+      el.style.display = 'none';
+    });
+
     const auth0 = await auth0Promise;
     await auth0.logout({
       logoutParams: {

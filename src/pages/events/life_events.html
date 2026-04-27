@@ -53,16 +53,16 @@ aboutNav: true
                       <textarea class="form-control" id="edit-shared" rows="3" placeholder="People or list this event is shared with"></textarea>
                     </div>
                     <div class="form-group">
-                      <label for="edit-owner">Owner</label>
-                      <input type="text" class="form-control" id="edit-owner" placeholder="Your public handle (e.g. picasso20)" autocomplete="username">
+                      <label for="edit-event-type">Type</label>
+                      <select class="form-control" id="edit-event-type">
+                        <option value="">—</option>
+                        <option value="Life">Life</option>
+                        <option value="Weekly">Weekly</option>
+                      </select>
                     </div>
                     <div class="form-group">
-                      <label for="edit-copied">Copied</label>
-                      <select class="form-control" id="edit-copied">
-                        <option value="">—</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
+                      <label for="edit-owner">Owner</label>
+                      <input type="text" class="form-control" id="edit-owner" placeholder="Your public handle (e.g. picasso20)" autocomplete="username" readonly>
                     </div>
                   </form>
                 </div>
@@ -78,15 +78,17 @@ aboutNav: true
           </div>
 
 
-              <!-- Filters: pills + date + type + who + clear + add (one row) -->
+              <!-- Row 1: nav pills. Row 2: date/type/who filters + Add Event -->
               <div class="mb-3 life-events-toolbar-wrap">
-                <div class="d-flex flex-nowrap align-items-end life-events-toolbar">
-                  <div id="events-filter-pills" class="flex-shrink-0 d-flex flex-nowrap align-items-center mr-2">
-                    <button type="button" class="btn btn-sm btn-primary events-filter-btn mr-1" data-filter="all" style="border-radius: 2rem; min-width: 56px;">All</button>
-                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="me" style="border-radius: 2rem; min-width: 56px;">Me</button>
-                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1" data-filter="megan" style="border-radius: 2rem; min-width: 72px;">Megan</button>
+                <div class="life-events-nav-pills-row mb-2">
+                  <div id="events-filter-pills" class="d-flex flex-wrap align-items-center" role="navigation" aria-label="Event scope">
+                    <button type="button" class="btn btn-sm btn-primary events-filter-btn mr-1 mb-1" data-filter="all" style="border-radius: 2rem; min-width: 56px;">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1 mb-1" data-filter="me" style="border-radius: 2rem; min-width: 56px;">Me</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary events-filter-btn mr-1 mb-1" data-filter="megan" style="border-radius: 2rem; min-width: 72px;">Megan</button>
                   </div>
+                </div>
 
+                <div class="d-flex flex-nowrap align-items-end life-events-toolbar">
                   <div id="events-advanced-filters" class="flex-grow-1 min-w-0 px-2 py-1 bg-light rounded border d-flex flex-nowrap align-items-center overflow-auto">
                     <!-- Date: label + controls on one line -->
                     <div class="mr-3 flex-shrink-0 d-flex flex-nowrap align-items-center">
@@ -149,15 +151,12 @@ aboutNav: true
                 <div id="tasks-error" class="alert alert-danger" style="display: none;"></div>
                 <div id="tasks-empty" class="alert alert-info" style="display: none;">No events yet. Click "+ Add Event" to create one.</div>
                 <div class="table-responsive">
-                  <table class="table table-striped table-hover events-table" id="tasks-table" style="display: none;">
+                  <table class="table table-hover events-table profiles-events-table" id="tasks-table" style="display: none;">
                     <thead>
                       <tr>
                         <th>Event</th>
                         <th style="width: 130px;">Event Date</th>
-                        <th style="width: 100px;">Type</th>
                         <th class="events-col-who">Who</th>
-                        <th class="events-col-shared">Shared</th>
-                        <th class="events-col-owner">Owner</th>
                       </tr>
                     </thead>
                     <tbody id="tasks-tbody">

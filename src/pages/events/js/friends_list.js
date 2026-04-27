@@ -496,6 +496,7 @@ async function loadGroupMembersPage() {
     const groupName =
       groupRow.group_name != null ? String(groupRow.group_name).trim() : '';
     if (titleEl) titleEl.textContent = groupName || 'Group';
+    if (groupName) document.title = groupName;
     tbodyEl.dataset.groupDisplayName = groupName || '';
 
     const viewerId = await getLoggedInUserId();
@@ -758,6 +759,21 @@ async function loadFriendsAndContacts(email) {
           : []
     }));
 
+    if (contactLibraryOnly) {
+      friendsListEntriesCache.forEach(entry => {
+        if (!entry.friendHandle) return;
+        const unionHandles = (entry.groupsList || [])
+          .map(g => (g && g.group_handle != null ? String(g.group_handle).trim() : ''))
+          .filter(Boolean);
+        console.log(
+          '[contact_library]',
+          personHandleKey(entry.friendHandle),
+          'union_group_handles:',
+          unionHandles
+        );
+      });
+    }
+
     tableEl.style.display = 'table';
     friendsListEntriesCache.forEach((entry, idx) => {
       const tr = document.createElement('tr');
@@ -768,8 +784,23 @@ async function loadFriendsAndContacts(email) {
       let groupsCell = '<span class="text-muted small">—</span>';
       if (sharedGroups.length) {
         groupsCell = sharedGroups
-          .map(g => `<span class="badge badge-info mr-1">${escapeHtml(g)}</span>`)
+          .map(g => {
+            const name = g && g.group_name != null ? String(g.group_name).trim() : '';
+            const handleRaw = g && g.group_handle != null ? String(g.group_handle).trim() : '';
+            if (!name || !handleRaw) return '';
+            const href = groupPageUrlFromHandle(handleRaw);
+            if (!href) return '';
+            const status = g.status != null ? String(g.status).trim().toLowerCase() : '';
+            const isBlind = status === 'blind member';
+            const cls =
+              'contact-my-group-pill mr-1 mb-1 ' +
+              (isBlind ? 'contact-my-group-pill--blind' : 'contact-my-group-pill--member');
+            const title = isBlind ? 'Blind member — ' + name : 'Group — ' + name;
+            return `<a href="${escapeAttr(href)}" class="${cls}" title="${escapeAttr(title)}">${escapeHtml(name)}</a>`;
+          })
+          .filter(Boolean)
           .join('');
+        if (!groupsCell) groupsCell = '<span class="text-muted small">—</span>';
       }
 
       const photoHtml =
@@ -1047,58 +1078,41 @@ async function addFriendModalSubmit() {
       alert('Choose Member, Admin, or Blind Member.');
       return;
     }
-    const membershipStatus =
-      role === 'blind member' ? 'blind member' : 'invited';
-    const ph = String(name).replace(/^@+/, '').trim();
+    const ph = String(name).replace(/^@+/, '').trim().toLowerCase();
     if (!ph) {
       alert('Please enter a valid handle.');
       return;
     }
-    const lastUnderscore = ph.lastIndexOf('_');
-    const profileHandle =
-      lastUnderscore > 0 ? ph.slice(lastUnderscore + 1) : ph;
+    const gh = getGroupHandleFromUrl();
+    if (!gh) {
+      alert('Invalid group URL.');
+      return;
+    }
 
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Adding…';
     }
     try {
-      const gh = getGroupHandleFromUrl();
-      const gRes = await fetch(
-        '/api/groups/by-handle?handle=' + encodeURIComponent(gh)
-      );
-      if (gRes.status === 503) {
+      const res = await fetch('/api/groups/add-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          group_handle: gh,
+          person_handle: ph,
+          add_as: role
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 503) {
         alert(
           'Groups require Supabase. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
         );
         return;
       }
-      if (!gRes.ok) {
-        const j = await gRes.json().catch(() => ({}));
-        throw new Error(j.error || 'Group not found');
-      }
-      const gRow = await gRes.json();
-      const resolvedGroupName =
-        gRow.group_name != null ? String(gRow.group_name).trim() : '';
-      if (!resolvedGroupName) {
-        throw new Error('Could not resolve group name');
-      }
-
-      const res = await fetch('/api/groups/invite-by-person-handle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          group_name: resolvedGroupName,
-          person_handle: ph,
-          profile_handle: profileHandle,
-          group_handle: getGroupHandleFromUrl(),
-          membership_status: membershipStatus
-        })
-      });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Could not invite member');
+        throw new Error(data.error || 'Could not add member');
       }
 
       resetAddFriendModal();
@@ -1246,7 +1260,10 @@ function openRowDetailModal(index) {
   }
   groupsEl.value =
     entry.groupsList && entry.groupsList.length
-      ? entry.groupsList.join(', ')
+      ? entry.groupsList
+          .map(g => (g && g.group_name != null ? String(g.group_name).trim() : ''))
+          .filter(Boolean)
+          .join(', ')
       : '—';
   notesEl.value = entry.notes || '';
   const notesWrap = notesEl.closest('.form-group');
@@ -1370,6 +1387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (e.target.closest('.friends-name-link')) return;
       if (e.target.closest('a.contact-list-group-link')) return;
+      if (e.target.closest('a.contact-my-group-pill')) return;
       const tr = e.target.closest('tr.friends-table-row');
       if (!tr) return;
       const idx = parseInt(tr.dataset.entryIndex, 10);

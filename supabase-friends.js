@@ -18,7 +18,6 @@
 
 let client = null;
 
-const supabaseGroups = require('./supabase-groups');
 const supabaseProfiles = require('./supabase-profiles');
 
 function isConfigured() {
@@ -47,7 +46,7 @@ async function resolvePersonHandleToken(token) {
   if (!raw) return null;
   const lower = raw.toLowerCase();
   if (lower.includes('@') && !/^@[^@]+$/.test(raw)) {
-    return await supabaseGroups.personHandleForUserEmail(lower);
+    return await supabaseProfiles.personHandleForUserEmail(lower);
   }
   return normalizePersonHandle(raw.replace(/^@+/, '')) || null;
 }
@@ -56,7 +55,7 @@ async function resolvePersonHandleToken(token) {
 async function rowInvolvesViewer(row, viewerEmail) {
   const uid = normalizeEmail(viewerEmail);
   if (!uid || !row) return false;
-  const vh = await supabaseGroups.personHandleForUserEmail(uid);
+  const vh = await supabaseProfiles.personHandleForUserEmail(uid);
   const u1 = normalizePersonHandle(row.user1);
   const u2 = normalizePersonHandle(row.user2);
   if (vh && (u1 === vh || u2 === vh)) return true;
@@ -73,7 +72,7 @@ async function hasAnyFriendshipWith(userId, otherIdentifier) {
   if (!supabase) throw new Error('Supabase not configured');
   const u = normalizeEmail(userId);
   if (!u) return false;
-  const uh = await supabaseGroups.personHandleForUserEmail(u);
+  const uh = await supabaseProfiles.personHandleForUserEmail(u);
   const oh = await resolvePersonHandleToken(otherIdentifier);
   if (!uh || !oh) return false;
   if (uh === oh) return false;
@@ -150,7 +149,7 @@ async function listFriendsForUser(userId) {
   const uidEmail = normalizeEmail(userId);
   if (!uidEmail) return [];
 
-  const viewerHandle = await supabaseGroups.personHandleForUserEmail(uidEmail);
+  const viewerHandle = await supabaseProfiles.personHandleForUserEmail(uidEmail);
 
   const byId = new Map();
   const add = arr => {
@@ -249,7 +248,7 @@ async function insertFriend({ user_id, friend_id }) {
     throw new Error('That handle could not be found');
   }
 
-  const inviterHandle = await supabaseGroups.personHandleForUserEmail(inviterEmail);
+  const inviterHandle = await supabaseProfiles.personHandleForUserEmail(inviterEmail);
   if (!inviterHandle) {
     throw new Error('Set a public handle on your profile before inviting friends.');
   }
@@ -293,7 +292,7 @@ async function listIncomingInvites(userId) {
   const uidEmail = normalizeEmail(userId);
   if (!uidEmail) return [];
 
-  const inviteeHandle = await supabaseGroups.personHandleForUserEmail(uidEmail);
+  const inviteeHandle = await supabaseProfiles.personHandleForUserEmail(uidEmail);
   const byId = new Map();
   const add = arr => {
     for (const row of arr || []) {
@@ -333,7 +332,7 @@ async function respondToInvite(id, inviteeUserId, action) {
   const supabase = getClient();
   if (!supabase) throw new Error('Supabase not configured');
   const uidEmail = normalizeEmail(inviteeUserId);
-  const inviteeHandle = uidEmail ? await supabaseGroups.personHandleForUserEmail(uidEmail) : null;
+  const inviteeHandle = uidEmail ? await supabaseProfiles.personHandleForUserEmail(uidEmail) : null;
   const newStatus = action === 'accept' ? 'connected' : 'rejected';
   if (action !== 'accept' && action !== 'reject') {
     throw new Error('action must be accept or reject');
