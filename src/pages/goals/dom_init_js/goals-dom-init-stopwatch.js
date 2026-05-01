@@ -55,7 +55,7 @@ async function goalsDomInitStopwatch() {
     saveTemporaryToSupabase('stopwatch_start_time', '');
     if (displayEl) displayEl.textContent = formatStopwatch(0);
   });
-  document.getElementById('stopwatch-submit') && document.getElementById('stopwatch-submit').addEventListener('click', function () {
+  document.getElementById('stopwatch-submit') && document.getElementById('stopwatch-submit').addEventListener('click', async function () {
     var minutesToAdd = getCurrentElapsedSeconds() / 60;
     var minutesTd = document.getElementById('minutes_value');
     if (!minutesTd) return;
@@ -69,7 +69,15 @@ async function goalsDomInitStopwatch() {
     saveMinutesValueToSupabase();
     if (typeof updateProjectedDoneValue === 'function') updateProjectedDoneValue();
     if (typeof updateDeltaToExpectedDone === 'function') updateDeltaToExpectedDone();
-    submitTimeWorked();
+    await submitTimeWorked();
     saveTemporaryToSupabase('stopwatch_start_time', '');
+    if (stopwatchIntervalId !== null) {
+      clearInterval(stopwatchIntervalId);
+      stopwatchIntervalId = null;
+    }
+    stopwatchElapsed = 0;
+    stopwatchStartTime = null;
+    if (displayEl) displayEl.textContent = formatStopwatch(0);
+    window.location.reload();
   });
 }

@@ -27,6 +27,32 @@ function goalsDomInitGoalsTableUi() {
       }
       loadGoals();
     });
+    var prevSundayBtn = document.getElementById('goals-table-prev-sunday');
+    var nextSundayBtn = document.getElementById('goals-table-next-sunday');
+    function shiftGoalsTableWeek(days) {
+      var baseVal = goalsTableDateInput.value;
+      var baseDate = baseVal ? new Date(baseVal + 'T12:00:00') : new Date();
+      if (isNaN(baseDate.getTime())) {
+        baseDate = new Date();
+        baseDate.setDate(baseDate.getDate() - baseDate.getDay());
+      }
+      baseDate.setDate(baseDate.getDate() + days);
+      var yyyy = baseDate.getFullYear();
+      var mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+      var dd = String(baseDate.getDate()).padStart(2, '0');
+      goalsTableDateInput.value = yyyy + '-' + mm + '-' + dd;
+      goalsTableDateInput.dispatchEvent(new Event('change'));
+    }
+    if (prevSundayBtn) {
+      prevSundayBtn.addEventListener('click', function () {
+        shiftGoalsTableWeek(-7);
+      });
+    }
+    if (nextSundayBtn) {
+      nextSundayBtn.addEventListener('click', function () {
+        shiftGoalsTableWeek(7);
+      });
+    }
   }
   let currentGoalsCellId = null;
   let currentPlusMinusCellId = null;
