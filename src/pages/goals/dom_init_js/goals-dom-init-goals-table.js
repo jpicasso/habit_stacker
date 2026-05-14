@@ -8,9 +8,10 @@ function goalsDomInitGoalsTableUi() {
   }
   const goalsTableDateInput = document.getElementById('goals-table-date-input');
   if (goalsTableDateInput) {
-    (function setGoalsDateToRecentSunday() {
+    (function setGoalsDateToRecentMonday() {
       var d = new Date();
-      d.setDate(d.getDate() - d.getDay());
+      var day = d.getDay();
+      d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
       var yyyy = d.getFullYear();
       var mm = String(d.getMonth() + 1).padStart(2, '0');
       var dd = String(d.getDate()).padStart(2, '0');
@@ -20,8 +21,8 @@ function goalsDomInitGoalsTableUi() {
       var val = this.value;
       if (val) {
         var d = new Date(val + 'T12:00:00');
-        if (d.getDay() !== 0) {
-          alert('The date should be a Sunday.');
+        if (d.getDay() !== 1) {
+          alert('The date should be a Monday.');
           return;
         }
       }
@@ -34,7 +35,8 @@ function goalsDomInitGoalsTableUi() {
       var baseDate = baseVal ? new Date(baseVal + 'T12:00:00') : new Date();
       if (isNaN(baseDate.getTime())) {
         baseDate = new Date();
-        baseDate.setDate(baseDate.getDate() - baseDate.getDay());
+        var d = baseDate.getDay();
+        baseDate.setDate(baseDate.getDate() - (d === 0 ? 6 : d - 1));
       }
       baseDate.setDate(baseDate.getDate() + days);
       var yyyy = baseDate.getFullYear();

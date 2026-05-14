@@ -207,12 +207,12 @@ aboutNav: true
    <!-- ***********                 *********** -->
    <!-- *************************************** -->
 
-          <ul class="nav nav-pills mb-3" id="habit-stacker-nav-pills">
+          <!-- <ul class="nav nav-pills mb-3" id="habit-stacker-nav-pills">
             <li class="nav-item"><a class="nav-link" href="#stopwatch-card" id="stopwatch-card-pill">Stopwatch</a></li>
             <li class="nav-item"><a class="nav-link" href="#working-card" id="working-card-pill">Working</a></li>
             <li class="nav-item"><a class="nav-link" href="#calories-today-card" id="calories-today-card-pill">Calories</a></li>
             <li class="nav-item"><a class="nav-link" href="#goals-section" id="goals-section-pill">Goals</a></li>
-          </ul>
+          </ul> -->
 
           <button type="button" class="btn btn-outline-primary mb-3" onclick="window.location.reload();">Refresh</button>
           
@@ -326,9 +326,9 @@ aboutNav: true
                 <div class="card-body">
                   <h5 class="card-title">Goals Table</h5>
                   <p class="mb-2 d-flex align-items-center">
-                    <button type="button" id="goals-table-prev-sunday" class="btn btn-outline-secondary btn-sm mr-2" aria-label="Previous Sunday">&larr;</button>
+                    <button type="button" id="goals-table-prev-sunday" class="btn btn-outline-secondary btn-sm mr-2" aria-label="Previous Monday">&larr;</button>
                     <input type="date" id="goals-table-date-input" class="form-control form-control-sm d-inline-block" style="width: auto;">
-                    <button type="button" id="goals-table-next-sunday" class="btn btn-outline-secondary btn-sm ml-2" aria-label="Next Sunday">&rarr;</button>
+                    <button type="button" id="goals-table-next-sunday" class="btn btn-outline-secondary btn-sm ml-2" aria-label="Next Monday">&rarr;</button>
                   </p>
                   <div class="table-responsive">
                     <!-- Goals table will have td.id's that combine the goal name and the day of the week in date format or th label for example "lose-weight-03-14-2026" or "lose-weight-target"-->
@@ -336,13 +336,13 @@ aboutNav: true
                       <thead>
                         <tr>
                           <th>Goal</th>
-                          <th>Sun</th>
                           <th>Mon</th>
                           <th>Tue</th>
                           <th>Wed</th>
                           <th>Thu</th>
                           <th>Fri</th>
                           <th>Sat</th>
+                          <th>Sun</th>
                           <th>Total</th>
                           <th>><</th>
                           <th>Target</th>

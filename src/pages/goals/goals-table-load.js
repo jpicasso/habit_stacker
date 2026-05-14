@@ -38,28 +38,29 @@ async function loadGoals() {
         goals.push({ value: String(val).trim(), columnIndex: i });
       }
     }
-    // Header keys in table order (Goal, Sun, Mon, Tue, Wed, Thu, Fri, Sat, Total, ><, Target, Delta)
-    var headerKeys = ['goal', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'total', 'plusMinus', 'target', 'delta'];
+    // Header keys in table order (Goal, Mon, Tue, Wed, Thu, Fri, Sat, Sun, Total, ><, Target, Delta)
+    var headerKeys = ['goal', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'total', 'plusMinus', 'target', 'delta'];
     function goalToIdPrefix(goalText) {
       var s = goalText.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       return s || 'goal';
     }
-    // Build date strings for Sun..Sat from goals-table-date-input (Sun = base, Mon = +1, ..., Sat = +6)
+    // Build date strings for Mon..Sun from goals-table-date-input (Mon = base, Tue = +1, ..., Sun = +6)
     var dateInputEl = document.getElementById('goals-table-date-input');
-    function getRecentSundayISO() {
+    function getRecentMondayISO() {
       var d = new Date();
-      d.setDate(d.getDate() - d.getDay());
+      var day = d.getDay();
+      d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
       var yyyy = d.getFullYear();
       var mm = String(d.getMonth() + 1).padStart(2, '0');
       var dd = String(d.getDate()).padStart(2, '0');
       return yyyy + '-' + mm + '-' + dd;
     }
-    var baseDateVal = dateInputEl && dateInputEl.value ? dateInputEl.value.trim() : getRecentSundayISO();
+    var baseDateVal = dateInputEl && dateInputEl.value ? dateInputEl.value.trim() : getRecentMondayISO();
     var dayDateStrs = [];
     for (var d = 0; d < 7; d++) {
       var dObj = new Date(baseDateVal + 'T12:00:00');
       if (isNaN(dObj.getTime())) {
-        dObj = new Date(getRecentSundayISO() + 'T12:00:00');
+        dObj = new Date(getRecentMondayISO() + 'T12:00:00');
       }
       dObj.setDate(dObj.getDate() + d);
       dayDateStrs.push(dObj.getFullYear() + '-' + String(dObj.getMonth() + 1).padStart(2, '0') + '-' + String(dObj.getDate()).padStart(2, '0'));
@@ -85,15 +86,15 @@ async function loadGoals() {
         rowSlugDebug.push({ goalColumn: goal.columnIndex, displayName: goalText, idPrefix: base });
         var tr = document.createElement('tr');
         tr.dataset.goalIndex = String(goal.columnIndex);
-        var dayOrTargetKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'target'];
+        var dayOrTargetKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'target'];
         function idSuffixForHeader(headerKey, colIndex) {
-          if (headerKey === 'sun') return dayDateStrs[0];
-          if (headerKey === 'mon') return dayDateStrs[1];
-          if (headerKey === 'tue') return dayDateStrs[2];
-          if (headerKey === 'wed') return dayDateStrs[3];
-          if (headerKey === 'thu') return dayDateStrs[4];
-          if (headerKey === 'fri') return dayDateStrs[5];
-          if (headerKey === 'sat') return dayDateStrs[6];
+          if (headerKey === 'mon') return dayDateStrs[0];
+          if (headerKey === 'tue') return dayDateStrs[1];
+          if (headerKey === 'wed') return dayDateStrs[2];
+          if (headerKey === 'thu') return dayDateStrs[3];
+          if (headerKey === 'fri') return dayDateStrs[4];
+          if (headerKey === 'sat') return dayDateStrs[5];
+          if (headerKey === 'sun') return dayDateStrs[6];
           return headerKey;
         }
         headerKeys.forEach(function (headerKey, colIndex) {
