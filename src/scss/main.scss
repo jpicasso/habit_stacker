@@ -349,6 +349,18 @@
     height: 95vh;
     text-align: center;
 
+    .btn--hero-cta {
+      background-color: $white;
+      color: $blue;
+      border-color: $white;
+
+      &:hover,
+      &:focus {
+        background-color: $gray-100;
+        color: darken($blue, 8%);
+        border-color: $gray-100;
+      }
+    }
   }
 
   &--homepage {
