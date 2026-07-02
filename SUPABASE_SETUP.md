@@ -53,6 +53,17 @@ create table if not exists goals_values (
 );
 ```
 
+create feedback table
+
+```sql
+create table if not exists feedback (
+  id bigserial primary key,
+  created_at timestamptz default now(),
+  details text,
+  rating double precision
+);
+```
+
 
 ## 3. Get your API credentials
 

@@ -12,6 +12,7 @@ const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDa
 const supabaseHabits = require('./supabase-habits');
 const supabaseGoals = require('./supabase-goals');
 const supabaseTemporary = require('./supabase-temporary');
+const supabaseFeedback = require('./supabase-feedback');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -55,6 +56,10 @@ if (useSupabaseHabits) {
       console.error('Failed to initialize habits database:', err);
     });
 }
+if (supabaseFeedback.isConfigured()) {
+  console.log('Feedback using Supabase');
+}
+
 // API Routes
 
 // Get all tasks
@@ -307,6 +312,34 @@ app.post('/api/goals/values', async (req, res) => {
     console.error('Error saving goal value:', error);
     const message = error.message || 'Failed to save goal value';
     res.status(500).json({ error: message });
+  }
+});
+
+// --- Feedback API (Supabase `feedback` table) ---
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    if (!supabaseFeedback.isConfigured()) {
+      return res.status(503).json({
+        error: 'Feedback requires Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
+    }
+    const { rating, details } = req.body || {};
+    if (rating == null) {
+      return res.status(400).json({ error: 'rating is required' });
+    }
+    const row = await supabaseFeedback.insertFeedback({
+      rating,
+      details: details != null ? details : null
+    });
+    res.status(201).json(row);
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    const msg = error.message || 'Failed to submit feedback';
+    if (/rating must be/i.test(msg)) {
+      return res.status(400).json({ error: msg });
+    }
+    res.status(500).json({ error: msg });
   }
 });
 
