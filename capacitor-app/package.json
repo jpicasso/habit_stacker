@@ -1,0 +1,22 @@
+{
+  "name": "habitstacker-mobile",
+  "version": "1.0.0",
+  "description": "iOS (and later Android) wrapper for www.upriseu.com built with Capacitor",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync ios",
+    "open:ios": "cap open ios",
+    "run:ios": "cap run ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/assets": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

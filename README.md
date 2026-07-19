@@ -41,7 +41,7 @@ source $(brew --prefix nvm)/nvm.sh
 brew install nvm
 nvm install 14.4.0
 nvm use 14
-cd Dropbox/2_UpriseUniversity/7UpriseU_codebase/1upriseu_production_code
+cd Dropbox/4_HabitStacker
 rm -r node_modules
 rm -r dist
 npm install

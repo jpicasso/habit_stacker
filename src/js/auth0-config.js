@@ -116,7 +116,7 @@ async function updateUI() {
 }
 
 // Login handler
-async function handleLogin() {
+async function handleLogin(options = {}) {
   try {
     // Optimistically show private nav items during login flow.
     document.querySelectorAll('.private-nav-item').forEach(el => {
@@ -129,13 +129,23 @@ async function handleLogin() {
     
     await auth0.loginWithRedirect({
       authorizationParams: {
-        redirect_uri: redirectUri
+        redirect_uri: redirectUri,
+        ...options.authorizationParams
       }
     });
   } catch (error) {
     console.error('Error during login:', error);
     alert('Login error: ' + error.message + '\n\nMake sure your callback URL is configured in Auth0 Dashboard:\n' + window.location.origin);
   }
+}
+
+// Signup handler — opens Auth0 Universal Login on the sign-up screen
+async function handleSignup() {
+  return handleLogin({
+    authorizationParams: {
+      screen_hint: 'signup'
+    }
+  });
 }
 
 // Logout handler
@@ -159,6 +169,7 @@ async function handleLogout() {
 
 // Make handlers available globally
 window.handleLogin = handleLogin;
+window.handleSignup = handleSignup;
 window.handleLogout = handleLogout;
 
 // Initialize Auth0 when the page loads

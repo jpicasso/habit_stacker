@@ -1,0 +1,13 @@
+{
+  "appId": "com.upriseu.habitstacker",
+  "appName": "Habit Stacker",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.upriseu.com",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#ffffff"
+  }
+}
