@@ -1,7 +1,7 @@
 {
   "name": "habitstacker-mobile",
   "version": "1.0.0",
-  "description": "iOS (and later Android) wrapper for www.upriseu.com built with Capacitor",
+  "description": "iOS (and later Android) wrapper for www.habitstackerapp.com built with Capacitor",
   "private": true,
   "scripts": {
     "sync": "cap sync ios",

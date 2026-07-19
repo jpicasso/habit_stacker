@@ -1,7 +1,7 @@
 {
-  "name": "penn_state",
+  "name": "habit-stacker",
   "version": "1.0.0",
-  "description": "Static templates for West Arete / Penn State app",
+  "description": "Habit Stacker — build habits that stick by stacking them onto existing routines (www.habitstackerapp.com)",
   "main": "./js/index.js",
   "engines": {
     "node": "14.4.0"
@@ -31,6 +31,6 @@
     "server": "node server.js",
     "watch": "gulp watch"
   },
-  "author": "Bryce Kirk",
+  "author": "John Picasso",
   "license": "ISC"
 }

@@ -1,9 +1,9 @@
 {
-  "appId": "com.upriseu.habitstacker",
+  "appId": "com.habitstackerapp.app",
   "appName": "Habit Stacker",
   "webDir": "www",
   "server": {
-    "url": "https://www.upriseu.com",
+    "url": "https://www.habitstackerapp.com",
     "cleartext": false
   },
   "ios": {

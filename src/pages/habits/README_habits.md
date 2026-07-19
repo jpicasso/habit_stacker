@@ -8,8 +8,8 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 
 ### Auth gate
 
-- Unauthenticated users see `#login-required-message` and can use **Log In** (`handleLogin` from shared site/auth scripts loaded with the layout).
-- After Auth0 succeeds, `#private-content` is shown and `habits.js` can load the user’s habits.
+- Unauthenticated users see `#login-required-message` and can use **Log In** (`handleLogin` from `/js/supabase-auth.js`, which sends them to `/login.html`).
+- After Supabase login succeeds, `#private-content` is shown and `habits.js` can load the user’s habits.
 
 ### Habits list
 
@@ -20,7 +20,7 @@ This document summarizes **user-facing behavior**, **DOM IDs** (including those 
 ### Add habit
 
 - User fills `#task-form`: `#task-input` (name) and `#event-date` (start date).
-- Submit runs `addTaskForm` → **`POST /api/habits`** with `task`, `event_date`, and `user_id` (Auth0 email / nickname / sub).
+- Submit runs `addTaskForm` → **`POST /api/habits`** with `task`, `event_date`, and `user_id` (Supabase account email). All habit API calls include the Supabase access token in the `Authorization` header; the server verifies it and uses the token’s email as the owner.
 - On success, the form clears and `loadTasks` refreshes the table.
 
 ### Row actions (edit / delete)
@@ -106,18 +106,18 @@ Click handling uses `tr[data-habit-id]` and reads the habit name from `td:first-
 |-------|------|
 | Layout partials | Navbar, footer (`habit_stacker.html` template). |
 | `/habits/habits.css` | Page styles. |
-| `/habits/auth_page_load.js` | Auth0 gate, base `updateContentVisibility`, `waitForAuth0AndCheck`, `checkAuthAndDisplayContent`. **Must load before `habits.js`.** |
+| `/habits/auth_page_load.js` | Supabase auth gate, base `updateContentVisibility`, `waitForAuthAndCheck`, `checkAuthAndDisplayContent`. **Must load before `habits.js`.** |
 | `/habits/habits.js` | Habits CRUD UI, wraps `updateContentVisibility` to call `loadTasks` after login. |
 
-Site-wide scripts (Auth0 client, `handleLogin`, etc.) are assumed from the global layout/footer as on other course pages.
+Site-wide scripts (Supabase client via `/js/supabase-config.js` + `/js/supabase-auth.js`, `handleLogin`, etc.) load from the global layout.
 
 ### `auth_page_load.js` — important symbols
 
 | Function | Role |
 |----------|------|
-| `checkAuthAndDisplayContent()` | Resolves Auth0 client, optional redirect promise, then calls `updateContentVisibility(isAuthenticated)`. |
-| `updateContentVisibility(isAuthenticated)` | Toggles `#private-content` vs `#login-required-message`. **Overridden** in `habits.js` to also run `loadTasks` when true. |
-| `waitForAuth0AndCheck(maxRetries, retryDelay)` | Polls until `window.auth0` / `auth0Promise` exists, then runs auth check. |
+| `checkAuthAndDisplayContent()` | Asks `window.appAuth` for the session, then calls `updateContentVisibility(isAuthenticated)`. |
+| `updateContentVisibility(isAuthenticated)` | Toggles `#private-content` vs `#login-required-message`. **Overridden** in `habits.js` to also run `loadTasks` when true. Also called by `supabase-auth.js` on every auth state change. |
+| `waitForAuthAndCheck(maxRetries, retryDelay)` | Polls until `window.appAuth` exists, then runs auth check. |
 
 ### `habits.js` — important functions and globals
 
@@ -141,7 +141,7 @@ Site-wide scripts (Auth0 client, `handleLogin`, etc.) are assumed from the globa
 
 | Route | Method | Use |
 |-------|--------|-----|
-| `/api/habits` | GET | List habits (client filters by `user_id`). |
+| `/api/habits` | GET | List habits (server filters to the verified user; client also filters by `user_id`). |
 | `/api/habits` | POST | Create (`task`, `event_date`, `user_id`). |
 | `/api/habits/:id` | PUT | Update (`task`, `event_date`, `user_id`). |
 | `/api/habits/:id` | DELETE | Delete habit. |

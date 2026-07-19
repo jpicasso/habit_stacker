@@ -1,11 +1,11 @@
 # Habit Stacker — iOS App (Capacitor)
 
-This folder contains everything needed to ship **www.upriseu.com** as an iOS app
-on the App Store. It uses [Capacitor](https://capacitorjs.com/) to wrap the live
-website in a native iOS shell.
+This folder contains everything needed to ship **www.habitstackerapp.com** as an
+iOS app on the App Store. It uses [Capacitor](https://capacitorjs.com/) to wrap
+the live website in a native iOS shell.
 
 **How it works:** the app opens a native WebView pointed at
-`https://www.upriseu.com` (see `server.url` in `capacitor.config.json`).
+`https://www.habitstackerapp.com` (see `server.url` in `capacitor.config.json`).
 There is no separate mobile codebase — updates you deploy to the website appear
 in the app automatically. The `www/` folder here is only an offline fallback
 page.
@@ -63,9 +63,9 @@ npx cap open ios     # opens Xcode with the project
 In Xcode:
 1. At the top of the window, pick a simulator (e.g. **iPhone 17**).
 2. Press **▶ (Run)** or `Cmd+R`.
-3. The app should launch and load www.upriseu.com.
+3. The app should launch and load www.habitstackerapp.com.
 
-Test everything: login (Auth0), signup, habits, goals. The WebView behaves
+Test everything: login (Supabase), signup, habits. The WebView behaves
 like Safari, so anything that works in mobile Safari should work here.
 
 ## Step 2 — Run on your real iPhone
@@ -80,17 +80,16 @@ like Safari, so anything that works in mobile Safari should work here.
 4. Press Run. On the phone, approve the developer certificate the first time
    (Settings → General → VPN & Device Management).
 
-## Step 3 — Auth0 configuration
+## Step 3 — Supabase Auth configuration
 
-Because the app loads the live site directly, Auth0 sees the same origin
-(`https://www.upriseu.com`) as the regular website, so **login should work
-with no Auth0 changes**. Verify by logging in from the app.
+Because the app loads the live site directly, Supabase sees the same origin
+(`https://www.habitstackerapp.com`) as the regular website, so **login should
+work with no extra mobile configuration**. Verify by logging in from the app.
 
-If login fails, check in the Auth0 Dashboard (Applications → your app) that
-these lists include `https://www.upriseu.com`:
-- Allowed Callback URLs
-- Allowed Logout URLs
-- Allowed Web Origins
+If signup confirmation emails link to the wrong place, check in the Supabase
+Dashboard (Authentication → URL Configuration) that:
+- **Site URL** is `https://www.habitstackerapp.com`
+- **Redirect URLs** include `https://www.habitstackerapp.com/**`
 
 ## Step 4 — App icon and launch screen
 
@@ -110,18 +109,18 @@ The App Store requires a 1024×1024 icon with no transparency.
 2. Fill in:
    - **Platform:** iOS
    - **Name:** Habit Stacker (must be unique on the App Store)
-   - **Bundle ID:** `com.upriseu.habitstacker` (register it at
+   - **Bundle ID:** `com.habitstackerapp.app` (register it at
      https://developer.apple.com/account/resources/identifiers if prompted)
    - **SKU:** anything, e.g. `habitstacker-001`
 3. You will also need:
    - **Screenshots** — take these in the Simulator (`Cmd+S`) for a 6.7"/6.9"
      iPhone. At least one required.
    - **Privacy policy URL** — required because the app has accounts. Host a
-     page on upriseu.com (e.g. `/privacy.html`).
-   - **App privacy details** — declare what you collect: email + name (Auth0
-     account), user content (habits/goals). All "linked to identity", none
+     page on habitstackerapp.com (e.g. `/privacy.html`).
+   - **App privacy details** — declare what you collect: email (Supabase
+     account), user content (habits). All "linked to identity", none
      used for tracking.
-   - **Demo account for review** — create a test Auth0 login and put the
+   - **Demo account for review** — create a test account and put the
      credentials in the "App Review Information" notes. Reviewers must be able
      to log in.
 
@@ -151,12 +150,12 @@ The App Store requires a 1024×1024 icon with no transparency.
 
 Apple guideline 4.2 ("minimum functionality") is the main risk for web
 wrappers. To improve your odds:
-- The app is a focused tool (habit + goal tracking), not a brochure site —
+- The app is a focused habit-stacking tool, not a brochure site —
   emphasize this in the review notes.
 - Make sure the site looks/feels good on a phone: no horizontal scrolling,
   touch-friendly buttons, no desktop-only UI.
 - Everything must work: no dead links, no broken pages inside the app.
-  Keep the app scoped to the habit/goals experience.
+  Keep the app scoped to the habits experience.
 - Provide the demo login so reviewers see the real product immediately.
 
 If rejected, don't panic — read the reason, fix it, reply in the Resolution
@@ -189,12 +188,13 @@ export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm use 24
 ```
 
 **White screen / fallback page in the app**
-The device can't reach https://www.upriseu.com — check the site is up and the
-device has internet.
+The device can't reach https://www.habitstackerapp.com — check the site is up
+and the device has internet.
 
-**Login redirect loops or fails in the app**
-Check the Auth0 allowed URLs (Step 3) and that the site's
-`auth0-config.js` uses `window.location.origin` (it does).
+**Login fails in the app**
+Check the Supabase URL configuration (Step 3) and that
+`src/js/supabase-config.js` on the website has the correct project URL and
+anon key.
 
 **Build succeeds but changes don't appear**
 Config or `www/` changes need `npx cap sync ios` before rebuilding in Xcode.

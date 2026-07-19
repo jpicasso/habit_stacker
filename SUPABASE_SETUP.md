@@ -1,18 +1,18 @@
-# Setting up habits on Supabase
+# Supabase database setup (Habit Stacker)
 
-Supabase is a hosted PostgreSQL database. Use it in production so habits persist when your app is deployed (e.g. on Railway, Render, or Heroku).
+Use a **new** Supabase project for Habit Stacker (not the old Uprise University project).
 
-## 1. Create a Supabase project
+Auth setup (email login, Site URL, redirect URLs) is documented in **[README_SETUP.md](./README_SETUP.md)**. This file is only the SQL for tables.
 
-1. Go to [supabase.com](https://supabase.com) and sign in (or create an account).
-2. Click **New project**.
-3. Choose an organization, name the project (e.g. `upriseu-habits`), set a database password, and pick a region. Click **Create new project**.
+## 1. Create the project
 
-## 2. Create the `habits` table
+1. [supabase.com](https://supabase.com) → **New project**.
+2. Name it e.g. `habit-stacker`, set a DB password, pick a region.
+3. Wait until the project is healthy.
 
-1. In the Supabase dashboard, open your project.
-2. Go to **SQL Editor** in the left sidebar.
-3. Click **New query** and run this SQL:
+## 2. Create tables (SQL Editor)
+
+### Required for launch — `habits`
 
 ```sql
 create table if not exists habits (
@@ -22,9 +22,10 @@ create table if not exists habits (
   user_id text
 );
 ```
-4. Click **Run**. You should see “Success. No rows returned.”
 
-create goals table
+`user_id` stores the signed-in user’s **email** (same value Supabase Auth uses).
+
+### Optional — only if you still use these APIs
 
 ```sql
 create table if not exists goals_list (
@@ -39,11 +40,7 @@ create table if not exists goals_list (
   goal8 text,
   user_id text
 );
-```
 
-create goals_values table (for yellow-box cell submissions)
-
-```sql
 create table if not exists goals_values (
   id bigserial primary key,
   user_id text not null,
@@ -51,45 +48,39 @@ create table if not exists goals_values (
   value text,
   date date
 );
-```
 
-create feedback table
-
-```sql
 create table if not exists feedback (
   id bigserial primary key,
   created_at timestamptz default now(),
   details text,
   rating double precision
 );
+
+create table if not exists temporary_variables (
+  id bigserial primary key,
+  user_id text,
+  temporary_table_key text,
+  temporary_table_value text
+);
 ```
 
+## 3. API keys
 
-## 3. Get your API credentials
+**Project Settings → API:**
 
-1. In the dashboard, go to **Project Settings** (gear icon) → **API**.
-2. Note:
-   - **Project URL** (e.g. `https://xxxxx.supabase.co`)
-   - **service_role** key under “Project API keys” (secret; use only on the server)
+| Key | Where it goes |
+|-----|----------------|
+| Project URL | `.env` → `SUPABASE_URL` **and** `src/js/supabase-config.js` → `url` |
+| `anon` `public` | `src/js/supabase-config.js` → `anonKey` |
+| `service_role` | `.env` → `SUPABASE_SERVICE_ROLE_KEY` only |
 
-## 4. Configure your app
+See **README_SETUP.md** for the full checklist.
 
-Set these environment variables where your app runs (local `.env` or your host’s env vars):
+## 4. How the app uses Supabase
 
-```bash
-SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-```
+1. Browser signs in with the **anon** key (`supabase-auth.js`).
+2. Habits API calls send `Authorization: Bearer <access_token>`.
+3. Express verifies the token with the **service role** client (`supabase-auth-server.js`) and scopes rows to `req.user.email`.
+4. Habit rows are read/written via `supabase-habits.js`.
 
-- **Local:** create a `.env` file in the project root (add `.env` to `.gitignore` if it isn’t already) and add the two lines above. Use something like `dotenv` in `server.js` to load them, or set them in your shell.
-- **Production:** in your host’s dashboard (Railway, Render, Heroku, etc.), add the same two variables.
-
-Restart the server. If both variables are set, the app will use Supabase for habits instead of the local `habits.db` file.
-
-## 5. Optional: use `.env` locally
-
-1. Install dotenv: `npm install dotenv`
-2. At the top of `server.js` (before other requires), add: `require('dotenv').config();`
-3. Add to `.gitignore`: `.env`
-
-Then you can keep `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env` and not commit them.
+Locally, if `.env` is missing, habits fall back to SQLite (`habits.db`) and API auth is relaxed — production should always have Supabase configured.

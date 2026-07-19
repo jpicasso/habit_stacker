@@ -1,49 +1,78 @@
-# Park22 - UpriseU
-## Static templates
-### Installation and Development
+# Habit Stacker
 
-Install `gulp-cli` globally, `npm install` from the document root, then run `gulp watch`. Combines and processes SCSS and watches for changes to all .scss, .js and .html files.
+Build habits that stick by stacking them onto routines you already have.
 
-You’ll need to run `npm update` and then `npm install panini` to download the panini  plugin
+**Live site:** [www.habitstackerapp.com](https://www.habitstackerapp.com)
 
-### Folder Structure
-- src - Holds all working files 
-- dist - What you upload to web server. This folder is .gitignored since everything in it is generated from src
-- src/layouts/default - basic HTML wrapper used on all pages. {{> body}} is where the content from src/pages is filled in
-    - there are a few example partials so you can see how it works. Notably, each page loads a partial called navbar with the syntax {{> navbar}}
-- At the top of the pages, you can set layout variables. I’ve set a title in each one that will feed into layouts/default.html and become the title in <head>
-- gulpfile has a lot of comments so you can see how things work
+Habit stacking pairs a new behavior with an existing automatic daily routine, so an established habit becomes the trigger and you rely less on willpower.
 
-### SCSS Structure
+## What this app does
 
-- Main scss file in `scss/main.scss`
-- View Bootstrap's editable variables in `scss/bootstrap/_variables.scss`
-- Override variables in `scss/_variables-override.scss`
+- Sign up / log in with **Supabase Auth** (email + password)
+- Create habits with a start date
+- Track streaks (days kept), with color levels at 1 / 21 / 100 / 365 days
+- Persist habits in **Supabase** (PostgreSQL)
 
-### Tech Stack Overview
-- Gulp
-- Panini - Plugin for Gulp that allows you to make basic templates using layouts, pages, partials and variables
+## Tech stack
 
-### Deployment
-1. delete `dist` folder
-2. cd to folder directory in terminal and enter `gulp watch` (automatically pulls up local deployment)
-3. Copy / paste new `dist` folder onto your hosting site of choice
-4. Make new commit to https://github.com/jpicasso/UpriseU2026 
-5. Site is hosted on heroku; deployed through github; db is on supabase. For habits persistence in production, see **SUPABASE_SETUP.md**.
+| Layer | Tech |
+|-------|------|
+| Frontend | HTML, Bootstrap, jQuery, Panini templates |
+| Build | Gulp → `dist/` |
+| API | Express (`server.js`) |
+| Auth | Supabase Auth (browser client + server JWT check) |
+| Database | Supabase (`habits` table); SQLite fallback for local habits only |
+| iOS wrapper | Capacitor in `capacitor-app/` |
 
-### Debugging
-Note: if gulp watch function is not working, follow these steps
-cd
-brew install nvm
-mkdir ~/.nvm
-export NVM_DIR=~/.nvm
-source $(brew --prefix nvm)/nvm.sh
-brew install nvm
-nvm install 14.4.0
-nvm use 14
-cd Dropbox/4_HabitStacker
-rm -r node_modules
-rm -r dist
+## First-time setup (you must do this)
+
+Follow **[README_SETUP.md](./README_SETUP.md)** — that file is the checklist for:
+
+1. Creating / configuring your **new Supabase project**
+2. Filling in browser keys (`src/js/supabase-config.js`)
+3. Filling in server keys (`.env`)
+4. Enabling Auth + redirect URLs for `habitstackerapp.com`
+5. Building and running locally
+6. Deploying to production
+
+Database table SQL is in **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)**.  
+iOS App Store steps are in **[capacitor-app/README.md](./capacitor-app/README.md)**.
+
+## Local development
+
+```bash
+# Use Node 14 for this web app (via nvm)
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm use 14
+
 npm install
 npm run build
 npm run dev
+```
+
+- App (with live reload): http://localhost:3001  
+- Express API: http://localhost:3000  
+
+If Gulp/Node is broken on your Mac, see the Node 14 reset steps at the bottom of `README_SETUP.md`.
+
+## Project layout
+
+```
+src/pages/          # index, login, habits
+src/js/             # supabase-config.js, supabase-auth.js, …
+src/partials/       # navbar, footer
+src/layouts/        # default HTML shell
+dist/               # generated site (served by Express) — do not edit by hand
+capacitor-app/      # iOS Capacitor wrapper
+supabase-*.js       # server-side Supabase helpers
+server.js           # Express API + static hosting
+```
+
+## Deploy (production)
+
+1. Complete `README_SETUP.md` (Supabase Auth + env vars on the host).
+2. Point the host at this repo; set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+3. Build (`npm run build`) and start (`npm start`) — or use your host’s build command.
+4. Confirm the site is served at **https://www.habitstackerapp.com**.
+5. In Supabase Auth → URL Configuration, set Site URL / Redirect URLs to that domain.
+
+GitHub repo for this product: `https://github.com/jpicasso/habit_stacker`

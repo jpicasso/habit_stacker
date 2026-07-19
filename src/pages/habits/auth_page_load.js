@@ -1,40 +1,11 @@
 /**
- * Auth0 page gate: resolve client, wait for redirect handling, toggle #private-content vs #login-required-message.
- * Loaded before habits.js or goals/goals-*.js so that script can wrap updateContentVisibility (e.g. loadTasks / loadGoals after login).
+ * Auth page gate (Supabase): toggle #private-content vs #login-required-message.
+ * Loaded before habits.js so that script can wrap updateContentVisibility
+ * (e.g. loadTasks after login).
+ *
+ * window.appAuth is created by /js/supabase-auth.js, which the layout loads
+ * after page scripts — so we poll briefly until it exists.
  */
-
-// --- Auth0: resolve client, wait for redirect handling, then toggle page sections ---
-async function checkAuthAndDisplayContent() {
-  try {
-    let auth0 = null;
-
-    // Prefer sync client; otherwise wait for auth0-config.js to set auth0Promise
-    if (window.auth0) {
-      auth0 = window.auth0;
-    } else if (window.auth0Promise) {
-      auth0 = await window.auth0Promise;
-    } else {
-      setTimeout(checkAuthAndDisplayContent, 200);
-      return;
-    }
-
-    // After OAuth redirect, auth0-config may still be finishing handleRedirectCallback
-    if (window.redirectHandledPromise) {
-      await window.redirectHandledPromise;
-    }
-
-    if (auth0 && typeof auth0.isAuthenticated === 'function') {
-      const isAuthenticated = await auth0.isAuthenticated();
-      updateContentVisibility(isAuthenticated);
-    } else {
-      console.error('Auth0 client is not properly initialized');
-      updateContentVisibility(false);
-    }
-  } catch (error) {
-    console.error('Error checking authentication:', error);
-    updateContentVisibility(false);
-  }
-}
 
 function updateContentVisibility(isAuthenticated) {
   const privateContent = document.getElementById('private-content');
@@ -49,18 +20,29 @@ function updateContentVisibility(isAuthenticated) {
   }
 }
 
-// Poll until auth0 exists or retries exhaust, so we do not race the SDK script
-function waitForAuth0AndCheck(maxRetries = 10, retryDelay = 200) {
+async function checkAuthAndDisplayContent() {
+  try {
+    const isAuthenticated = await window.appAuth.isAuthenticated();
+    updateContentVisibility(isAuthenticated);
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    updateContentVisibility(false);
+  }
+}
+
+// supabase-auth.js loads after page scripts; poll until window.appAuth exists.
+// Afterwards, onAuthStateChange in supabase-auth.js keeps the page in sync.
+function waitForAuthAndCheck(maxRetries = 25, retryDelay = 200) {
   let retries = 0;
 
   const check = () => {
-    if (window.auth0 || (window.auth0Promise && retries < maxRetries)) {
+    if (window.appAuth) {
       checkAuthAndDisplayContent();
     } else if (retries < maxRetries) {
       retries++;
       setTimeout(check, retryDelay);
     } else {
-      console.warn('Auth0 initialization timeout - showing login required');
+      console.warn('Supabase auth initialization timeout - showing login required');
       updateContentVisibility(false);
     }
   };
@@ -70,18 +52,13 @@ function waitForAuth0AndCheck(maxRetries = 10, retryDelay = 200) {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    waitForAuth0AndCheck();
+    waitForAuthAndCheck();
   });
 } else {
-  waitForAuth0AndCheck();
+  waitForAuthAndCheck();
 }
 
-// User returns from login in another tab/window
+// User returns from logging in from another tab/window
 window.addEventListener('focus', () => {
-  setTimeout(checkAuthAndDisplayContent, 100);
+  if (window.appAuth) setTimeout(checkAuthAndDisplayContent, 100);
 });
-
-// URL still has OAuth code/state right after redirect; give the SDK a moment
-if (window.location.search.includes('code=') && window.location.search.includes('state=')) {
-  setTimeout(checkAuthAndDisplayContent, 500);
-}

@@ -3,6 +3,31 @@
  * Loads habits from /api/habits scoped to the logged-in user (user_id === email).
  */
 
+// Supabase session info for API calls: user email + access token (for the
+// Authorization header the server verifies).
+async function getAuthContext() {
+  try {
+    if (window.appAuth) {
+      const session = await window.appAuth.getSession();
+      if (session) {
+        return {
+          email: session.user?.email || null,
+          token: session.access_token || null
+        };
+      }
+    }
+  } catch (authError) {
+    console.error('Error getting current user:', authError);
+  }
+  return { email: null, token: null };
+}
+
+function authHeaders(token, extra = {}) {
+  const headers = { ...extra };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 // --- Habits list: GET /api/habits, filter to current user, render rows with streak styling ---
 async function loadTasks() {
   const loadingEl = document.getElementById('tasks-loading');
@@ -17,18 +42,7 @@ async function loadTasks() {
     emptyEl.style.display = 'none';
     tableEl.style.display = 'none';
 
-    let currentUserEmail = null;
-    try {
-      if (window.auth0) {
-        const isAuthenticated = await window.auth0.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await window.auth0.getUser();
-          currentUserEmail = user?.email || null;
-        }
-      }
-    } catch (authError) {
-      console.error('Error getting current user:', authError);
-    }
+    const { email: currentUserEmail, token } = await getAuthContext();
 
     if (!currentUserEmail) {
       loadingEl.style.display = 'none';
@@ -37,7 +51,9 @@ async function loadTasks() {
       return;
     }
 
-    const response = await fetch('/api/habits');
+    const response = await fetch('/api/habits', {
+      headers: authHeaders(token)
+    });
     const responseData = await response.json().catch(() => ({}));
     if (!response.ok) {
       const details = responseData.details || responseData.error || '';
@@ -131,25 +147,12 @@ async function addTaskForm(event) {
     submitButton.disabled = true;
     submitButton.textContent = 'Adding...';
 
-    // user_id stored as Auth0 email (or fallback) to match loadTasks filter
-    let userId = null;
-    try {
-      if (window.auth0) {
-        const isAuthenticated = await window.auth0.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await window.auth0.getUser();
-          userId = user?.email || user?.nickname || user?.sub || null;
-        }
-      }
-    } catch (authError) {
-      console.error('Error getting Auth0 user:', authError);
-    }
+    // user_id stored as the Supabase account email to match loadTasks filter
+    const { email: userId, token } = await getAuthContext();
 
     const response = await fetch('/api/habits', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: authHeaders(token, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({ task, event_date: eventDate, user_id: userId })
     });
 
@@ -176,8 +179,10 @@ async function deleteTask(id) {
   }
 
   try {
+    const { token } = await getAuthContext();
     const response = await fetch(`/api/habits/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: authHeaders(token)
     });
 
     if (!response.ok) {
@@ -221,7 +226,10 @@ function daysSince(dateString) {
 // Loads full list from API, finds the row by id, fills #editEventModal (same pattern as server expects user_id on PUT)
 async function editTask(id) {
   try {
-    const response = await fetch(`/api/habits`);
+    const { token } = await getAuthContext();
+    const response = await fetch(`/api/habits`, {
+      headers: authHeaders(token)
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch tasks');
     }
@@ -277,24 +285,11 @@ async function saveEditTask() {
     saveButton.disabled = true;
     saveButton.textContent = 'Saving...';
 
-    let userId = null;
-    try {
-      if (window.auth0) {
-        const isAuthenticated = await window.auth0.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await window.auth0.getUser();
-          userId = user?.email || user?.nickname || user?.sub || null;
-        }
-      }
-    } catch (authError) {
-      console.error('Error getting Auth0 user:', authError);
-    }
+    const { email: userId, token } = await getAuthContext();
 
     const response = await fetch(`/api/habits/${taskId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: authHeaders(token, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         task,
         event_date: eventDate,

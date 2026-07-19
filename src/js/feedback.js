@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ratingInput = form.querySelector('input[name="feedback-rating"]:checked');
     if (!ratingInput) {
-      alert('Please select how satisfied you are with Uprise University.');
+      alert('Please select how satisfied you are with Habit Stacker.');
       return;
     }
 
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(body.error || 'Failed to submit feedback');
       }
 
-      alert('Thank you for your feedback! We appreciate you helping us improve Uprise University.');
+      alert('Thank you for your feedback! We appreciate you helping us improve Habit Stacker.');
       window.location.href = '/index.html';
     } catch (err) {
       console.error(err);

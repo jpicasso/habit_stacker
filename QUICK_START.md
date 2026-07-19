@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+For Supabase Auth + new project credentials, complete **[README_SETUP.md](./README_SETUP.md)** first.
+
 ## Start the Server
 
 ### Option 1: Run Both Server and Gulp Watch Together (Recommended)

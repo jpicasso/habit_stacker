@@ -1,25 +1,127 @@
 ---
-title: 'About Us'
-course: 'Courses'
-aboutNav: true
+title: 'Log In'
 ---
 
 {{> navbar}}
 
 <main class="main main--interior">
   <div class="i-section mb-4">
-    <div class="container-fluid">
-      <div class="row">
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-        </nav>
-        <section class="col-md-9 ml-sm-auto col-lg-10 content">
-          
-           <a class="nav-link" id="login-button" href="#" onclick="handleLogin(); return false;">Login</a>
-          
-        </section>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5 mt-4">
+
+          <div class="card">
+            <div class="card-body">
+              <h1 class="h3 mb-3" id="auth-title">Log in</h1>
+
+              <div id="auth-error" class="alert alert-danger" style="display: none;"></div>
+              <div id="auth-info" class="alert alert-info" style="display: none;"></div>
+
+              <form id="auth-form">
+                <div class="form-group">
+                  <label for="auth-email">Email</label>
+                  <input type="email" class="form-control" id="auth-email" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                  <label for="auth-password">Password</label>
+                  <input type="password" class="form-control" id="auth-password" required minlength="6" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="auth-submit">Log in</button>
+              </form>
+
+              <p class="mt-3 mb-0 text-center">
+                <a href="#" id="auth-toggle">Don't have an account? Sign up</a>
+              </p>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
 </main>
+
+<script>
+  // Sign in / sign up with Supabase Auth. Mode toggles between the two.
+  (function () {
+    let mode = window.location.hash === '#signup' ? 'signup' : 'login';
+
+    const titleEl = document.getElementById('auth-title');
+    const submitEl = document.getElementById('auth-submit');
+    const toggleEl = document.getElementById('auth-toggle');
+    const errorEl = document.getElementById('auth-error');
+    const infoEl = document.getElementById('auth-info');
+    const formEl = document.getElementById('auth-form');
+
+    function render() {
+      const signup = mode === 'signup';
+      titleEl.textContent = signup ? 'Sign up' : 'Log in';
+      submitEl.textContent = signup ? 'Create account' : 'Log in';
+      toggleEl.textContent = signup
+        ? 'Already have an account? Log in'
+        : "Don't have an account? Sign up";
+    }
+
+    function showError(message) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      infoEl.style.display = 'none';
+    }
+
+    function showInfo(message) {
+      infoEl.textContent = message;
+      infoEl.style.display = 'block';
+      errorEl.style.display = 'none';
+    }
+
+    toggleEl.addEventListener('click', function (e) {
+      e.preventDefault();
+      mode = mode === 'signup' ? 'login' : 'signup';
+      render();
+    });
+
+    formEl.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+      infoEl.style.display = 'none';
+
+      const auth = window.appAuth;
+      if (!auth || !auth.client) {
+        showError('Authentication is not configured yet. See README_SETUP.md.');
+        return;
+      }
+
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      submitEl.disabled = true;
+      try {
+        if (mode === 'signup') {
+          const { data, error } = await auth.client.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data.session) {
+            // Email confirmation disabled: user is logged in immediately
+            window.location.href = '/habits/habit_stacker.html';
+          } else {
+            showInfo('Check your email for a confirmation link, then log in.');
+            mode = 'login';
+            render();
+          }
+        } else {
+          const { error } = await auth.client.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          window.location.href = '/habits/habit_stacker.html';
+        }
+      } catch (err) {
+        console.error('Auth error:', err);
+        showError(err.message || 'Something went wrong. Please try again.');
+      } finally {
+        submitEl.disabled = false;
+      }
+    });
+
+    render();
+  })();
+</script>
 
 {{> main-site-footer }}

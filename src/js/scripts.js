@@ -95,5 +95,5 @@ $('.btn-close, .screen-overlay').click(e => {
 $('a.project').on('click', e => {
   e.preventDefault();
   let url = e.target.href;
-  window.open(url, 'UpriseU app', 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=960,height=500');
+  window.open(url, 'Habit Stacker app', 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=960,height=500');
 })

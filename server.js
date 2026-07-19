@@ -13,6 +13,7 @@ const supabaseHabits = require('./supabase-habits');
 const supabaseGoals = require('./supabase-goals');
 const supabaseTemporary = require('./supabase-temporary');
 const supabaseFeedback = require('./supabase-feedback');
+const supabaseAuth = require('./supabase-auth-server');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -134,14 +135,22 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-// --- Habits API (habits.db) ---
+// --- Habits API ---
+// All habit routes require a valid Supabase session (when Supabase is
+// configured). The user's email from the verified token — not the request
+// body — is used as user_id.
+
+app.use('/api/habits', supabaseAuth.requireAuth());
 
 app.get('/api/habits', async (req, res) => {
   try {
     if (!habitsDb) {
       return res.status(500).json({ error: 'Habits database not initialized' });
     }
-    const habits = useSupabaseHabits ? await supabaseHabits.getAllHabits() : await getAllHabits(habitsDb);
+    let habits = useSupabaseHabits ? await supabaseHabits.getAllHabits() : await getAllHabits(habitsDb);
+    if (req.user?.email) {
+      habits = habits.filter(h => h.user_id === req.user.email);
+    }
     res.json(habits);
   } catch (error) {
     console.error('Error fetching habits:', error);
@@ -162,7 +171,8 @@ app.post('/api/habits', async (req, res) => {
     if (!event_date) {
       return res.status(400).json({ error: 'Start date is required' });
     }
-    const newHabit = useSupabaseHabits ? await supabaseHabits.addHabit(task.trim(), event_date, user_id || null) : await addHabit(habitsDb, task.trim(), event_date, user_id || null);
+    const ownerId = req.user?.email || user_id || null;
+    const newHabit = useSupabaseHabits ? await supabaseHabits.addHabit(task.trim(), event_date, ownerId) : await addHabit(habitsDb, task.trim(), event_date, ownerId);
     res.status(201).json(newHabit);
   } catch (error) {
     console.error('Error adding habit:', error);
@@ -183,7 +193,8 @@ app.put('/api/habits/:id', async (req, res) => {
     if (!event_date) {
       return res.status(400).json({ error: 'Start date is required' });
     }
-    const updated = useSupabaseHabits ? await supabaseHabits.updateHabit(id, task.trim(), event_date, user_id || null) : await updateHabit(habitsDb, id, task.trim(), event_date, user_id || null);
+    const ownerId = req.user?.email || user_id || null;
+    const updated = useSupabaseHabits ? await supabaseHabits.updateHabit(id, task.trim(), event_date, ownerId) : await updateHabit(habitsDb, id, task.trim(), event_date, ownerId);
     res.json(updated);
   } catch (error) {
     console.error('Error updating habit:', error);
