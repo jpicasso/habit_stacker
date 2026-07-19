@@ -1,6 +1,5 @@
 # Habit Stacker — what you need to configure
 
-Test update
 
 This file lists **only the things you must do yourself** after the code was switched from Uprise University / Auth0 to Habit Stacker / Supabase Auth.
 
