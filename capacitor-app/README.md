@@ -57,7 +57,8 @@ npx cap sync ios     # copy config + web assets into the iOS project
 
 ```bash
 cd capacitor-app
-npx cap open ios     # opens Xcode with the project
+npx cap open ios     
+# opens Xcode with the project
 ```
 
 In Xcode:

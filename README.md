@@ -194,6 +194,11 @@ In Supabase → **Authentication**:
 | Redirect URLs | `https://www.habitstackerapp.com/**` |
 | | `http://localhost:3000/**` |
 | | `http://localhost:3001/**` |
+| | `https://www.habitstackerapp.com/reset-password.html` |
+| | `http://localhost:3000/reset-password.html` |
+| | `http://localhost:3001/reset-password.html` |
+
+(`/**` usually covers the reset-password page; add the explicit URLs if password-reset emails fail to open the app.)
 
 Also add any preview / staging URLs you use.
 

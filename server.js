@@ -396,6 +396,26 @@ app.get('/api/temporary_variables', async (req, res) => {
   }
 });
 
+// --- Account deletion (Supabase Auth + habit rows) ---
+
+app.post('/api/account/delete', supabaseAuth.requireAuth(), async (req, res) => {
+  try {
+    if (!supabaseAuth.isConfigured()) {
+      return res.status(503).json({
+        error: 'Account deletion requires Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
+    }
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'You must be logged in' });
+    }
+    await supabaseAuth.deleteUserAccount(req.user);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete account' });
+  }
+});
+
 // Handle all other routes by serving index.html (for client-side routing if needed)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

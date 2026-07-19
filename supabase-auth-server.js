@@ -59,4 +59,27 @@ function requireAuth() {
   };
 }
 
-module.exports = { isConfigured, requireAuth };
+/**
+ * Permanently delete a user's Auth account and their habit rows.
+ * Uses the service-role client (admin API).
+ * @param {{ id: string, email?: string }} user
+ */
+async function deleteUserAccount(user) {
+  const supabase = getClient();
+  if (!supabase) throw new Error('Supabase not configured');
+  if (!user || !user.id) throw new Error('User id is required');
+
+  const email = (user.email || '').trim();
+  if (email) {
+    const { error: habitsError } = await supabase
+      .from('habits')
+      .delete()
+      .eq('user_id', email);
+    if (habitsError) throw habitsError;
+  }
+
+  const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+  if (authError) throw authError;
+}
+
+module.exports = { isConfigured, requireAuth, deleteUserAccount };

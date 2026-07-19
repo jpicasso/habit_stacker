@@ -22,14 +22,17 @@ title: 'Log In'
                   <label for="auth-email">Email</label>
                   <input type="email" class="form-control" id="auth-email" required autocomplete="email">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="auth-password-group">
                   <label for="auth-password">Password</label>
                   <input type="password" class="form-control" id="auth-password" required minlength="6" autocomplete="current-password">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" id="auth-submit">Log in</button>
               </form>
 
-              <p class="mt-3 mb-0 text-center">
+              <p class="mt-3 mb-1 text-center" id="auth-forgot-wrap">
+                <a href="#forgot" id="auth-forgot">Forgot password?</a>
+              </p>
+              <p class="mt-2 mb-0 text-center">
                 <a href="#" id="auth-toggle">Don't have an account? Sign up</a>
               </p>
             </div>
@@ -42,24 +45,44 @@ title: 'Log In'
 </main>
 
 <script>
-  // Sign in / sign up with Supabase Auth. Mode toggles between the two.
+  // Modes: login | signup | forgot
   (function () {
-    let mode = window.location.hash === '#signup' ? 'signup' : 'login';
+    function modeFromHash() {
+      if (window.location.hash === '#signup') return 'signup';
+      if (window.location.hash === '#forgot') return 'forgot';
+      return 'login';
+    }
+
+    let mode = modeFromHash();
 
     const titleEl = document.getElementById('auth-title');
     const submitEl = document.getElementById('auth-submit');
     const toggleEl = document.getElementById('auth-toggle');
+    const forgotEl = document.getElementById('auth-forgot');
+    const forgotWrap = document.getElementById('auth-forgot-wrap');
+    const passwordGroup = document.getElementById('auth-password-group');
+    const passwordInput = document.getElementById('auth-password');
     const errorEl = document.getElementById('auth-error');
     const infoEl = document.getElementById('auth-info');
     const formEl = document.getElementById('auth-form');
 
     function render() {
       const signup = mode === 'signup';
-      titleEl.textContent = signup ? 'Sign up' : 'Log in';
-      submitEl.textContent = signup ? 'Create account' : 'Log in';
-      toggleEl.textContent = signup
-        ? 'Already have an account? Log in'
-        : "Don't have an account? Sign up";
+      const forgot = mode === 'forgot';
+
+      titleEl.textContent = forgot ? 'Reset password' : signup ? 'Sign up' : 'Log in';
+      submitEl.textContent = forgot ? 'Send reset link' : signup ? 'Create account' : 'Log in';
+      passwordGroup.style.display = forgot ? 'none' : 'block';
+      passwordInput.required = !forgot;
+      forgotWrap.style.display = signup || forgot ? 'none' : 'block';
+
+      if (forgot) {
+        toggleEl.textContent = 'Back to log in';
+      } else if (signup) {
+        toggleEl.textContent = 'Already have an account? Log in';
+      } else {
+        toggleEl.textContent = "Don't have an account? Sign up";
+      }
     }
 
     function showError(message) {
@@ -74,10 +97,34 @@ title: 'Log In'
       errorEl.style.display = 'none';
     }
 
+    function setMode(next) {
+      mode = next;
+      if (next === 'signup') {
+        history.replaceState(null, '', '#signup');
+      } else if (next === 'forgot') {
+        history.replaceState(null, '', '#forgot');
+      } else {
+        history.replaceState(null, '', window.location.pathname);
+      }
+      render();
+    }
+
+    forgotEl.addEventListener('click', function (e) {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+      infoEl.style.display = 'none';
+      setMode('forgot');
+    });
+
     toggleEl.addEventListener('click', function (e) {
       e.preventDefault();
-      mode = mode === 'signup' ? 'login' : 'signup';
-      render();
+      errorEl.style.display = 'none';
+      infoEl.style.display = 'none';
+      if (mode === 'forgot' || mode === 'signup') {
+        setMode('login');
+      } else {
+        setMode('signup');
+      }
     });
 
     formEl.addEventListener('submit', async function (e) {
@@ -87,25 +134,30 @@ title: 'Log In'
 
       const auth = window.appAuth;
       if (!auth || !auth.client) {
-        showError('Authentication is not configured yet. See README_SETUP.md.');
+        showError('Authentication is not configured yet. See README.md.');
         return;
       }
 
       const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
+      const password = passwordInput.value;
 
       submitEl.disabled = true;
       try {
-        if (mode === 'signup') {
+        if (mode === 'forgot') {
+          const redirectTo = window.location.origin + '/reset-password.html';
+          const { error } = await auth.client.auth.resetPasswordForEmail(email, {
+            redirectTo: redirectTo
+          });
+          if (error) throw error;
+          showInfo('If an account exists for that email, we sent a reset link. Check your inbox.');
+        } else if (mode === 'signup') {
           const { data, error } = await auth.client.auth.signUp({ email, password });
           if (error) throw error;
           if (data.session) {
-            // Email confirmation disabled: user is logged in immediately
             window.location.href = '/habits/habit_stacker.html';
           } else {
             showInfo('Check your email for a confirmation link, then log in.');
-            mode = 'login';
-            render();
+            setMode('login');
           }
         } else {
           const { error } = await auth.client.auth.signInWithPassword({ email, password });

@@ -1,3 +1,14 @@
+/* Clear the fixed navbar so empty/login states aren't covered */
+main.main.main--interior {
+  padding-top: 5.5rem;
+}
+
+@media (min-width: 992px) {
+  main.main.main--interior {
+    padding-top: 6rem;
+  }
+}
+
 #tasks-table,
 #tasks-table thead th,
 #tasks-table tbody td,
@@ -91,16 +102,6 @@
 }
 .card .table-responsive:first-of-type {
   border: none;
-}
-#rowActionModal .modal-header {
-  border-bottom: none;
-  padding-bottom: 0;
-  justify-content: flex-end;
-}
-#rowActionModal .modal-footer {
-  border-top: none;
-  padding-top: 0;
-  justify-content: flex-start;
 }
 .table-responsive {
   margin-bottom: 0;

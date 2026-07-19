@@ -189,6 +189,7 @@ async function deleteTask(id) {
       throw new Error('Failed to delete habit');
     }
 
+    $('#editEventModal').modal('hide');
     await loadTasks();
   } catch (error) {
     console.error('Error deleting habit:', error);
@@ -327,9 +328,6 @@ updateContentVisibility = function(isAuthenticated) {
   }
 };
 
-// Set when user taps a habit row; consumed by Edit/Delete in #rowActionModal
-let rowActionHabitId = null;
-
 document.addEventListener('DOMContentLoaded', () => {
   const taskForm = document.getElementById('task-form');
   if (taskForm) {
@@ -342,37 +340,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const row = e.target.closest('tr[data-habit-id]');
       if (!row) return;
       if (e.target.closest('button')) return;
-      rowActionHabitId = row.getAttribute('data-habit-id');
-      const habitNameEl = document.getElementById('row-action-habit-name');
-      if (habitNameEl) {
-        const firstCell = row.querySelector('td:first-child');
-        habitNameEl.textContent = firstCell ? firstCell.textContent.trim() : '';
-      }
-      if (rowActionHabitId) {
-        $('#rowActionModal').modal('show');
+      const habitId = row.getAttribute('data-habit-id');
+      if (habitId) {
+        editTask(parseInt(habitId, 10));
       }
     });
   }
 
-  const rowEditBtn = document.getElementById('row-action-edit-btn');
-  if (rowEditBtn) {
-    rowEditBtn.addEventListener('click', () => {
-      if (rowActionHabitId) {
-        $('#rowActionModal').modal('hide');
-        editTask(parseInt(rowActionHabitId, 10));
-        rowActionHabitId = null;
-      }
-    });
-  }
-
-  const rowDeleteBtn = document.getElementById('row-action-delete-btn');
-  if (rowDeleteBtn) {
-    rowDeleteBtn.addEventListener('click', () => {
-      if (rowActionHabitId) {
-        $('#rowActionModal').modal('hide');
-        const id = parseInt(rowActionHabitId, 10);
-        rowActionHabitId = null;
-        deleteTask(id);
+  const editDeleteBtn = document.getElementById('edit-delete-btn');
+  if (editDeleteBtn) {
+    editDeleteBtn.addEventListener('click', () => {
+      const taskId = document.getElementById('edit-task-id').value;
+      if (taskId) {
+        deleteTask(parseInt(taskId, 10));
       }
     });
   }
