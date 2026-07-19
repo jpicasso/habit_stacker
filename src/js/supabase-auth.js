@@ -64,6 +64,8 @@
     const loginButton = document.getElementById('login-button');
     const logoutButton = document.getElementById('logout-button');
     const privateNavItems = document.querySelectorAll('.private-nav-item');
+    const homeGuestCtas = document.querySelectorAll('#home-cta-guest, #home-cta-guest-secondary');
+    const homeAuthCtas = document.querySelectorAll('#home-cta-auth, #home-cta-auth-secondary');
 
     if (loginButton) {
       loginButton.style.display = isAuthenticated ? 'none' : 'block';
@@ -73,6 +75,12 @@
     }
     privateNavItems.forEach(el => {
       el.style.display = isAuthenticated ? 'block' : 'none';
+    });
+    homeGuestCtas.forEach(el => {
+      el.style.display = isAuthenticated ? 'none' : '';
+    });
+    homeAuthCtas.forEach(el => {
+      el.style.display = isAuthenticated ? '' : 'none';
     });
   }
 

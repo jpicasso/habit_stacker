@@ -11,7 +11,8 @@ title: 'Home'
       <div class="col-md-10 col-lg-8 header__content">
         <h2 class="display-3"><span class="display-4 d-block">Habit Stacker</span></h2>
         <p class="lead mt-2">Build habits that stick by stacking them onto routines you already have.</p>
-        <a href="#" class="btn btn-lg mt-4 btn--hero-cta font-weight-bold" onclick="handleSignup(); return false;">Sign up</a>
+        <a href="#" id="home-cta-guest" class="btn btn-lg mt-4 btn--hero-cta font-weight-bold" onclick="handleSignup(); return false;">Sign up</a>
+        <a href="/habits/habit_stacker.html" id="home-cta-auth" class="btn btn-lg mt-4 btn--hero-cta font-weight-bold" style="display: none;">Go to my Habits</a>
       </div>
     </div>
   </div>
@@ -40,7 +41,8 @@ title: 'Home'
           <li><strong>Watch habits level up</strong> as streaks pass 1, 21, 100, and 365 days.</li>
         </ol>
         <p class="mt-4">
-          <a href="#" class="btn btn-primary" onclick="handleSignup(); return false;">Get started free</a>
+          <a href="#" id="home-cta-guest-secondary" class="btn btn-primary" onclick="handleSignup(); return false;">Get started free</a>
+          <a href="/habits/habit_stacker.html" id="home-cta-auth-secondary" class="btn btn-primary" style="display: none;">Go to my Habits</a>
         </p>
       </div>
     </div>
