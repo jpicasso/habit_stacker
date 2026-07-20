@@ -1,11 +1,11 @@
 /* Clear the fixed navbar so empty/login states aren't covered */
 main.main.main--interior {
-  padding-top: 5.5rem;
+  padding-top: calc(5.5rem + env(safe-area-inset-top, 0px));
 }
 
 @media (min-width: 992px) {
   main.main.main--interior {
-    padding-top: 6rem;
+    padding-top: calc(6rem + env(safe-area-inset-top, 0px));
   }
 }
 
@@ -17,46 +17,101 @@ main.main.main--interior {
   font-size: 1rem;
   font-family: inherit;
 }
+
 /* Make habits table 90% of viewport width */
 #tasks-table {
   width: 90vw;
   max-width: 90vw;
   table-layout: fixed;
 }
-/* Align numeric columns */
+
+/* Align numeric / date columns */
 #tasks-table thead th:nth-child(2),
 #tasks-table thead th:nth-child(3),
 #tasks-table td:nth-child(2),
 #tasks-table td:nth-child(3) {
   text-align: center;
 }
-/* Flexible first column: takes remaining space */
-#tasks-table thead th:nth-child(1),
-#tasks-table td:nth-child(1) {
-  width: auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+/* —— Mobile: habit ~70vw; Days Kept / Start Date shrink-wrap & wrap —— */
+@media (max-width: 991.98px) {
+  #tasks-table {
+    table-layout: auto;
+  }
+
+  #tasks-table thead th:nth-child(1),
+  #tasks-table td:nth-child(1) {
+    width: 70vw;
+    max-width: 70vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #tasks-table thead th:nth-child(2),
+  #tasks-table td:nth-child(2),
+  #tasks-table thead th:nth-child(3),
+  #tasks-table td:nth-child(3) {
+    width: 1%;
+    min-width: 0;
+    max-width: none;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.2;
+    vertical-align: middle;
+  }
+
+  /* Headers may wrap; cell values stay on one line */
+  #tasks-table thead th:nth-child(2),
+  #tasks-table thead th:nth-child(3) {
+    white-space: normal;
+  }
+
+  #tasks-table td:nth-child(2),
+  #tasks-table td:nth-child(3) {
+    white-space: nowrap;
+  }
 }
-/* Second column fixed at 100px */
-#tasks-table thead th:nth-child(2),
-#tasks-table td:nth-child(2) {
-  width: 100px;
-  min-width: 100px;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Third column fixed at 150px */
-#tasks-table thead th:nth-child(3),
-#tasks-table td:nth-child(3) {
-  width: 150px;
-  min-width: 150px;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+/* —— Desktop: keep tighter fixed side columns —— */
+@media (min-width: 992px) {
+  #tasks-table thead th:nth-child(1),
+  #tasks-table td:nth-child(1) {
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #tasks-table thead th:nth-child(2),
+  #tasks-table td:nth-child(2) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+
+  #tasks-table thead th:nth-child(3),
+  #tasks-table td:nth-child(3) {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+
+  #tasks-table thead th:nth-child(2),
+  #tasks-table thead th:nth-child(3) {
+    white-space: normal;
+  }
+
+  #tasks-table td:nth-child(2),
+  #tasks-table td:nth-child(3) {
+    white-space: nowrap;
+  }
 }
 
 #tasks-table tbody tr {

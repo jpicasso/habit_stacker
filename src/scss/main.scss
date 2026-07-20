@@ -336,7 +336,7 @@ body {
 **/
 
 .header {
-  padding-top: 60px;
+  padding-top: calc(60px + env(safe-area-inset-top, 0px));
   background-color: $blue;
 
   > * {
@@ -376,7 +376,7 @@ body {
 
   &--interior {
     color: $white;
-    padding-top: 120px;
+    padding-top: calc(120px + env(safe-area-inset-top, 0px));
     padding-bottom: 60px;
   }
 }
@@ -503,13 +503,18 @@ body {
 .main {
   padding-left: 0;
   padding-right: 0;
+
+  // Mobile: clear fixed navbar + iOS safe area (md+ rules below override)
+  &--interior {
+    padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+  }
   
   @include media-breakpoint-up(md) {
-    padding: 53px 0 0;
+    padding: calc(53px + env(safe-area-inset-top, 0px)) 0 0;
   }
 
   @include media-breakpoint-up(lg) {
-    padding: 55px 0 0;
+    padding: calc(55px + env(safe-area-inset-top, 0px)) 0 0;
   }
 
   &--interior {
@@ -708,6 +713,9 @@ body {
   width: 100%;
   top: 0;
   left: 0;
+  // Extend the blue bar into the iOS status-bar / notch safe area
+  padding-top: calc(#{$navbar-padding-y} + env(safe-area-inset-top, 0px));
+  background-color: $blue;
 
   .megamenu {
     background: $dark-blue;
@@ -770,7 +778,7 @@ body {
       overflow-y: scroll;
       overflow-x: hidden;
       transition: visibility .2s ease-in-out, transform .2s ease-in-out;
-      padding: 0;
+      padding: env(safe-area-inset-top, 0px) 0 0;
 
       &.show {
         visibility: visible;

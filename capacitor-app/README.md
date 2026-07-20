@@ -37,28 +37,31 @@ page.
    Store. Enroll at https://developer.apple.com/programs/enroll/
    (can take 1–2 days to be approved).
 
----
-
-## One-time setup (already done)
-
-These steps were already run for you — listed for reference in case you ever
-need to regenerate the project:
-
-```bash
-cd capacitor-app
-npm install          # install Capacitor
-npx cap add ios      # generate the ios/ native project
-npx cap sync ios     # copy config + web assets into the iOS project
-```
-
----
-
 ## Step 1 — Run the app in the iOS Simulator
 
 ```bash
 cd capacitor-app
+npm install    
+nvm alias default 24      
+npx cap add ios      
+npx cap sync ios     
 npx cap open ios     
+# install Capacitor
+# generate the ios/ native project
+# copy config + web assets into the iOS project
 # opens Xcode with the project
+
+# if you need to refresh the web app code
+cd
+export NVM_DIR=~/.nvm
+source $(brew --prefix nvm)/nvm.sh
+nvm install 24
+nvm use 24
+cd Dropbox/4_HabitStacker
+rm -rf node_modules dist
+npm install
+npm run build
+npm run dev
 ```
 
 In Xcode:
@@ -175,6 +178,14 @@ Center. Many apps pass on the second try.
 ---
 
 ## Troubleshooting
+
+**No keyboard when tapping a text field (Simulator only)**
+The iOS Simulator often hides the on-screen keyboard because it treats your
+Mac keyboard as an attached hardware keyboard. Fix it with either:
+- **I/O → Keyboard → Toggle Software Keyboard** (or press **⌘K**)
+- **I/O → Keyboard → uncheck Connect Hardware Keyboard**
+
+On a real iPhone the keyboard appears normally — no app change needed.
 
 **`pod install` fails with "Unicode Normalization not appropriate for ASCII-8BIT"**
 Run with a UTF-8 locale:
