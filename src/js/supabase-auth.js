@@ -88,7 +88,8 @@
     // Fires immediately with the current session, then on every change
     sbClient.auth.onAuthStateChange((event, session) => {
       updateUI(session);
-      // Pages that gate content (e.g. the habits page) define this
+      // Skip token refresh — it doesn't change login state and causes page flicker
+      if (event === 'TOKEN_REFRESHED') return;
       if (typeof window.updateContentVisibility === 'function') {
         window.updateContentVisibility(!!session);
       }

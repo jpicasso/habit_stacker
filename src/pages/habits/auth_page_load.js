@@ -7,7 +7,16 @@
  * after page scripts — so we poll briefly until it exists.
  */
 
+let lastContentAuthState = null;
+
 function updateContentVisibility(isAuthenticated) {
+  // Skip no-op updates (onAuthStateChange + poll + focus otherwise flip the UI
+  // repeatedly and cause flicker on iOS WebViews).
+  if (lastContentAuthState === isAuthenticated) {
+    return;
+  }
+  lastContentAuthState = isAuthenticated;
+
   const privateContent = document.getElementById('private-content');
   const loginRequiredMessage = document.getElementById('login-required-message');
 
@@ -20,13 +29,15 @@ function updateContentVisibility(isAuthenticated) {
   }
 }
 
+window.updateContentVisibility = updateContentVisibility;
+
 async function checkAuthAndDisplayContent() {
   try {
     const isAuthenticated = await window.appAuth.isAuthenticated();
-    updateContentVisibility(isAuthenticated);
+    window.updateContentVisibility(isAuthenticated);
   } catch (error) {
     console.error('Error checking authentication:', error);
-    updateContentVisibility(false);
+    window.updateContentVisibility(false);
   }
 }
 
@@ -43,7 +54,7 @@ function waitForAuthAndCheck(maxRetries = 25, retryDelay = 200) {
       setTimeout(check, retryDelay);
     } else {
       console.warn('Supabase auth initialization timeout - showing login required');
-      updateContentVisibility(false);
+      window.updateContentVisibility(false);
     }
   };
 
@@ -58,7 +69,9 @@ if (document.readyState === 'loading') {
   waitForAuthAndCheck();
 }
 
-// User returns from logging in from another tab/window
+// User returns from logging in from another tab/window (desktop).
+// Skip on touch devices — iOS WebView fires focus often during load and causes flicker.
 window.addEventListener('focus', () => {
+  if (window.matchMedia('(pointer: coarse)').matches) return;
   if (window.appAuth) setTimeout(checkAuthAndDisplayContent, 100);
 });

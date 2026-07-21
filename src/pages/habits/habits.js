@@ -8,15 +8,6 @@
 async function getAuthContext() {
   try {
     if (window.appAuth) {
-      // Prefer a freshly refreshed access token — avoids stale JWTs and reduces
-      // "JWT issued at future" failures from phone clock skew.
-      if (window.appAuth.client) {
-        try {
-          await window.appAuth.client.auth.refreshSession();
-        } catch (refreshError) {
-          console.warn('Session refresh skipped:', refreshError);
-        }
-      }
       const session = await window.appAuth.getSession();
       if (session) {
         return {
@@ -38,31 +29,42 @@ function authHeaders(token, extra = {}) {
 }
 
 // --- Habits list: GET /api/habits, filter to current user, render rows with streak styling ---
+let loadTasksGeneration = 0;
+
 async function loadTasks() {
+  const generation = ++loadTasksGeneration;
   const loadingEl = document.getElementById('tasks-loading');
   const errorEl = document.getElementById('tasks-error');
   const emptyEl = document.getElementById('tasks-empty');
   const tableEl = document.getElementById('tasks-table');
   const tbodyEl = document.getElementById('tasks-tbody');
+  const hasVisibleRows = tableEl && tableEl.style.display !== 'none' && tbodyEl && tbodyEl.children.length > 0;
 
   try {
-    loadingEl.style.display = 'block';
+    // Avoid spinner flicker when we already have content on screen
+    if (!hasVisibleRows) {
+      loadingEl.style.display = 'block';
+      tableEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+    }
     errorEl.style.display = 'none';
-    emptyEl.style.display = 'none';
-    tableEl.style.display = 'none';
 
     const { email: currentUserEmail, token } = await getAuthContext();
+    if (generation !== loadTasksGeneration) return;
 
     if (!currentUserEmail) {
       loadingEl.style.display = 'none';
       emptyEl.textContent = 'Please log in to view your habits.';
       emptyEl.style.display = 'block';
+      tableEl.style.display = 'none';
       return;
     }
 
     const response = await fetch('/api/habits', {
       headers: authHeaders(token)
     });
+    if (generation !== loadTasksGeneration) return;
+
     const responseData = await response.json().catch(() => ({}));
     if (!response.ok) {
       const details = responseData.details || responseData.error || '';
@@ -82,14 +84,19 @@ async function loadTasks() {
       return dateB - dateA;
     });
 
+    if (generation !== loadTasksGeneration) return;
+
     loadingEl.style.display = 'none';
 
     if (tasks.length === 0) {
       emptyEl.textContent = 'No habits yet. Add one above!';
       emptyEl.style.display = 'block';
+      tableEl.style.display = 'none';
+      tbodyEl.innerHTML = '';
       return;
     }
 
+    emptyEl.style.display = 'none';
     tableEl.style.display = 'table';
     tbodyEl.innerHTML = '';
 
@@ -125,6 +132,7 @@ async function loadTasks() {
       tbodyEl.appendChild(row);
     });
   } catch (error) {
+    if (generation !== loadTasksGeneration) return;
     console.error('Error loading habits:', error);
     loadingEl.style.display = 'none';
     errorEl.textContent = error.message || 'Failed to load habits. Please refresh the page.';
@@ -344,14 +352,18 @@ window.deleteTask = deleteTask;
 window.editTask = editTask;
 window.saveEditTask = saveEditTask;
 
-// Extend auth_page_load.js: after login, reload habits (slight delay avoids racing layout)
-const originalUpdateContentVisibility = updateContentVisibility;
-updateContentVisibility = function(isAuthenticated) {
+// Extend auth_page_load.js: load habits once when auth becomes true
+const originalUpdateContentVisibility = window.updateContentVisibility || updateContentVisibility;
+window.updateContentVisibility = function(isAuthenticated) {
+  const wasAuthenticated = typeof lastContentAuthState !== 'undefined' ? lastContentAuthState : null;
   originalUpdateContentVisibility(isAuthenticated);
-  if (isAuthenticated) {
-    setTimeout(loadTasks, 100);
+  // Only fetch when transitioning into the authenticated state (not on TOKEN_REFRESHED / focus)
+  if (isAuthenticated && wasAuthenticated !== true) {
+    loadTasks();
   }
 };
+// Keep the bare binding used by older references in sync
+updateContentVisibility = window.updateContentVisibility;
 
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultEventDate();
