@@ -161,7 +161,7 @@ async function addTaskForm(event) {
     }
 
     taskInput.value = '';
-    eventDateInput.value = '';
+    setDefaultEventDate();
 
     await loadTasks();
   } catch (error) {
@@ -201,6 +201,22 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+/** Today's date as YYYY-MM-DD for <input type="date"> (local timezone). */
+function todayInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function setDefaultEventDate() {
+  const eventDateInput = document.getElementById('event-date');
+  if (eventDateInput) {
+    eventDateInput.value = todayInputValue();
+  }
 }
 
 /** Format as D-MMM-YY (e.g. 15-Feb-25). Uses T00:00:00 so the calendar day is stable in local TZ. */
@@ -329,6 +345,8 @@ updateContentVisibility = function(isAuthenticated) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  setDefaultEventDate();
+
   const taskForm = document.getElementById('task-form');
   if (taskForm) {
     taskForm.addEventListener('submit', addTaskForm);

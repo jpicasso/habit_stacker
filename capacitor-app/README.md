@@ -97,15 +97,19 @@ Dashboard (Authentication → URL Configuration) that:
 
 ## Step 4 — App icon and launch screen
 
-The App Store requires a 1024×1024 icon with no transparency.
+The App Store requires a 1024×1024 icon with no transparency. The project
+already uses `../src/img/habit_stacker_icon.png` (copied to
+`assets/icon-only.png`). To regenerate native icons after changing the PNG:
 
-1. Save your icon as `assets/icon-only.png` (1024×1024) and optionally
-   `assets/splash.png` (2732×2732) inside this folder.
-2. Generate all required sizes:
-   ```bash
-   npx capacitor-assets generate --ios
-   ```
-3. Re-sync and rebuild: `npx cap sync ios`, then run from Xcode.
+```bash
+cp ../src/img/habit_stacker_icon.png assets/icon-only.png
+npx capacitor-assets generate --ios
+npx cap sync ios
+```
+
+Then rebuild/run from Xcode. The website “Add to Home Screen” icon uses the
+same PNG via `apple-touch-icon` + `site.webmanifest` (deploy the website for
+that to update).
 
 ## Step 5 — Prepare App Store Connect
 

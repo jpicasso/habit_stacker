@@ -1,0 +1,17 @@
+{
+  "name": "Habit Stacker",
+  "short_name": "Habit Stacker",
+  "description": "Build habits that stick by stacking them onto existing routines",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#136bfb",
+  "icons": [
+    {
+      "src": "/img/habit_stacker_icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
