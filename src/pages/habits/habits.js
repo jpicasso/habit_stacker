@@ -8,6 +8,15 @@
 async function getAuthContext() {
   try {
     if (window.appAuth) {
+      // Prefer a freshly refreshed access token — avoids stale JWTs and reduces
+      // "JWT issued at future" failures from phone clock skew.
+      if (window.appAuth.client) {
+        try {
+          await window.appAuth.client.auth.refreshSession();
+        } catch (refreshError) {
+          console.warn('Session refresh skipped:', refreshError);
+        }
+      }
       const session = await window.appAuth.getSession();
       if (session) {
         return {
