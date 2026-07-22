@@ -1,10 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Muted, PrimaryButton, Screen, Title } from '@/components/ui';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
-import { API_BASE } from '@/lib/api';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -22,7 +21,7 @@ export default function SettingsScreen() {
       <Muted>Signed in as {user?.email ?? '—'}</Muted>
 
       <View style={styles.card}>
-        <Pressable onPress={() => Linking.openURL(`${API_BASE}/privacy.html`)}>
+        <Pressable onPress={() => router.push('/privacy')}>
           <Text style={styles.link}>Privacy policy</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/(app)/settings/delete-account')}>

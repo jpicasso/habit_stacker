@@ -107,6 +107,37 @@ export default function HabitsScreen() {
     <Screen style={{ paddingTop: 12, paddingBottom: insets.bottom + 8 }}>
       <ErrorBanner message={error} />
 
+      <View style={styles.headerRow}>
+        <Text style={[styles.headerCell, { flex: 1 }]}>Habit</Text>
+        <Text style={[styles.headerCell, { width: 56, textAlign: 'center' }]}>Days{'\n'}Kept</Text>
+        <Text style={[styles.headerCell, { width: 78, textAlign: 'center' }]}>Start{'\n'}Date</Text>
+      </View>
+
+      {loading && habits.length === 0 ? (
+        <ActivityIndicator color={Colors.primary} style={{ marginTop: 24, flex: 1 }} />
+      ) : (
+        <FlatList
+          style={{ flex: 1 }}
+          data={habits}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                load();
+              }}
+              tintColor={Colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <Text style={styles.empty}>No habits yet. Add one below!</Text>
+          }
+          contentContainerStyle={{ paddingBottom: 16 }}
+        />
+      )}
+
       <View style={styles.addCard}>
         <FieldLabel>New habit</FieldLabel>
         <Input
@@ -125,46 +156,16 @@ export default function HabitsScreen() {
         />
         <PrimaryButton label="Add New Habit" onPress={onAdd} loading={adding} />
       </View>
-
-      <View style={styles.headerRow}>
-        <Text style={[styles.headerCell, { flex: 1 }]}>Habit</Text>
-        <Text style={[styles.headerCell, { width: 56, textAlign: 'center' }]}>Days{'\n'}Kept</Text>
-        <Text style={[styles.headerCell, { width: 78, textAlign: 'center' }]}>Start{'\n'}Date</Text>
-      </View>
-
-      {loading && habits.length === 0 ? (
-        <ActivityIndicator color={Colors.primary} style={{ marginTop: 24 }} />
-      ) : (
-        <FlatList
-          data={habits}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                load();
-              }}
-              tintColor={Colors.primary}
-            />
-          }
-          ListEmptyComponent={
-            <Text style={styles.empty}>No habits yet. Add one above!</Text>
-          }
-          contentContainerStyle={{ paddingBottom: 24 }}
-        />
-      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   addCard: {
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
   },
   headerRow: {
     flexDirection: 'row',

@@ -253,58 +253,118 @@ Website-only content changes still deploy via the Express/`dist` site.
 
 ---
 
-## Deploy as a website (web app)
+## Deploy to Heroku as www.habitstackerapp.com
 
-Expo can export a static web app (React Native Web) from this same codebase.
+Your Heroku app already runs `node server.js` (see root `Procfile`). That server
+exposes `/api/*` **and** serves whatever is in the root `dist/` folder.
 
-### Local web preview
+The repo is wired so **`heroku-postbuild` builds the Expo web app into `dist/`**:
 
-From the `react-app` folder (don’t `cd react-app` again if you’re already there):
+```json
+"heroku-postbuild": "npm run build:web"
+"build:web": "npm --prefix react-app ci && npm --prefix react-app run export:web"
+```
+
+`react-app` exports with `--output-dir ../dist`, so production HTML/JS replaces
+the old Gulp marketing site. Same Express process still handles habits CRUD.
+
+### 1. Set Heroku config vars (required for the web build)
+
+Expo bakes `EXPO_PUBLIC_*` in at **build** time. Set them on the Heroku app
+**before** (or and then) you deploy:
+
+```bash
+heroku config:set \
+  EXPO_PUBLIC_SUPABASE_URL=https://dexwkysbqkjokfwuhmcl.supabase.co \
+  EXPO_PUBLIC_SUPABASE_ANON_KEY="YOUR_ANON_KEY" \
+  EXPO_PUBLIC_API_BASE_URL=https://www.habitstackerapp.com \
+  -a YOUR_HEROKU_APP_NAME
+```
+
+Keep the existing server secrets too:
+
+```bash
+heroku config:get SUPABASE_URL -a YOUR_HEROKU_APP_NAME
+heroku config:get SUPABASE_SERVICE_ROLE_KEY -a YOUR_HEROKU_APP_NAME
+```
+
+(Those must already be set for `/api/habits` to work.)
+
+### 2. Deploy
+
+From the **repo root** (not only `react-app/`):
+
+```bash
+git add -A
+git commit -m "Serve Expo web app from Heroku dist/"
+git push heroku HEAD:main
+# or: git push origin main   # if Heroku auto-deploys from GitHub
+```
+
+Watch the build log: you should see `expo export` write into `dist/`.
+
+### 3. Verify
+
+1. Open https://www.habitstackerapp.com — you should get the React login/habits UI.
+2. Log in and confirm habits load (API is same-origin, no CORS issue).
+3. Settings → Privacy should open `/privacy`.
+
+### 4. Supabase Auth URLs
+
+In Supabase → Authentication → URL Configuration:
+
+- **Site URL:** `https://www.habitstackerapp.com`
+- **Redirect URLs** include:
+  - `https://www.habitstackerapp.com/**`
+  - `https://www.habitstackerapp.com/reset-password`
+  - (optional) Expo scheme for native: `habitstacker://**`
+
+### Local preview of the same build
+
+```bash
+cd /Users/johnpicasso/Dropbox/4_HabitStacker
+npm run build:web          # writes react-app export → ./dist
+EXPO_PUBLIC_API_BASE_URL=http://localhost:3000 npm run build:web   # optional
+node server.js             # http://localhost:3000
+```
+
+### Notes / tradeoffs
+
+| Topic | Detail |
+|-------|--------|
+| Old Gulp site | No longer built on Heroku. Marketing HTML in `src/pages` is not what Heroku serves unless you change `heroku-postbuild` back. |
+| Capacitor app | Still loads `https://www.habitstackerapp.com` — it will show this React UI inside the WebView. |
+| Node version | Root `engines.node` is `>=20`. Set Heroku to Node 20+ (`heroku config:set NODE_VERSION=24` or an `engines`/`package.json` Heroku understands). |
+| Rebuild after UI changes | Push again, or `heroku builds:create`, so `expo export` re-runs. |
+
+---
+
+## Deploy as a website (other hosts)
+
+Expo can also export a static web app for Netlify/Vercel/etc. For
+**habitstackerapp.com on Heroku**, prefer the section above (API + UI together).
+
+### Local web preview (Metro)
+
+From the `react-app` folder:
 
 ```bash
 npx expo start --web
 ```
 
-Opens a browser at http://localhost:8081. If Metro crashes with
-`window is not defined`, pull the latest `lib/supabase.ts` (SSR-safe storage)
-and restart.
+Opens http://localhost:8081. API calls go to `EXPO_PUBLIC_API_BASE_URL` (needs
+CORS on the API if that origin differs — already configured for localhost:8081
+in `server.js` after you deploy that change).
 
-### Production static export
+### Standalone static export (non-Heroku)
 
 ```bash
 cd react-app
-npx expo start --web
+npx expo export -p web
 ```
 
-Output lands in `dist/` (or `web-build/` depending on Expo version — check the
-command summary). Host that folder on any static host:
-
-| Host | Idea |
-|------|------|
-| **Netlify / Vercel / Cloudflare Pages** | Drag-and-drop or connect the `react-app` repo; build command `npx expo export -p web`, publish directory `dist` |
-| **Your existing Express server** | Copy export into e.g. `dist-rn/` and serve it at a path or subdomain |
-| **GitHub Pages** | Upload the export; set `baseUrl` / Expo `experiments` if the app is not at domain root |
-
-### Web “Add to Home Screen”
-
-`app/+html.tsx` sets `theme-color`, viewport-fit, and apple web app meta tags.
-After hosting on HTTPS, Safari → Share → **Add to Home Screen** uses the
-exported favicon / icons.
-
-### Important web notes
-
-1. Set `EXPO_PUBLIC_API_BASE_URL` to your live API origin.
-2. In Supabase Auth → Redirect URLs, add your web app origin
-   (e.g. `https://app.habitstackerapp.com/**`).
-3. CORS: `server.js` allows Expo web origins (`http://localhost:8081`, etc.)
-   and the production site. Deploy that server change for
-   `localhost` → `https://www.habitstackerapp.com` API calls to work.
-   Extra origins: set `CORS_ORIGINS` on the host (comma-separated).
-   Same-origin hosting (or a reverse proxy) also works without relying on CORS.
-
-Example same-host approach: serve the Expo export at
-`https://www.habitstackerapp.com/app/` behind Express/static, or use a
-subdomain with CORS enabled for `/api/*`.
+By default this repo’s script writes to the **monorepo** `../dist` for Heroku.
+For a separate host, you can override the output dir as needed.
 
 ---
 

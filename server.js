@@ -64,12 +64,12 @@ app.use(
   bodyParser.urlencoded({ extended: true, limit: JSON_BODY_LIMIT_BYTES })
 );
 
-// Serve static files from the dist directory (if it exists)
+// Serve the Expo web export (and/or legacy Gulp site) from dist/
 const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 } else {
-  console.warn('WARNING: dist folder not found. Run "npm run build" first.');
+  console.warn('WARNING: dist folder not found. Run the Heroku/web build first.');
 }
 
 // Initialize databases
@@ -455,9 +455,17 @@ app.post('/api/account/delete', supabaseAuth.requireAuth(), async (req, res) => 
   }
 });
 
-// Handle all other routes by serving index.html (for client-side routing if needed)
+// SPA fallback: Expo Router client routes (e.g. /habits) → index.html
+// Do not steal /api/* (those routes are registered above).
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  const indexHtml = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(indexHtml)) {
+    return res.sendFile(indexHtml);
+  }
+  res.status(404).send('Not found — dist/index.html missing. Deploy the Expo web build.');
 });
 
 const PORT = process.env.PORT || 3000;

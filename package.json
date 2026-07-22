@@ -26,7 +26,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp build",
-    "heroku-postbuild": "npm run build",
+    "build:web": "npm --prefix react-app ci && npm --prefix react-app run export:web",
+    "heroku-postbuild": "npm run build:web",
     "start": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run watch\"",
     "server": "node server.js",
