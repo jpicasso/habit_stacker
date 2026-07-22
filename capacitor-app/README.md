@@ -40,12 +40,13 @@ page.
 ## Step 1 — Run the app in the iOS Simulator
 
 ```bash
-cd capacitor-app
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm use 24
+cd /Users/johnpicasso/Dropbox/4_HabitStacker/capacitor-app
 npm install    
 nvm alias default 24      
 npx cap add ios      
 npx cap sync ios     
-npx cap open ios     
+npx cap open ios 
 # install Capacitor
 # generate the ios/ native project
 # copy config + web assets into the iOS project
@@ -62,6 +63,11 @@ rm -rf node_modules dist
 npm install
 npm run build
 npm run dev
+
+# commit changes
+git add . 
+git commit -m "TBD"
+git push origin master
 ```
 
 In Xcode:
@@ -123,6 +129,7 @@ that to update).
 3. You will also need:
    - **Screenshots** — take these in the Simulator (`Cmd+S`) for a 6.7"/6.9"
      iPhone. At least one required.
+   - **Promotional Text** -  
    - **Privacy policy URL** — required because the app has accounts. Host a
      page on habitstackerapp.com (e.g. `/privacy.html`).
    - **App privacy details** — declare what you collect: email (Supabase
@@ -136,17 +143,82 @@ that to update).
 
 1. In Xcode, select **Any iOS Device (arm64)** as the destination.
 2. Menu: **Product → Archive**.
-3. When the Organizer window opens: **Distribute App → App Store Connect →
-   Upload**. Accept the defaults.
+3. When the Organizer window opens: **Distribute App → App Store Connect → Upload**. Accept the defaults.
 4. Wait ~15–60 min for the build to finish processing in App Store Connect.
 
 ## Step 7 — TestFlight (recommended before submitting)
 
-1. In App Store Connect → your app → **TestFlight** tab.
-2. Add yourself as an internal tester; install the TestFlight app on your
-   phone; install the build.
-3. Use the app for a few days. Fix anything broken (website fixes deploy
-   instantly; native/config changes require a new archive + upload).
+TestFlight lets you install the uploaded build on your real iPhone **before**
+App Store review. Use it to catch signing, login, and layout issues.
+
+### Prerequisites
+
+1. Finish **Step 6** (Archive → Upload). In App Store Connect → your app →
+   **TestFlight**, wait until the build status is **Ready to Test** (not
+   “Processing”). This often takes 15–60 minutes; sometimes longer.
+2. If Apple shows a missing **compliance / export** questionnaire on the
+   build, open it and answer (for this app: usually **None of the algorithms
+   mentioned** / standard encryption only — follow the prompts).
+3. Sign the latest **Paid Applications** / free agreements if App Store
+   Connect banners ask you to (Account → Agreements).
+
+### A. Add yourself as an internal tester
+
+Internal testers must be on your App Store Connect team (Admin, Developer,
+Marketing, or similar).
+
+1. Go to https://appstoreconnect.apple.com → **My Apps** → **Habit Stacker**.
+2. Open the **TestFlight** tab.
+3. In the left sidebar under **Internal Testing**, click **+** (or
+   **Create Group** if you have no group yet). Name it e.g. `Internal`.
+4. Select that group → **Add Testers** (or the **+** next to Testers).
+5. Add your own Apple ID email (the one you use on your iPhone).
+6. Enable the group for the build: select the processed build (or turn on
+   **Automatic Distribution** so new uploads go to the group).
+
+You should get an email from TestFlight / App Store Connect inviting you.
+
+### B. Install TestFlight and the app on your iPhone
+
+1. On your iPhone, open the **App Store** and install **TestFlight**
+   (Apple’s free app: search “TestFlight”).
+2. Open the invite email on the phone (or open the link from iCloud Mail /
+   Mail). Tap **View in TestFlight** / **Start Testing**.
+   - Or open **TestFlight** → you should see **Habit Stacker** listed under
+     Apps.
+3. In TestFlight, tap **Habit Stacker** → **Install** (or **Update**).
+4. When install finishes, tap **Open**. The icon also appears on your
+   Home Screen like a normal app (with an orange TestFlight dot in some
+   iOS versions).
+
+### C. What to test
+
+1. Cold launch, login / signup, load habits, add/edit/delete a habit.
+2. Leave the app and return; confirm session still works.
+3. Check the status-bar / notch area and keyboard on form fields.
+4. Use it for a few days if you can.
+
+**Website** fixes (HTML/CSS/JS on habitstackerapp.com) show up after a
+refresh — no new TestFlight build needed.  
+**Native** changes (icon, Capacitor config, bundle id, plugins) need a new
+Xcode **Archive → Upload**, then install the new build from TestFlight.
+
+### D. Common TestFlight issues
+
+| Problem | What to do |
+|--------|------------|
+| Build stuck on Processing | Wait; check email for processing failures. Re-upload from Xcode if it fails. |
+| “Missing compliance” | Complete the export-compliance questions on that build in TestFlight. |
+| No invite / app not in TestFlight | Confirm your Apple ID is in the Internal group and the build is assigned to that group. |
+| Can’t install | Same Apple ID on phone and in App Store Connect; enough storage; iOS version ≥ app’s minimum (14.0). |
+| “Developer mode” / untrusted | Rare for TestFlight; for ad-hoc/dev installs use Settings → Privacy & Security → Developer Mode. |
+
+### External testers (optional)
+
+To share with people **outside** your App Store Connect team: create an
+**External Testing** group, add their emails, and submit the build for
+Apple’s brief TestFlight review (often a few hours). Internal testing does
+**not** need that review — prefer Internal for yourself.
 
 ## Step 8 — Submit for review
 

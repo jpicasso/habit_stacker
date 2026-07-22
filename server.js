@@ -18,6 +18,45 @@ const supabaseAuth = require('./supabase-auth-server');
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
 
+// Allow the Expo web app (and other frontends) to call /api from another origin.
+// Browsers block cross-origin fetch without these headers ("Failed to fetch").
+const defaultCorsOrigins = [
+  'http://localhost:8081',
+  'http://127.0.0.1:8081',
+  'http://localhost:19006',
+  'http://127.0.0.1:19006',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://www.habitstackerapp.com',
+  'https://habitstackerapp.com',
+];
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const allowedOrigins = new Set([...defaultCorsOrigins, ...corsOrigins]);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Authorization, Content-Type, Accept'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET,POST,PUT,DELETE,OPTIONS'
+    );
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Middleware (base64 photos in JSON are ~4× file size; use explicit byte limit)
 const JSON_BODY_LIMIT_BYTES = 50 * 1024 * 1024; // 50 MiB
 app.use(bodyParser.json({ limit: JSON_BODY_LIMIT_BYTES }));
