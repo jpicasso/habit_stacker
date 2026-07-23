@@ -12,7 +12,7 @@ export default function SettingsScreen() {
 
   async function onLogout() {
     await signOut();
-    router.replace('/(auth)/login');
+    router.replace('/');
   }
 
   return (

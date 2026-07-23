@@ -36,7 +36,7 @@ export default function DeleteAccountScreen() {
     try {
       await deleteAccount(accessToken);
       await signOut();
-      router.replace('/(auth)/login');
+      router.replace('/');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to delete account');
     } finally {

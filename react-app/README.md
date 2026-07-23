@@ -1,3 +1,39 @@
+# Deploy to production - web
+cd /Users/johnpicasso/Dropbox/4_HabitStacker 
+git add -A
+git commit -m "TBD"
+git push origin HEAD:main
+
+# ???
+git push heroku HEAD:main
+
+# Update locally - web
+
+ ```bash
+ cd /Users/johnpicasso/Dropbox/4_HabitStacker/react-app
+ npx expo start --web
+  ```
+  
+
+# Update locally - app emulator - fast UX checks
+   
+   1. cli
+   ```bash
+   cd react-app
+   npx expo start
+   ```
+   2. Press **`i`** in the terminal to open the **iOS Simulator**
+
+# Update locally - app emulator - fast UX checks Option B — Development build (closer to production)
+
+   ```bash
+   npm install -g eas-cli
+   eas login
+   eas build --profile development --platform ios
+   ```
+
+
+
 # Habit Stacker — React Native (Expo)
 
 This folder is a **native-friendly rebuild** of Habit Stacker using
