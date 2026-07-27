@@ -64,7 +64,7 @@ app.use(
   bodyParser.urlencoded({ extended: true, limit: JSON_BODY_LIMIT_BYTES })
 );
 
-// Serve the Expo web export (and/or legacy Gulp site) from dist/
+// Serve the Gulp-built site (src/ → dist/) from dist/
 const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
@@ -455,8 +455,7 @@ app.post('/api/account/delete', supabaseAuth.requireAuth(), async (req, res) => 
   }
 });
 
-// SPA fallback: Expo Router client routes (e.g. /habits) → index.html
-// Do not steal /api/* (those routes are registered above).
+// Fallback for unknown paths (do not steal /api/* — those routes are above).
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'Not found' });
@@ -465,7 +464,7 @@ app.get('*', (req, res) => {
   if (fs.existsSync(indexHtml)) {
     return res.sendFile(indexHtml);
   }
-  res.status(404).send('Not found — dist/index.html missing. Deploy the Expo web build.');
+  res.status(404).send('Not found — dist/index.html missing. Run npm run build.');
 });
 
 const PORT = process.env.PORT || 3000;

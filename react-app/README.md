@@ -2,10 +2,7 @@
 cd /Users/johnpicasso/Dropbox/4_HabitStacker 
 git add -A
 git commit -m "TBD"
-git push origin HEAD:main
-
-# ???
-git push heroku HEAD:main
+git push origin master
 
 # Update locally - web
 
@@ -284,66 +281,51 @@ TestFlight → Install).
 - Point reviewers at the habits experience (add / edit / streak colors).
 - Privacy policy URL and delete-account path are already in the app.
 
-Website-only content changes still deploy via the Express/`dist` site.
-**Native UI changes** require a new EAS build + submit.
+**Production www.habitstackerapp.com** serves the **Gulp site** from `src/` (`npm run build` → `dist/`). Edit `src/pages`, `src/js`, etc., and deploy from the repo root.
+
+**Native UI changes** require a new EAS build + submit. For Expo web-only experiments, use `npm run build:web` locally (does not replace Heroku unless you change `heroku-postbuild`).
 
 ---
 
 ## Deploy to Heroku as www.habitstackerapp.com
 
-Your Heroku app already runs `node server.js` (see root `Procfile`). That server
-exposes `/api/*` **and** serves whatever is in the root `dist/` folder.
-
-The repo is wired so **`heroku-postbuild` builds the Expo web app into `dist/`**:
+Your Heroku app runs `node server.js` (see root `Procfile`). That server
+exposes `/api/*` **and** serves the Gulp-built site from `dist/`.
 
 ```json
-"heroku-postbuild": "npm run build:web"
-"build:web": "npm --prefix react-app ci && npm --prefix react-app run export:web"
+"heroku-postbuild": "npm run build"
+"build": "gulp build"
 ```
 
-`react-app` exports with `--output-dir ../dist`, so production HTML/JS replaces
-the old Gulp marketing site. Same Express process still handles habits CRUD.
+Ensure `src/js/supabase-config.js` has the correct anon key before deploy (it is copied into `dist/`).
 
-### 1. Set Heroku config vars (required for the web build)
-
-Expo bakes `EXPO_PUBLIC_*` in at **build** time. Set them on the Heroku app
-**before** (or and then) you deploy:
-
-```bash
-heroku config:set \
-  EXPO_PUBLIC_SUPABASE_URL=https://dexwkysbqkjokfwuhmcl.supabase.co \
-  EXPO_PUBLIC_SUPABASE_ANON_KEY="YOUR_ANON_KEY" \
-  EXPO_PUBLIC_API_BASE_URL=https://www.habitstackerapp.com \
-  -a YOUR_HEROKU_APP_NAME
-```
-
-Keep the existing server secrets too:
+### 1. Heroku config vars (API)
 
 ```bash
 heroku config:get SUPABASE_URL -a YOUR_HEROKU_APP_NAME
 heroku config:get SUPABASE_SERVICE_ROLE_KEY -a YOUR_HEROKU_APP_NAME
 ```
 
-(Those must already be set for `/api/habits` to work.)
+Optional: `EXPO_PUBLIC_*` on Heroku is only needed if you switch `heroku-postbuild` back to `build:web`.
 
 ### 2. Deploy
 
-From the **repo root** (not only `react-app/`):
+From the **repo root**:
 
 ```bash
 git add -A
-git commit -m "Serve Expo web app from Heroku dist/"
+git commit -m "Update site"
 git push heroku HEAD:main
 # or: git push origin main   # if Heroku auto-deploys from GitHub
 ```
 
-Watch the build log: you should see `expo export` write into `dist/`.
+Watch the build log: you should see Gulp compile `src/` into `dist/`.
 
 ### 3. Verify
 
-1. Open https://www.habitstackerapp.com — you should get the React login/habits UI.
-2. Log in and confirm habits load (API is same-origin, no CORS issue).
-3. Settings → Privacy should open `/privacy`.
+1. Open https://www.habitstackerapp.com — marketing home and `/login.html`.
+2. Log in and open `/habits/habit_stacker.html`; confirm habits load.
+3. `/privacy.html` and delete-account flow work.
 
 ### 4. Supabase Auth URLs
 
@@ -352,26 +334,32 @@ In Supabase → Authentication → URL Configuration:
 - **Site URL:** `https://www.habitstackerapp.com`
 - **Redirect URLs** include:
   - `https://www.habitstackerapp.com/**`
-  - `https://www.habitstackerapp.com/reset-password`
+  - `https://www.habitstackerapp.com/reset-password.html`
   - (optional) Expo scheme for native: `habitstacker://**`
 
-### Local preview of the same build
+### Local preview of the production site
 
 ```bash
 cd /Users/johnpicasso/Dropbox/4_HabitStacker
-npm run build:web          # writes react-app export → ./dist
-EXPO_PUBLIC_API_BASE_URL=http://localhost:3000 npm run build:web   # optional
+npm run build
 node server.js             # http://localhost:3000
+```
+
+### Optional: preview Expo web export locally
+
+```bash
+npm run build:web          # writes react-app export → ./dist (overwrites Gulp output)
+node server.js
 ```
 
 ### Notes / tradeoffs
 
 | Topic | Detail |
 |-------|--------|
-| Old Gulp site | No longer built on Heroku. Marketing HTML in `src/pages` is not what Heroku serves unless you change `heroku-postbuild` back. |
-| Capacitor app | Still loads `https://www.habitstackerapp.com` — it will show this React UI inside the WebView. |
-| Node version | Root `engines.node` is `>=20`. Set Heroku to Node 20+ (`heroku config:set NODE_VERSION=24` or an `engines`/`package.json` Heroku understands). |
-| Rebuild after UI changes | Push again, or `heroku builds:create`, so `expo export` re-runs. |
+| `react-app/` | Native (and optional local web preview via `build:web`); not what Heroku serves by default. |
+| Capacitor app | Loads `https://www.habitstackerapp.com` — the Gulp/HTML site in the WebView. |
+| Node version | Root `engines.node` is `>=20`. Set Heroku to Node 20+ if needed. |
+| Site changes | Edit `src/`, push; `gulp build` runs on Heroku via `heroku-postbuild`. |
 
 ---
 
