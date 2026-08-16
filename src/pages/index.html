@@ -4,6 +4,8 @@ title: 'Home'
 
 {{> navbar}}
 
+<link rel="stylesheet" href="/habits/habits.css">
+
 <!-- .header--hero -->
 <header class="header header--hero header--homepage">
   <div class="container">
@@ -38,8 +40,142 @@ title: 'Home'
         <ol>
           <li><strong>Add a habit</strong> and the date you started it.</li>
           <li><strong>Keep your streak</strong> — the app tracks how many days you've kept each habit.</li>
-          <li><strong>Watch habits level up</strong> as streaks pass 1, 21, 100, and 365 days.</li>
+          <li><strong>Earn Belts up</strong> - As you keep your habit for longer, you will achieve certain milestones and just like in karate, you wil earn new belts for each habit. For example, when you create a new habit, you will get a white belt, if you keep that habit for 24 hours, then you will get a yellow belt, etc. If you keep a habit for a year you will get a black belt and each year after that you will get a red stripe. you earn belts along the way:</li>
         </ol>
+        <table class="home-belts-table table table-bordered mt-3" aria-label="Achievement belts">
+          <thead>
+            <tr>
+              <th scope="col">Time Kept</th>
+              <th scope="col">Belt Color Achieved</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td> New habit</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="White">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#ffffff" stroke="#cfd3d8" stroke-width="2"/>
+                      <text x="28" y="27" text-anchor="middle" fill="#161823" font-size="10" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">New</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#161823" font-size="9" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Habit</text>
+                    </svg>
+                  </span>
+                  <span>White</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td> 24 hours</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Yellow">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#fdd835" stroke="#f9a825" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#161823" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">24</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#161823" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Hours</text>
+                    </svg>
+                  </span>
+                  <span>Yellow</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>2 weeks</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Orange">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#ef6c00" stroke="#e65100" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">2</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Weeks</text>
+                    </svg>
+                  </span>
+                  <span>Orange</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>1 month</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Green">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">1</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Month</text>
+                    </svg>
+                  </span>
+                  <span>Green</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>2 months</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Blue">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">2</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Months</text>
+                    </svg>
+                  </span>
+                  <span>Blue</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>3 months</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Brown">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#6d4c41" stroke="#4e342e" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">3</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Months</text>
+                    </svg>
+                  </span>
+                  <span>Brown</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>6 months</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Red">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#c62828" stroke="#b71c1c" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">6</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Months</text>
+                    </svg>
+                  </span>
+                  <span>Red</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>1 year</td>
+              <td>
+                <span class="home-belt-cell">
+                  <span class="inbox-avatar inbox-shield" aria-hidden="true" title="Black">
+                    <svg class="inbox-shield-svg" viewBox="0 0 56 64" width="48" height="54" role="img">
+                      <path d="M28 2 L50 10 V30 C50 46 38 58 28 62 C18 58 6 46 6 30 V10 Z" fill="#000000" stroke="#333333" stroke-width="2"/>
+                      <text x="28" y="26" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800" font-family="system-ui, -apple-system, Segoe UI, sans-serif"><tspan x="28" dy="0">12</tspan></text>
+                      <text x="28" y="38" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Months</text>
+                    </svg>
+                  </span>
+                  <span>Black</span>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mt-4">
+          Over time, your habits will stack and change colors as you achieve new belts for keeping habits past each milestone. Each milestone represents a significant achievement that is scientifically proven to improve your ability to build new habits and pyschologically stick to the ones you already have. This method has been successfully used by millions of people to build new habits, including the famous Alcoholics Anonymous programs. Below is an example of how a habit can stack and change colors over time.
+        </p>
+        <img src="/img/example_habits.jpeg" alt="Habit stacking example" class="img-fluid">
         <p class="mt-4">
           <a href="#" id="home-cta-guest-secondary" class="btn btn-primary" onclick="handleSignup(); return false;">Get started free</a>
           <a href="/habits/habit_stacker.html" id="home-cta-auth-secondary" class="btn btn-primary" style="display: none;">Go to my Habits</a>

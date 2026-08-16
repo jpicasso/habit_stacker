@@ -53,6 +53,26 @@ npm run dev
 
 If Gulp/Node is broken on your Mac, see the Node 24 reset steps at the bottom of this file.
 
+## Daily PWA notifications
+
+Installed home-screen users get a daily OS notification:
+
+> Congratulations, you have {x} active habits stacked today!
+
+`x` is that user’s row count in the `habits` table. A matching row is also inserted into `achievements` (once per day). A red **1** badge appears on the hamburger and **Achievements** until they open the inbox.
+
+To send the notification while the app is closed, set VAPID keys (see `.env.example`) and schedule a daily POST:
+
+```bash
+npx web-push generate-vapid-keys
+# then set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, CRON_SECRET on the host
+
+curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
+  https://www.habitstackerapp.com/api/cron/daily-achievements
+```
+
+On Heroku, use the Scheduler addon to run that curl once a day. Opening the installed app also creates today’s achievement if the cron has not run yet.
+
 ## Project layout
 
 ```
@@ -115,7 +135,7 @@ You are starting fresh: old Auth0 users and the old Supabase data do **not** tra
 
 In Supabase → **SQL Editor**, run the SQL in **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)**.
 
-For a habits-only launch you only need the `habits` table. The other tables (`goals_*`, `feedback`, etc.) are optional leftovers from the old app.
+For a habits-only launch you only need the `habits` table. Other tables (`feedback`, `achievements`, etc.) are optional depending on which features you use.
 
 ---
 
@@ -259,7 +279,7 @@ The anon key is designed to be public; the service role key must never be in `sr
 | Auth0 login redirects | Supabase email/password on `/login.html` |
 | `src/js/auth0-config.js` | `src/js/supabase-config.js` + `src/js/supabase-auth.js` |
 | www.upriseu.com / Uprise University | www.habitstackerapp.com / Habit Stacker |
-| Course / goals content | Habits-focused product |
+| Course / goals content | Removed — this app is habits-only |
 | GitHub `UpriseU2026` | GitHub `habit_stacker` |
 
 ---

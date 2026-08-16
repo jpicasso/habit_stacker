@@ -31,7 +31,12 @@ function copyJs() { // Copy the js folder and its subfolders to /dist
 }
 
 function copyHabitsPageAssets() { // Habit Stacker assets under src/pages/habits → dist/habits
-  return gulp.src(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/habits.css'])
+  return gulp.src([
+    './src/pages/habits/auth_page_load.js',
+    './src/pages/habits/habits.js',
+    './src/pages/habits/achievements.js',
+    './src/pages/habits/habits.css'
+  ])
     .pipe(gulp.dest('dist/habits'));
 }
 
@@ -42,6 +47,11 @@ function copySounds() { // Copy the sounds folder and its subfolders to /dist
 
 function copyWebManifest() { // PWA / Add to Home Screen manifest
   return gulp.src(['./src/site.webmanifest'])
+    .pipe(gulp.dest('dist'));
+}
+
+function copyServiceWorker() { // PWA service worker must be served from the site root
+  return gulp.src(['./src/sw.js'])
     .pipe(gulp.dest('dist'));
 }
 
@@ -64,6 +74,7 @@ function startup() { // Run all the tasks (occurs once when gulp watch starts up
   copyHabitsPageAssets();
   copySounds();
   copyWebManifest();
+  copyServiceWorker();
 }
 
 function watch() { // Run startup tasks, init browserSync and watch for changes to all project files
@@ -77,13 +88,14 @@ function watch() { // Run startup tasks, init browserSync and watch for changes 
   gulp.watch('./src/scss/**/*.scss', style);
   gulp.watch('./src/pages/**/*.html').on('change', gulp.series(compileHtml, browserSync.reload));
   gulp.watch('./src/js/**/*.js',{cwd:'./'}).on('change', gulp.series(copyJs, browserSync.reload));
-  gulp.watch(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/habits.css'], { cwd: './' }).on('change', gulp.series(copyHabitsPageAssets, browserSync.reload));
+  gulp.watch(['./src/pages/habits/auth_page_load.js', './src/pages/habits/habits.js', './src/pages/habits/achievements.js', './src/pages/habits/habits.css'], { cwd: './' }).on('change', gulp.series(copyHabitsPageAssets, browserSync.reload));
   gulp.watch('./src/img/**/*.*',{cwd:'./'}).on('change', gulp.series(copyImages, browserSync.reload));
   gulp.watch('./src/sounds/**/*.*',{cwd:'./'}).on('change', gulp.series(copySounds, browserSync.reload));
   gulp.watch('./src/site.webmanifest', { cwd: './' }).on('change', gulp.series(copyWebManifest, browserSync.reload));
+  gulp.watch('./src/sw.js', { cwd: './' }).on('change', gulp.series(copyServiceWorker, browserSync.reload));
   // gulp.watch('./src/{layouts,partials}/**/*').on('change', gulp.series(resetPages, compileHtml, browserSync.reload));
 }
 
 exports.style = style;
 exports.watch = watch;
-exports.build = gulp.series(style, compileHtml, copyImages, copyJs, copyHabitsPageAssets, copySounds, copyWebManifest);
+exports.build = gulp.series(style, compileHtml, copyImages, copyJs, copyHabitsPageAssets, copySounds, copyWebManifest, copyServiceWorker);

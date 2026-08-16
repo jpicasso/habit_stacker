@@ -1,0 +1,36 @@
+---
+title: 'Achievements'
+---
+
+{{> navbar}}
+
+<link rel="stylesheet" href="/habits/habits.css">
+
+<main class="main main--interior inbox-page">
+  <div id="private-content" style="display: none;">
+    <div class="inbox">
+      <header class="inbox-header">
+        <h1 class="inbox-title">Achievements</h1>
+      </header>
+      <div id="achievements-loading" class="inbox-status" style="display: none;">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+      <div id="achievements-error" class="inbox-status inbox-status--error" style="display: none;"></div>
+      <div id="achievements-empty" class="inbox-status inbox-status--empty" style="display: none;">No achievements yet</div>
+      <div id="achievements-list" class="inbox-list" style="display: none;"></div>
+    </div>
+  </div>
+
+  <div id="login-required-message" class="inbox-login" style="display: none;">
+    <h1 class="inbox-title">Inbox</h1>
+    <p>Log in to see your achievements.</p>
+    <button class="btn btn-primary" onclick="handleLogin(); return false;">Log In</button>
+  </div>
+</main>
+
+<script src="/habits/auth_page_load.js"></script>
+<script src="/habits/achievements.js"></script>
+
+{{> main-site-footer }}

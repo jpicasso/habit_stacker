@@ -7,21 +7,22 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "body-parser": "^1.20.2",
     "browser-sync": "^2.26.7",
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "gulp": "^4.0.2",
     "gulp-sass": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "panini": "^1.7.2",
     "sass": "^1.97.2",
     "sqlite3": "^5.1.6",
-    "body-parser": "^1.20.2",
-    "@supabase/supabase-js": "^2.45.0",
-    "dotenv": "^16.4.5",
-    "node-fetch": "^2.7.0",
-    "panini": "^1.7.1"
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "gulp-watch": "^5.0.1",
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "gulp-watch": "^5.0.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

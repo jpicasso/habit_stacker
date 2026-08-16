@@ -10,10 +10,11 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const { initDatabase, getAllTasks, addTask, updateTask, deleteTask, initHabitsDatabase, getAllHabits, addHabit, updateHabit, deleteHabit } = require('./db');
 const supabaseHabits = require('./supabase-habits');
-const supabaseGoals = require('./supabase-goals');
+const supabaseAchievements = require('./supabase-achievements');
 const supabaseTemporary = require('./supabase-temporary');
 const supabaseFeedback = require('./supabase-feedback');
 const supabaseAuth = require('./supabase-auth-server');
+const supabasePush = require('./supabase-push');
 
 const app = express();
 const useSupabaseHabits = supabaseHabits.isConfigured();
@@ -255,113 +256,267 @@ app.delete('/api/habits/:id', async (req, res) => {
   }
 });
 
-// --- Goals API (Supabase goals_list only) ---
+// --- Achievements API ---
+// Rows from the `achievements` table where `user` matches the logged-in account.
 
-app.get('/api/goals', async (req, res) => {
+app.use('/api/achievements', supabaseAuth.requireAuth());
+
+app.get('/api/achievements', async (req, res) => {
   try {
-    if (!supabaseGoals.isConfigured()) {
-      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    if (!supabaseAchievements.isConfigured()) {
+      return res.status(503).json({
+        error: 'Achievements require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
     }
-    const userId = req.query.user_id;
-    if (!userId) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
     }
-    const row = await supabaseGoals.getGoalsRow(userId);
-    res.json(row || null);
+    const achievements = await supabaseAchievements.getAchievementsForUser(userId, email);
+    const habits = await habitsForOwner(userId, email);
+    const habitById = new Map(habits.map((h) => [String(h.id), h]));
+    res.json(
+      achievements.map((row) => {
+        const habit = habitById.get(String(row.habit_id));
+        const startDate = habit && habit.event_date ? habit.event_date : null;
+        const achieved =
+          supabaseAchievements.achievedDateYmd(startDate, row.type) || row.date;
+        return {
+          ...row,
+          habit_name: habit ? habit.task : null,
+          habit_start_date: startDate,
+          date: achieved
+        };
+      })
+    );
   } catch (error) {
-    console.error('Error fetching goals:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch goals' });
+    console.error('Error fetching achievements:', error);
+    const message = error?.message || error?.error_description || String(error);
+    res.status(500).json({ error: 'Failed to fetch achievements', details: message });
   }
 });
 
-app.post('/api/goals', async (req, res) => {
-  try {
-    if (!supabaseGoals.isConfigured()) {
-      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
-    }
-    const { user_id, goal } = req.body || {};
-    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
-      return res.status(400).json({ error: 'user_id is required' });
-    }
-    const result = await supabaseGoals.addGoal(user_id.trim(), goal);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error('Error adding goal:', error);
-    res.status(400).json({ error: error.message || 'Failed to add goal' });
-  }
-});
+function localDateYmd(timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone || process.env.DAILY_TZ || 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+}
 
-app.patch('/api/goals', async (req, res) => {
+async function countHabitsForOwner(userId, email) {
+  const habits = await habitsForOwner(userId, email);
+  return habits.length;
+}
+
+async function habitsForOwner(userId, email) {
+  if (!habitsDb && !useSupabaseHabits) {
+    throw new Error('Habits database not initialized');
+  }
+  const habits = useSupabaseHabits
+    ? await supabaseHabits.getAllHabits()
+    : await getAllHabits(habitsDb);
+  const ids = new Set([userId, email].filter(Boolean).map((v) => String(v)));
+  return (habits || []).filter((h) => ids.has(h.user_id));
+}
+
+async function ensureDailyForOwner({ userId, email, dateYmd, sendPush }) {
+  const habits = await habitsForOwner(userId, email);
+  const createdRows = await supabaseAchievements.ensureMilestoneAchievements(habits, dateYmd);
+  const count = habits.length;
+  const created = createdRows.length > 0;
+  const message = supabaseAchievements.achievementMessageForRows(createdRows, count);
+  let pushSent = false;
+  if (sendPush && created) {
+    const pushResult = await supabasePush.sendPushToUser(userId, email, {
+      title: 'Habit Stacker',
+      body: message,
+      url: '/habits/achievements.html'
+    });
+    pushSent = !!(pushResult && pushResult.sent > 0);
+  }
+  const newCount = await supabaseAchievements.countNewAchievements(userId, email);
+  return {
+    created,
+    milestonesCreated: createdRows.length,
+    newCount,
+    message,
+    count,
+    date: dateYmd,
+    pushSent
+  };
+}
+
+// Create today's achievement for the logged-in user (idempotent).
+app.post('/api/achievements/daily', async (req, res) => {
   try {
-    if (!supabaseGoals.isConfigured()) {
-      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    if (!supabaseAchievements.isConfigured()) {
+      return res.status(503).json({
+        error: 'Achievements require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
     }
-    const { user_id, goal_index, value } = req.body || {};
-    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
-      return res.status(400).json({ error: 'user_id is required' });
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
     }
-    const idx = goal_index != null ? Number(goal_index) : NaN;
-    if (!Number.isInteger(idx) || idx < 1 || idx > 8) {
-      return res.status(400).json({ error: 'goal_index must be 1..8' });
-    }
-    const result = await supabaseGoals.updateGoal(user_id.trim(), idx, value);
+    const requested = req.body && req.body.date;
+    const dateYmd =
+      requested && /^\d{4}-\d{2}-\d{2}$/.test(String(requested).trim())
+        ? String(requested).trim()
+        : localDateYmd();
+    const result = await ensureDailyForOwner({
+      userId,
+      email,
+      dateYmd,
+      sendPush: true
+    });
     res.json(result);
   } catch (error) {
-    console.error('Error updating goal:', error);
-    res.status(400).json({ error: error.message || 'Failed to update goal' });
+    console.error('Error creating daily achievement:', error);
+    const message = error?.message || error?.error_description || String(error);
+    res.status(500).json({ error: 'Failed to create daily achievement', details: message });
   }
 });
 
-app.get('/api/goals/values', async (req, res) => {
+// Reset today's daily achievement so the client can pretend it is a new day.
+app.post('/api/achievements/daily/reset', async (req, res) => {
   try {
-    if (!supabaseGoals.isConfigured()) {
-      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
+    if (!supabaseAchievements.isConfigured()) {
+      return res.status(503).json({
+        error: 'Achievements require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
     }
-    const userId = req.query.user_id;
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'user_id query parameter is required' });
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
     }
-    const weekStart = req.query.week_start;
-    const goalNameParam = req.query.goal_name;
-    const options = {};
-    if (weekStart != null && String(weekStart).trim() !== '') {
-      const ws = String(weekStart).trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(ws)) {
-        return res.status(400).json({ error: 'week_start must be YYYY-MM-DD' });
-      }
-      options.weekStart = ws;
-    }
-    if (goalNameParam != null && String(goalNameParam).trim() !== '') {
-      options.goalName = String(goalNameParam).trim();
-    }
-    const rows = await supabaseGoals.getGoalValues(userId.trim(), options);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching goal values:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch goal values' });
-  }
-});
-
-app.post('/api/goals/values', async (req, res) => {
-  try {
-    if (!supabaseGoals.isConfigured()) {
-      return res.status(503).json({ error: 'Goals require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)' });
-    }
-    const { user_id, goal_name, value, date } = req.body || {};
-    if (!user_id || typeof user_id !== 'string' || !user_id.trim()) {
-      return res.status(400).json({ error: 'user_id is required' });
-    }
-    const result = await supabaseGoals.upsertGoalValue(
-      user_id.trim(),
-      goal_name != null ? String(goal_name) : '',
-      value != null ? String(value).trim() : '',
-      date != null && String(date).trim() !== '' ? String(date).trim() : null
+    const requested = req.body && req.body.date;
+    const dateYmd =
+      requested && /^\d{4}-\d{2}-\d{2}$/.test(String(requested).trim())
+        ? String(requested).trim()
+        : localDateYmd();
+    const cleared = await supabaseAchievements.clearMilestoneAchievements(
+      userId,
+      email
     );
-    res.status(201).json(result);
+    res.json({ ok: true, date: dateYmd, cleared });
   } catch (error) {
-    console.error('Error saving goal value:', error);
-    const message = error.message || 'Failed to save goal value';
-    res.status(500).json({ error: message });
+    console.error('Error resetting daily achievement:', error);
+    const message = error?.message || error?.error_description || String(error);
+    res.status(500).json({ error: 'Failed to reset daily achievement', details: message });
+  }
+});
+
+app.post('/api/achievements/read', async (req, res) => {
+  try {
+    if (!supabaseAchievements.isConfigured()) {
+      return res.status(503).json({
+        error: 'Achievements require Supabase (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)'
+      });
+    }
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
+    }
+    const updated = await supabaseAchievements.markAchievementsRead(userId, email);
+    res.json({ ok: true, updated });
+  } catch (error) {
+    console.error('Error marking achievements read:', error);
+    const message = error?.message || error?.error_description || String(error);
+    res.status(500).json({ error: 'Failed to mark achievements read', details: message });
+  }
+});
+
+// --- Web Push (installed PWA) ---
+
+app.get('/api/push/vapid-public-key', (req, res) => {
+  const key = supabasePush.vapidPublicKey();
+  if (!key) {
+    return res.status(503).json({ error: 'Web Push is not configured' });
+  }
+  res.json({ publicKey: key });
+});
+
+app.post('/api/push/subscribe', supabaseAuth.requireAuth(), async (req, res) => {
+  try {
+    if (!supabasePush.isConfigured()) {
+      return res.status(503).json({ error: 'Web Push is not configured' });
+    }
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
+    }
+    const subscription = req.body && req.body.subscription;
+    await supabasePush.saveSubscription(userId, email, subscription);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error saving push subscription:', error);
+    res.status(400).json({ error: error.message || 'Failed to save push subscription' });
+  }
+});
+
+// Daily job for every user with habits. Protect with CRON_SECRET.
+// Example: curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://www.habitstackerapp.com/api/cron/daily-achievements
+app.post('/api/cron/daily-achievements', async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!secret || token !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    if (!supabaseAchievements.isConfigured()) {
+      return res.status(503).json({ error: 'Achievements require Supabase' });
+    }
+    const dateYmd = localDateYmd();
+    const habits = useSupabaseHabits
+      ? await supabaseHabits.getAllHabits()
+      : await getAllHabits(habitsDb);
+    const createdRows = await supabaseAchievements.ensureMilestoneAchievements(
+      habits || [],
+      dateYmd
+    );
+    const byOwner = new Map();
+    createdRows.forEach((row) => {
+      const owner = row.user || row.user_id;
+      if (!owner) return;
+      if (!byOwner.has(owner)) byOwner.set(owner, []);
+      byOwner.get(owner).push(row);
+    });
+    const results = [];
+    for (const [owner, rows] of byOwner) {
+      const isEmail = String(owner).includes('@');
+      const message = supabaseAchievements.achievementMessageForRows(rows, rows.length);
+      const pushResult = await supabasePush.sendPushToUser(
+        isEmail ? null : owner,
+        isEmail ? owner : null,
+        {
+          title: 'Habit Stacker',
+          body: message,
+          url: '/habits/achievements.html'
+        }
+      );
+      results.push({
+        owner,
+        milestonesCreated: rows.length,
+        pushSent: !!(pushResult && pushResult.sent > 0)
+      });
+    }
+    res.json({
+      date: dateYmd,
+      created: createdRows.length,
+      users: results.length,
+      results
+    });
+  } catch (error) {
+    console.error('Error running daily achievements cron:', error);
+    res.status(500).json({ error: error.message || 'Failed to run daily achievements' });
   }
 });
 
