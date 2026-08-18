@@ -3,6 +3,7 @@ access.txt
 dist
 .DS_Store
 src/.DS_Store
+AuthKey_Y647BBCR4M.p8
 
 # SQLite database files (local only; use a hosted DB in production)
 *.db
