@@ -101,6 +101,50 @@ Dashboard (Authentication → URL Configuration) that:
 - **Site URL** is `https://www.habitstackerapp.com`
 - **Redirect URLs** include `https://www.habitstackerapp.com/**`
 
+## Step 3b — Push notifications (Capacitor iOS app)
+
+The website’s PWA notifications (service worker + Web Push) **do not work** inside
+the Capacitor iOS WebView. Apple only shows the notifications toggle in
+**Settings → Habit Stacker → Notifications** after the **native** app requests
+permission via `@capacitor/push-notifications`.
+
+### One-time Xcode setup
+
+1. Open the project: `npx cap open ios`
+2. Select the **App** target → **Signing & Capabilities** → **+ Capability** →
+   **Push Notifications**
+3. Confirm **App.entitlements** includes `aps-environment` (already in this repo)
+
+### One-time Apple Developer + server setup
+
+1. [Apple Developer](https://developer.apple.com/account/resources/authkeys/list) →
+   **Keys** → **+** → enable **Apple Push Notifications service (APNs)** →
+   download the `.p8` file. Note the **Key ID** and your **Team ID**.
+2. On Heroku (or your host), set env vars from `.env.example`:
+   - `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_PATH` (or `APNS_KEY` with the `.p8` contents)
+   - `APNS_BUNDLE_ID=com.habitstackerapp.app`
+   - `APNS_PRODUCTION=true`
+3. Deploy the latest website (`master`) so the live site includes the native
+   push JavaScript in `daily-notifications.js`.
+
+### Rebuild and test on your iPhone
+
+```bash
+cd capacitor-app
+npx cap sync ios
+npx cap open ios
+```
+
+Bump **Build** in Xcode, Archive, upload to TestFlight, install on your phone.
+
+1. Log in to the app.
+2. Tap anywhere once (or go to `/test.html` → **Enable notifications**).
+3. Allow the iOS prompt.
+4. **Settings → Notifications → Habit Stacker** should now appear with toggles.
+
+Daily achievement messages are sent from the server via APNs when the cron runs
+(`/api/cron/daily-achievements`), same as the PWA web-push path.
+
 ## Step 4 — App icon and launch screen
 
 The App Store requires a 1024×1024 icon with no transparency. The project
@@ -247,13 +291,142 @@ Center. Many apps pass on the second try.
 
 | Change | What to do |
 |--------|-----------|
-| Website content/features | Just deploy the website — the app updates automatically |
-| App name, icon, URL, config | Edit here → `npx cap sync ios` → new Archive → upload |
-| New Capacitor plugins (push, etc.) | `npm install` the plugin → sync → archive → upload |
+| Website content/features (habits, achievements/belts, copy, CSS) | Deploy the website to Heroku/`master` — the app loads the live site and picks them up after a refresh. **No new App Store build required** unless you also want a store listing version bump. |
+| App name, icon, splash, URL, config, native plugins | Edit here → bump version (below) → `npx cap sync ios` → Archive → upload |
+| New store listing version (required to re-submit to Apple) | Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` → sync → Archive → upload → submit (see **Uploading a new version to the App Store**) |
+
+### Version numbers (this release)
+
+| Field | Value | Where |
+|-------|-------|--------|
+| Marketing version (user-facing) | **1.1.0** | Xcode → App target → General → Version, or `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj` |
+| Build number (must increase every upload) | **2** | Xcode → Build, or `CURRENT_PROJECT_VERSION` in the same file |
+| npm package version | **1.1.0** | `package.json` |
+
+Each App Store Connect upload needs a **higher build number** than any build already uploaded for that app (even if the marketing version stays the same).
+
+---
+
+## Uploading a new version to the App Store
+
+Use this checklist whenever you want Apple to review a new binary (e.g. after native changes, or when you want the store listing to show **1.1.0** after website updates like achievements / karate belts).
+
+### 0. Confirm the website is live first
+
+The iOS app WebView loads `https://www.habitstackerapp.com`. Before you archive:
+
+1. Push / deploy the latest web app to production (you already pushed to `master`).
+2. Open https://www.habitstackerapp.com on a phone browser and smoke-test:
+   - Login / signup
+   - Habits list (colors / days kept)
+   - **Achievements** inbox and belt milestones
+   - Homepage / habits “How the app works” content
+3. Fix anything broken on the site **before** submitting the app — reviewers will see the live site inside the app.
+
+### 1. Sync this Capacitor project
+
+```bash
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm use 24
+cd /Users/johnpicasso/Dropbox/4_HabitStacker/capacitor-app
+npm install
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+npx cap sync ios
+```
+
+If you changed the app icon PNG:
+
+```bash
+cp ../src/img/habit_stacker_icon.png assets/icon-only.png
+npx capacitor-assets generate --ios
+npx cap sync ios
+```
+
+### 2. Bump version / build (if not already done)
+
+In Xcode (**open with `npx cap open ios`**):
+
+1. Open the **General** settings for the App target:
+   1. In the **left sidebar** (Project Navigator), click the blue **App** project icon at the very top of the file tree (it sits above folders like `App`, `CapApp-SPM`, `Pods`).
+   2. In the **middle pane**, you should see two columns: **PROJECT** and **TARGETS**. Under **TARGETS**, click **App** (the one with the app icon — not “Pods-*”).
+   3. Along the top of that middle pane, click the **General** tab (next to Signing & Capabilities, Info, Build Settings, etc.).
+2. Set **Version** to the marketing version (e.g. `1.1.0`).
+3. Set **Build** to an integer **higher than the last uploaded build** (e.g. `2`, then `3`, …).
+
+Or edit both Debug and Release in `ios/App/App.xcodeproj/project.pbxproj`:
+
+- `MARKETING_VERSION = 1.1.0;`
+- `CURRENT_PROJECT_VERSION = 2;`
+
+Also keep `package.json` `"version"` in sync for your own bookkeeping.
+
+### 3. Smoke-test in Simulator / on device
+
+```bash
+npx cap open ios
+```
+
+1. Pick a simulator or your iPhone → **Run** (`Cmd+R`).
+2. Confirm the live site loads, login works, habits and Achievements work.
+3. Signing: **Signing & Capabilities** → Automatically manage signing → Team `9TDJJ3V4DD` (or your team).
+
+### 4. Archive and upload to App Store Connect
+
+1. In Xcode, set the run destination to **Any iOS Device (arm64)** (not a simulator).
+2. Menu: **Product → Archive**. Wait for the archive to finish.
+3. Organizer opens automatically. Select the new archive → **Distribute App**.
+4. Choose **App Store Connect** → **Upload** → Next.
+5. Keep defaults (automatically manage signing, upload symbols, etc.) unless you have a reason to change them → **Upload**.
+6. Wait until Xcode reports a successful upload.
+
+Optional CLI alternative (after Archive exists): **Window → Organizer**, or use Transporter / `xcrun altool` / `notary` flows — Xcode Organizer is the simplest path.
+
+### 5. Wait for processing in App Store Connect
+
+1. Go to https://appstoreconnect.apple.com → **My Apps** → **Habit Stacker**.
+2. Open **TestFlight**. The new build appears as **Processing**, then **Ready to Test** (often 15–60 minutes).
+3. If Apple asks for **export compliance**, answer it. This project sets `ITSAppUsesNonExemptEncryption` to `false` in `Info.plist` so you can usually select that you only use standard/exempt encryption.
+
+### 6. (Recommended) Install via TestFlight and re-test
+
+1. Assign the build to your **Internal Testing** group (or enable Automatic Distribution).
+2. On your iPhone, open **TestFlight** → **Habit Stacker** → **Update** / **Install**.
+3. Re-test login, habits, Achievements / belts, and cold launch.
+
+### 7. Create the App Store version and submit
+
+1. App Store Connect → **Habit Stacker** → **App Store** tab (Distribution).
+2. Click **+ Version** or **Add Version** if needed. Enter the marketing version (**1.1.0**).
+3. **Build:** click the build picker and select the build you just uploaded (build **2**).
+4. Update listing fields for this release:
+   - **What’s New in This Version** — example:
+
+     > Track milestone belts as you keep habits (white through black), see achievements in your inbox, and learn how stacking works on the habits screen.
+
+   - Screenshots — refresh if the UI changed (Simulator `Cmd+S`).
+   - Description / keywords — mention habits, streaks, belts / achievements if you want.
+   - Privacy policy URL — still `https://www.habitstackerapp.com/privacy.html` (or your live privacy page).
+   - App Review notes — include a **demo account** email/password so reviewers can log in.
+5. Answer any Age Rating / Privacy questionnaires if prompted (email account, user-generated habits content; no tracking ads).
+6. Click **Add for Review** / **Submit for Review**.
+
+### 8. After approval
+
+1. Choose release: **Automatically release** or **Manually release this version**.
+2. When live, verify from a clean App Store install (not only TestFlight).
+3. For the *next* upload, bump **Build** again (e.g. to `3`). Bump **Version** only when you want a new user-facing version string.
+
+### Quick reference — do I need a new upload?
+
+| You changed… | New App Store upload? |
+|--------------|------------------------|
+| HTML/CSS/JS on the website only | No (deploy site). Optional if you want “What’s New” marketing. |
+| `capacitor.config.json`, icon, splash, Info.plist, plugins, signing | **Yes** |
+| You want App Store “Version 1.1.0” / release notes | **Yes** |
 
 ---
 
 ## Troubleshooting
+
 
 **No keyboard when tapping a text field (Simulator only)**
 The iOS Simulator often hides the on-screen keyboard because it treats your

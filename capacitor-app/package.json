@@ -1,6 +1,6 @@
 {
   "name": "habitstacker-mobile",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "iOS (and later Android) wrapper for www.habitstackerapp.com built with Capacitor",
   "private": true,
   "scripts": {
@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
-    "@capacitor/ios": "^7.0.0"
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/push-notifications": "^7.0.7"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0",
-    "@capacitor/assets": "^3.0.5"
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0"
   },
   "engines": {
     "node": ">=20"

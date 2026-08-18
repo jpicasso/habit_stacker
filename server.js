@@ -444,7 +444,7 @@ app.get('/api/push/vapid-public-key', (req, res) => {
 
 app.post('/api/push/subscribe', supabaseAuth.requireAuth(), async (req, res) => {
   try {
-    if (!supabasePush.isConfigured()) {
+    if (!supabasePush.isWebPushConfigured()) {
       return res.status(503).json({ error: 'Web Push is not configured' });
     }
     const userId = req.user?.id || null;
@@ -458,6 +458,26 @@ app.post('/api/push/subscribe', supabaseAuth.requireAuth(), async (req, res) => 
   } catch (error) {
     console.error('Error saving push subscription:', error);
     res.status(400).json({ error: error.message || 'Failed to save push subscription' });
+  }
+});
+
+app.post('/api/push/native/subscribe', supabaseAuth.requireAuth(), async (req, res) => {
+  try {
+    if (!supabasePush.isApnsConfigured()) {
+      return res.status(503).json({ error: 'Native push (APNs) is not configured on the server' });
+    }
+    const userId = req.user?.id || null;
+    const email = req.user?.email || null;
+    if (!userId && !email) {
+      return res.status(401).json({ error: 'You must be logged in' });
+    }
+    const token = req.body && req.body.token;
+    const platform = (req.body && req.body.platform) || 'ios';
+    await supabasePush.saveNativeToken(userId, email, token, platform);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error saving native push token:', error);
+    res.status(400).json({ error: error.message || 'Failed to save native push token' });
   }
 });
 

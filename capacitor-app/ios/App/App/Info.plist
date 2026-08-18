@@ -45,5 +45,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Uses only HTTPS / standard TLS — skips the export-compliance questionnaire on most uploads -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

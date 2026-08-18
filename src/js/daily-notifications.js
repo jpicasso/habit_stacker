@@ -21,6 +21,88 @@
     );
   }
 
+  function isCapacitorNative() {
+    try {
+      return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function getNativePushPlugin() {
+    if (!isCapacitorNative() || !window.Capacitor || !window.Capacitor.Plugins) return null;
+    return window.Capacitor.Plugins.PushNotifications || null;
+  }
+
+  let nativePushListenersAttached = false;
+
+  async function initNativePush(authToken, forcePrompt) {
+    const Push = getNativePushPlugin();
+    if (!Push) return { ok: false, reason: 'no-plugin' };
+    if (!authToken) return { ok: false, reason: 'no-auth' };
+
+    if (!nativePushListenersAttached) {
+      nativePushListenersAttached = true;
+      await Push.addListener('registration', async (event) => {
+        const deviceToken = event && event.value;
+        if (!deviceToken) return;
+        try {
+          const { token } = await getAuthContext();
+          if (!token) return;
+          await fetch('/api/push/native/subscribe', {
+            method: 'POST',
+            headers: authHeaders(token),
+            body: JSON.stringify({ token: deviceToken, platform: 'ios' })
+          });
+        } catch (err) {
+          console.warn('Native push subscribe failed:', err);
+        }
+      });
+      await Push.addListener('registrationError', (err) => {
+        console.warn('Native push registration error:', err);
+      });
+      await Push.addListener('pushNotificationActionPerformed', (event) => {
+        const url = event && event.notification && event.notification.data && event.notification.data.url;
+        if (url) window.location.href = url;
+      });
+    }
+
+    let perm = await Push.checkPermissions();
+    if (perm.receive === 'prompt' || (forcePrompt && perm.receive !== 'granted')) {
+      perm = await Push.requestPermissions();
+    }
+    if (perm.receive !== 'granted') {
+      return { ok: false, reason: 'denied', permission: perm.receive };
+    }
+
+    await Push.register();
+    return { ok: true, permission: perm.receive };
+  }
+
+  window.enableNotifications = async function enableNotifications() {
+    const { token } = await getAuthContext();
+    if (!token) throw new Error('Log in first to enable notifications.');
+    if (isCapacitorNative()) {
+      const result = await initNativePush(token, true);
+      if (!result.ok) {
+        if (result.reason === 'denied') {
+          throw new Error('Notifications are off. Open iPhone Settings → Habit Stacker → Notifications to turn them on.');
+        }
+        throw new Error('Could not enable notifications in the app.');
+      }
+      return result;
+    }
+    if ('Notification' in window && Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notifications were not allowed.');
+      }
+    }
+    await registerServiceWorker();
+    await subscribeToPush(token, true);
+    return { ok: true };
+  };
+
   function isAchievementsPage() {
     return /\/habits\/achievements\.html(?:[?#]|$)/.test(window.location.pathname);
   }
@@ -97,13 +179,15 @@
    * new-day flow (create achievement, red 1, OS notification).
    */
   async function testNotifications() {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
-    }
-
     const { token } = await getAuthContext();
     if (!token) {
       throw new Error('Log in first to test notifications.');
+    }
+
+    if (isCapacitorNative()) {
+      await initNativePush(token, true);
+    } else if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission();
     }
 
     await registerServiceWorker();
@@ -138,7 +222,11 @@
     renderBadges();
 
     try {
-      await subscribeToPush(token, true);
+      if (isCapacitorNative()) {
+        await initNativePush(token, false);
+      } else {
+        await subscribeToPush(token, true);
+      }
     } catch (err) {
       console.warn('Push subscribe failed:', err);
     }
@@ -204,6 +292,9 @@
   }
 
   async function subscribeToPush(token, force) {
+    if (isCapacitorNative()) {
+      return initNativePush(token, !!force);
+    }
     if (!force && !isInstalledPwa()) return;
     if (!('Notification' in window) || !('PushManager' in window)) return;
     if (Notification.permission === 'denied') return;
@@ -277,7 +368,11 @@
 
     const tapOnce = () => {
       document.removeEventListener('click', tapOnce, true);
-      subscribeToPush(token).catch(() => {});
+      if (isCapacitorNative()) {
+        initNativePush(token, true).catch(() => {});
+      } else {
+        subscribeToPush(token, true).catch(() => {});
+      }
     };
     document.addEventListener('click', tapOnce, true);
   }

@@ -15,6 +15,9 @@ title: 'Test notifications'
       <button type="button" class="btn btn-primary" id="test-notifications-btn">
         Test notifications
       </button>
+      <button type="button" class="btn btn-outline-primary ml-2" id="enable-notifications-btn">
+        Enable notifications
+      </button>
       <p id="test-notifications-status" class="mt-3 mb-0" style="display: none;"></p>
     </div>
 
@@ -30,8 +33,31 @@ title: 'Test notifications'
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('test-notifications-btn');
+    const enableBtn = document.getElementById('enable-notifications-btn');
     const status = document.getElementById('test-notifications-status');
     if (!btn) return;
+
+    if (enableBtn) {
+      enableBtn.addEventListener('click', async () => {
+        if (typeof window.enableNotifications !== 'function') {
+          status.style.display = 'block';
+          status.textContent = 'Notification script is not loaded. Refresh the page.';
+          return;
+        }
+        enableBtn.disabled = true;
+        status.style.display = 'block';
+        status.textContent = 'Requesting notification permission…';
+        try {
+          await window.enableNotifications();
+          status.textContent = 'Notifications enabled. You should see Habit Stacker under iPhone Settings → Notifications.';
+        } catch (err) {
+          status.textContent = err.message || 'Could not enable notifications.';
+        } finally {
+          enableBtn.disabled = false;
+        }
+      });
+    }
+
     btn.addEventListener('click', async () => {
       if (typeof window.testNotifications !== 'function') {
         status.style.display = 'block';
